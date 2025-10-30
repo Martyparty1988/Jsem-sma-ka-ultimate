@@ -1,399 +1,194 @@
 [
-    {
-        "category": "Svěží jak rybička",
-        "description": "Ty jsi ani nepil, přiznej se! Vypadáš líp než já po probuzení."
-    },
-    {
-        "category": "Začátečník večírků",
-        "description": "První pivo? Roztomilý. Dej si vodku a vrať se za hodinu."
-    },
-    {
-        "category": "Zatím v klidu",
-        "description": "Fasáda drží. Uvidíme po pár panácích. Zatím nuda."
-    },
-    {
-        "category": "Plnej energie",
-        "description": "Vypadáš, že bys mohl jít skládat uhlí. Nebo vypít další basu."
-    },
-    {
-        "category": "Čistý rejstřík",
-        "description": "Ani stopa po včerejšku. Jsi kouzelník, nebo jsi byl doma?"
-    },
-    {
-        "category": "Hydratovanej",
-        "description": "Pleť jak dětská prdýlka. Podezřelý. Pil jsi vůbec vodu?"
-    },
-    {
-        "category": "Nultá úroveň",
-        "description": "Jsi v klidu. Až moc. Nejsi tajnej policajt?"
-    },
-    {
-        "category": "Před startem",
-        "description": "Vypadáš, že se teprve chystáš. Tak na co čekáš?"
-    },
-    {
-        "category": "Nulová devastace",
-        "description": "Nuda. Dej si panáka a zkus to znovu."
-    },
-    {
-        "category": "V plné síle",
-        "description": "Ready na další kolo. A na další. A na další..."
-    },
-    {
-        "category": "Pátek odpoledne",
-        "description": "Lehká únava v očích. Dneska by to chtělo jít spát... po půlnoci."
-    },
-    {
-        "category": "První varování",
-        "description": "Začínáš vypadat 'umělecky'. Možná si dej pauzu. Nebo taky ne."
-    },
-    {
-        "category": "Mírně použitý",
-        "description": "Dá se to. Rychlá sprcha, kafe a jsi zase ve hře. Možná."
-    },
-    {
-        "category": "Včerejší echo",
-        "description": "Kocovina se teprve hlásí o slovo. Počkej si na oběd."
-    },
-    {
-        "category": "Lehce rozostřeno",
-        "description": "Vidíš ještě rovně? Asi jo. Ale už to dává práci, co?"
-    },
-    {
-        "category": "Sociální baterka",
-        "description": "Sociální baterka na 30%. Ještě mluvíš, ale už jen kýveš."
-    },
-    {
-        "category": "Decentní lesk",
-        "description": "Čelo se ti leskne, oči taky. Začíná to být zajímavý."
-    },
-    {
-        "category": "Na půl plynu",
-        "description": "Motor běží, ale jen na dva válce. Chce to dolít palivo."
-    },
-    {
-        "category": "První škrábance",
-        "description": "Lak je ještě dobrej, ale už máš první škrábance. Nic vážnýho."
-    },
-    {
-        "category": "Slušnej občan",
-        "description": "Ještě pořád vypadáš jako někdo, koho by pustili do autobusu."
-    },
-    {
-        "category": "Začínající únava",
-        "description": "Zíváš. Slaboch. Dej si čáru... kafe. Myslel jsem kafe."
-    },
-    {
-        "category": "Rozcvička",
-        "description": "Tohle je jen rozcvička. Hlavní program teprve přijde."
-    },
-    {
-        "category": "Ještě v normě",
-        "description": "Pořád jsi v kategorii 'normální člověk'. Zaber!"
-    },
-    {
-        "category": "Stav 'Meh'",
-        "description": "Ani ryba, ani rak. Ani střízlivej, ani ožralej. Rozhodni se."
-    },
-    {
-        "category": "Na vážkách",
-        "description": "Jít spát, nebo otevřít další lahev? Tvoje tvář říká obojí."
-    },
-    {
-        "category": "Těsně před",
-        "description": "Jsi těsně před bodem, odkud není návratu. Užij si to."
-    },
-    {
-        "category": "Kalibrace",
-        "description": "Systém se kalibruje. Prosím čekejte. Nebo si dejte panáka."
-    },
-    {
-        "category": "Pomalý rozjezd",
-        "description": "Rozjíždíš se pomalu, ale jistě. Jako stará dieselová lokomotiva."
-    },
-    {
-        "category": "Provozní teplota",
-        "description": "Už máš provozní teplotu. Teď začne ta pravá jízda."
-    },
-    {
-        "category": "Základní level",
-        "description": "Tohle je základ. Na tom se dá stavět. Tak stavěj!"
-    },
-    {
-        "category": "Sobota po tahu",
-        "description": "No jo, vidím to na tobě. Kruhy pod očima a trochu bledší. Klasika."
-    },
-    {
-        "category": "Mistr Afterparty",
-        "description": "Vypadáš, že jsi právě dorazil z afterky. Která začala včera."
-    },
-    {
-        "category": "Hledá se paměť",
-        "description": "Obličej říká 'Bylo to legendární', ale oči se ptají 'Co se stalo?'"
-    },
-    {
-        "category": "Kebab volá",
-        "description": "Ten výraz znám. Nutně potřebuješ něco mastnýho. HNED."
-    },
-    {
-        "category": "Vybitej mobil",
-        "description": "Vypadáš jako mobil na 1%. Ještě funguješ, ale je to otázka minut."
-    },
-    {
-        "category": "Hydratace nutná",
-        "description": "Jsi vyschlej jak beduínská sandále. Okamžitě se napij... piva."
-    },
-    {
-        "category": "Jedeš na výpary",
-        "description": "Poslední zbytky energie. Brzy se vypneš. Totálně."
-    },
-    {
-        "category": "Poslední Mohykán",
-        "description": "Všichni už spí, jen ty držíš prapor. Respekt, i když vypadáš hrozně."
-    },
-    {
-        "category": "Pohled tisíce mil",
-        "description": "Koukáš skrz zeď. Co tam vidíš? Konec světa, nebo další bar?"
-    },
-    {
-        "category": "Duchem nepřítomen",
-        "description": "Tělo je tady, ale duše je ještě na baru a objednává další rundu."
-    },
-    {
-        "category": "Solidní nálož",
-        "description": "To už není únava, to je solidně naloženo. Dobrá práce."
-    },
-    {
-        "category": "Autopilot",
-        "description": "Funguješ už jen na autopilota. Mozek se odhlásil před hodinou."
-    },
-    {
-        "category": "Mírně rozpadlej",
-        "description": "Začínáš se rozpadat. Potřebuješ izolepu a panáka."
-    },
-    {
-        "category": "Smrdíš po kouři",
-        "description": "Jde to z tebe cejtit i přes kameru. Běž se umejt. Nebo si dej další."
-    },
-    {
-        "category": "Ranní ptáče",
-        "description": "Ranní ptáče dál doskáče. Ty už ale neskáčeš, ty se plazíš."
-    },
-    {
-        "category": "Filtry selhaly",
-        "description": "Všechny tvoje sociální filtry jsou offline. Říkáš věci, co bys neměl."
-    },
-    {
-        "category": "Hrdina noci",
-        "description": "V noci jsi byl hrdina, teď jsi jen troska. Ale stálo to za to, ne?"
-    },
-    {
-        "category": "Ztracená existence",
-        "description": "Vypadáš ztraceně. Kde máš peněženku? A klíče? A důstojnost?"
-    },
-    {
-        "category": "Kreatura noci",
-        "description": "Slušná kreatura. Na denní světlo radši nevylézej."
-    },
-    {
-        "category": "Prokletej básník",
-        "description": "Vypadáš jako prokletej básník po třech dnech chlastání. Akorát bez těch básní."
-    },
-    {
-        "category": "Ještě žiješ?",
-        "description": "Dýcháš vůbec? Vypadáš, že potřebuješ defibrilátor."
-    },
-    {
-        "category": "Opuštěnej vrak",
-        "description": "Jako vrak lodi na dně oceánu. Plnej chlastu a smutku."
-    },
-    {
-        "category": "Vypnuto/Zapnuto",
-        "description": "Zkoušel jsi se vypnout a zapnout? Možná to pomůže."
-    },
-    {
-        "category": "Tovární nastavení",
-        "description": "Chce to reset do továrního nastavení. A dlouhej spánek."
-    },
-    {
-        "category": "Přeživší",
-        "description": "Přežil jsi další noc. Jsi jak šváb. Nezničitelnej."
-    },
-    {
-        "category": "Level 'Už nikdy'",
-        "description": "Dosáhl jsi levelu 'Už nikdy víc'. Uvidíme se příští pátek."
-    },
-    {
-        "category": "Rozsypanej čaj",
-        "description": "Jsi totálně rozsypanej. Někdo by tě měl zamést."
-    },
-    {
-        "category": "Pomačkanej",
-        "description": "Vypadáš, že jsi spal ve skříni. A ještě k tomu pomačkanej."
-    },
-    {
-        "category": "Smrt v očích",
-        "description": "Máš v očích smrt. A taky zbytek včerejšího drinku."
-    },
-    {
-        "category": "Ztracen v překladu",
-        "description": "Mluvíš, ale nikdo ti nerozumí. Ani ty sám."
-    },
-    {
-        "category": "Legenda nonstopu",
-        "description": "Masivní devastace! Kruhy pod očima jako pandě a bledost. Respekt."
-    },
-    {
-        "category": "Zombie z baru",
-        "description": "Totální troska! Vypadáš jak zombie. Rudé oči, pomačkaná ksicht. Běž spát."
-    },
-    {
-        "category": "Chce to detox",
-        "description": "Nekomentovatelný stav. Okamžitě do postele, hodně vody a vitamíny. SOS!"
-    },
-    {
-        "category": "Vesmírnej prach",
-        "description": "Vypadáš, že jsi šňupal vesmírnej prach a zapil to benzínem."
-    },
-    {
-        "category": "Stav nouze",
-        "description": "Tohle už je na hraně. Doporučuju nevycházet z domu a objednat si pizzu."
-    },
-    {
-        "category": "Error 404",
-        "description": "Funkce 'Lidská důstojnost' nenalezena. Restartuj systém."
-    },
-    {
-        "category": "Mrtvola na tripu",
-        "description": "Jsi ještě naživu? Mrkni, jestli můžeš. Vypadáš voskově."
-    },
-    {
-        "category": "Návrat do hrobu",
-        "description": "Vylezl jsi z hrobu na párty a teď se tam zase vracíš. Dobrou noc."
-    },
-    {
-        "category": "Mimozemský kontakt",
-        "description": "Komunikuješ s vesmírem, že? My ostatní smrtelníci ti nerozumíme."
-    },
-    {
-        "category": "Duch",
-        "description": "Jsi průhlednej. Pleť barvy 'tofu po záruce'. Dej si aspoň mrkev."
-    },
-    {
-        "category": "Finální boss",
-        "description": "Vypadáš jako finální boss v nonstopu ve 4 ráno. Všichni se tě bojí."
-    },
-    {
-        "category": "Existenční krize",
-        "description": "Tvoje tvář křičí 'Proč?'. Odpověď je 'Protože jsi mohl.'"
-    },
-    {
-        "category": "Chodící lékárna",
-        "description": "Potřebuješ Ibalgin, paralen, colu a možná svěcenou vodu."
-    },
-    {
-        "category": "Vygumováno",
-        "description": "Hlava jak pátrací balón. Úplně vygumováno. Prázdno."
-    },
-    {
-        "category": "Třesavka",
-        "description": "Klepeš se jak ratlík v zimě. Dej si panáka na spravení. Nebo taky ne."
-    },
-    {
-        "category": "Absťák po zábavě",
-        "description": "Tělo volá o pomoc. Duše chce další párty. Těžkej život."
-    },
-    {
-        "category": "Oči jak angorák",
-        "description": "Rudý oči. Ne jen trochu. Úplně rudý. Jako terminátor."
-    },
-    {
-        "category": "Filozof",
-        "description": "Začínáš mít filozofický kecy o smyslu života. Běž spát."
-    },
-    {
-        "category": "Mimo provoz",
-        "description": "Cedule 'Mimo provoz'. Nevolejte, nepište, nechte mě umřít."
-    },
-    {
-        "category": "Kaput",
-        "description": "Totálně kaput. Fertig. Konec. The End."
-    },
-    {
-        "category": "Pohřební služba",
-        "description": "Vypadáš, že už jsi volal pohřební službu. Jen pro jistotu."
-    },
-    {
-        "category": "Sešrotovanej",
-        "description": "Jako auto po totálce. Sešrotovanej na kost."
-    },
-    {
-        "category": "Hromádka neštěstí",
-        "description": "Jsi jen malá, smutná, páchnoucí hromádka neštěstí."
-    },
-    {
-        "category": "Lidská troska",
-        "description": "Gratuluji, dosáhl jsi statusu 'lidská troska'. Mise splněna."
-    },
-    {
-        "category": "Vyflusnutej",
-        "description": "Vyflusnutej jak žvejkačka na chodníku. A taky tak vypadáš."
-    },
-    {
-        "category": "Zombifikace",
-        "description": "Proces zombifikace je dokončen. Vítej mezi nemrtvými."
-    },
-    {
-        "category": "Generálka",
-        "description": "Tohle už není na opravu. Tohle je na generálku. Celýho těla."
-    },
-    {
-        "category": "Odpojenej",
-        "description": "Někdo tě odpojil ze zásuvky. Jsi totálně bez šťávy."
-    },
-    {
-        "category": "K.O.",
-        "description": "Knockout v desátým kole. Zůstaň ležet, nevstávej."
-    },
-    {
-        "category": "Boss level",
-        "description": "Dohrál jsi tuhle hru. Gratuluju. Teď si jdi lehnout. Na týden."
-    },
-    {
-        "category": "Absolutní vyplej",
-        "description": "Nevíš jak se jmenuješ, kde jsi a co je to za rok. Perfektní."
-    },
-    {
-        "category": "Vyvolenej",
-        "description": "Vypadáš jako Neo, když ho odpojili z Matrixu. Zmatenej a slizkej."
-    },
-    {
-        "category": "Dimenze X",
-        "description": "Už nejsi v naší dimenzi. Pošli pohled z tý svojí."
-    },
-    {
-        "category": "Svatá trojice",
-        "description": "Vypadáš na svatou trojici: pivo, rum, zelená. A všechno dohromady."
-    },
-    {
-        "category": "Posmrtnej život",
-        "description": "Zažíváš posmrtnej život. A není nic moc, co?"
-    },
-    {
-        "category": "Návštěva z pekla",
-        "description": "Vypadáš jako návštěva z pekla. A smrdíš sírou."
-    },
-    {
-        "category": "Poslední soud",
-        "description": "Čekáš na poslední soud. A doufáš, že Bůh má smysl pro humor."
-    },
-    {
-        "category": "Nekompatibilní",
-        "description": "Jsi nekompatibilní s realitou. Zkuste jiný operační systém."
-    },
-    {
-        "category": "Černá díra",
-        "description": "Jsi černá díra. Pohlcuješ všechnu radost... a pivo."
-    }
+  {
+    "category": "Startovní dávka",
+    "description": "Zatím jen jedno pivo a špetka odvahy. Varna teprve vrní."
+  },
+  {
+    "category": "Čistá lajna",
+    "description": "Zorničky jak měsíční krajina. Na orbitě, ale s úsměvem."
+  },
+  {
+    "category": "Mikrotrip",
+    "description": "Vidíš barvy, co neexistujou, a slyšíš svět dýchat. Klasickej čtvrtek."
+  },
+  {
+    "category": "Speedová rozcvička",
+    "description": "Tělo jede jak mixér, mozek běží pozpátku. Jsi ready na realitu?"
+  },
+  {
+    "category": "Pikovej princ",
+    "description": "Kráčíš po hraně mezi tancem a epilepsií. Koruna z hliníku, srdce z extáze."
+  },
+  {
+    "category": "Vařič snů",
+    "description": "Z kuchyně jde pára, ale tohle není guláš. Alchymie paneláku."
+  },
+  {
+    "category": "Zrcadlovej démon",
+    "description": "Koukáš do zrcadla a ono se kouká zpátky. Asi má taky lajnu."
+  },
+  {
+    "category": "Tichá noc",
+    "description": "Všichni spí. Jen ty a perník máte směnu."
+  },
+  {
+    "category": "Špína v žilách",
+    "description": "Srdce buší jak policejní beranidlo. Hrdina čtvrté dávky."
+  },
+  {
+    "category": "Ztracenej trip",
+    "description": "Když se realita rozpadne, zůstane jen hluk a úsměv bez důvodu."
+  },
+  {
+    "category": "Prach v nose",
+    "description": "Nosíš si prach z nebe. Jen není z nebe."
+  },
+  {
+    "category": "Noční varna",
+    "description": "Sirky, hliník a ticho. Chemie má svoje kouzlo i prokletí."
+  },
+  {
+    "category": "Extázový mnich",
+    "description": "Osvícení nalezeno uprostřed parketu. Nirvána vibruje v 160 BPM."
+  },
+  {
+    "category": "Fetboy deluxe",
+    "description": "Ztratil jsi klíče, soudnost i ponětí o čase. Ale beat držíš."
+  },
+  {
+    "category": "Lajna pravdy",
+    "description": "Každej má tu svoji cestu. Ty ji máš vysypanou na stole."
+  },
+  {
+    "category": "Rozklepanej bůh",
+    "description": "Vládneš vesmíru, ale ruce máš jak vibrační křeslo."
+  },
+  {
+    "category": "Zimní pika",
+    "description": "Zuby ti cvakaj jak kastaněty. Tělo topí na nouzovej režim."
+  },
+  {
+    "category": "Dealer poezie",
+    "description": "Slova ti tečou z pusy jak sirup z laboratorní skleničky."
+  },
+  {
+    "category": "Turbo večírek",
+    "description": "Tři dny, nula spánku, jeden mozek. A ten to vzdal včera."
+  },
+  {
+    "category": "Přepálenej anděl",
+    "description": "Křídla z igelitu a hlava z cukru. Lítáš, dokud se neroztopíš."
+  },
+  {
+    "category": "Dávkovací omyl",
+    "description": "Říkal jsi 'jen trochu'. Tělo slyšelo 'všechno'."
+  },
+  {
+    "category": "Tovární nastavení",
+    "description": "Resetuješ se vodkou a cigárama. Windows by tě neunesly."
+  },
+  {
+    "category": "Oční glitch",
+    "description": "Zorničky ti píšou Morseovku. Asi zpráva z pekla."
+  },
+  {
+    "category": "Prachovej rytíř",
+    "description": "Nosíš bílý brnění a temnej výraz. Klasika sobotní směny."
+  },
+  {
+    "category": "Elektrickej kříž",
+    "description": "Tělo napnutý jak drát, duše visí na zásuvce. Amen."
+  },
+  {
+    "category": "Cukrovej reset",
+    "description": "Lízátko, pika a paranoia. Ideální trojkombinace pro úterý."
+  },
+  {
+    "category": "Večírek 404",
+    "description": "Lidi zmizeli, hudba hraje dál. Ty taky možná neexistuješ."
+  },
+  {
+    "category": "Mazanec z varny",
+    "description": "Voníš jak chemickej experiment, ale srdce ti ještě tiká."
+  },
+  {
+    "category": "Nespací zóna",
+    "description": "Už dávno nespíš, jen blikáš. Tvoje sny běží na loopu."
+  },
+  {
+    "category": "Třesavej romantik",
+    "description": "Objímáš radiátor a přemýšlíš o lásce. Nikdo tě nechce, ani teplo."
+  },
+  {
+    "category": "Duch nonstopu",
+    "description": "Nejsi vidět, jen cítit. A to dost silně."
+  },
+  {
+    "category": "Falešnej klid",
+    "description": "Tvůj tep hraje drum’n’bass. Venku ticho. Uvnitř válka."
+  },
+  {
+    "category": "Kyselý prorok",
+    "description": "Vidíš budoucnost ve světlech lamp. A mluvíš s asfaltkou."
+  },
+  {
+    "category": "Perníkovej šaman",
+    "description": "Znáš všechny tvary kouře. Ale už ne svoje jméno."
+  },
+  {
+    "category": "Sociální glitch",
+    "description": "Pokusíš se promluvit, ale vyjde z tebe jen šum a sliny."
+  },
+  {
+    "category": "Červený oči",
+    "description": "Zíráš jak démon z plakátu. A plakát ti odpovídá."
+  },
+  {
+    "category": "Ultrarychlej úpadek",
+    "description": "Ráno hrdina, večer legenda, ráno zase troska. Rychlej koloběh."
+  },
+  {
+    "category": "Držák z pekla",
+    "description": "Všichni padli, ty jedeš dál. Pika místo víry."
+  },
+  {
+    "category": "Zfetovanej básník",
+    "description": "Každý slovo tě stojí dech. Poezie z roztřesený ruky."
+  },
+  {
+    "category": "Vypnutej hráč",
+    "description": "Game over. Dýcháš jen setrvačností."
+  },
+  {
+    "category": "Ztracenej v beatě",
+    "description": "Srdce ti hraje BPM 180. Tělo čeká, kdy se zhroutí stage."
+  },
+  {
+    "category": "Pražská mlha",
+    "description": "Nevidíš tři metry před sebe. Ale poznáš vůni speedu na dálku."
+  },
+  {
+    "category": "Kyselina v žilách",
+    "description": "Krvácíš barvy a směješ se asfaltu. To je ten vibe."
+  },
+  {
+    "category": "Rozbitej kompas",
+    "description": "Jdeš domů, ale domov už dávno neexistuje."
+  },
+  {
+    "category": "Zpomalenej vesmír",
+    "description": "Všechno se hýbe jak v želé. Možná jsi v čase, možná v tripu."
+  },
+  {
+    "category": "Měsíční feťák",
+    "description": "Stojíš na balkoně a koukáš na měsíc. On kouká zpátky a směje se."
+  },
+  {
+    "category": "Elektronickej Lazar",
+    "description": "Vstal jsi z mrtvých, ale jen proto, že hraje techno."
+  },
+  {
+    "category": "Prachovej restart",
+    "description": "Každá lajna je nový začátek. I konec zároveň."
+  }
 ]
-
