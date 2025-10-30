@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🍺 Jsem smažka</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🍺 Jsem smažka?</h1>
+            <p class="subtitle">Lokální AI detekce devastace</p>
+        </header>
+
+        <!-- Celá API sekce je pryč -->
+
+        <div class="camera-section">
+            <div class="video-container">
+                <video id="video" autoplay playsinline></video>
+                <div id="cameraError" class="error-message hidden"></div>
+            </div>
+
+            <div class="preview-container hidden" id="previewContainer">
+                <img id="preview" alt="Náhled fotky">
+            </div>
+
+            <div id="generalError" class="error-message hidden"></div>
+
+            <div class="button-group">
+                <button id="captureButton" class="primary-button">
+                    <span class="button-icon">📸</span>
+                    <span class="button-text">Vyfoť obličej</span>
+                </button>
+                <button id="uploadButton" class="secondary-button">
+                    <span class="button-icon">📁</span>
+                    <span class="button-text">Nahrát fotku</span>
+                </button>
+                <button id="retakeButton" class="secondary-button hidden">
+                    <span class="button-icon">🔄</span>
+                    <span class="button-text">Znovu</span>
+                </button>
+                <button id="analyzeButton" class="primary-button hidden">
+                    <span class="button-icon">🤖</span>
+                    <span class="button-text">Analyzovat</span>
+                </button>
+            </div>
+
+            <input type="file" id="uploadInput" accept="image/*" class="hidden">
+
+            <div id="loading" class="loading hidden">
+                <div class="spinner"></div>
+                <p>Analyzujem tvůj stav...</p>
+            </div>
+        </div>
+
+        <div id="result" class="result hidden">
+            <!-- Obsah se generuje v JS -->
+        </div>
+
+        <canvas id="canvas" style="display: none;"></canvas>
+
+        <footer>
+            <p class="privacy-note">⚠️ Výsledky slouží pouze pro zábavu.</p>
+        </footer>
+    </div>
+
+    <!-- Modal je pryč -->
+
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
+
+
