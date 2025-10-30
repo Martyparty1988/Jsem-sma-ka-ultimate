@@ -1,0 +1,8 @@
+/* Darker cool theme tweaks for scan mode */
+.video-container{background:radial-gradient(800px 300px at 50% -10%,rgba(34,197,94,.05),transparent),linear-gradient(180deg,#0b1220,#0b1220);}
+.camera-section{background:linear-gradient(160deg,#0b1220 0%, #0f172a 60%, #111827 100%);} 
+.result{background:linear-gradient(180deg,rgba(15,23,42,.8),rgba(2,6,23,.9)); border:1px solid rgba(148,163,184,.12); box-shadow: 0 20px 60px rgba(2,6,23,.7), inset 0 0 0 1px rgba(255,255,255,.04);} 
+.primary-button{background:linear-gradient(135deg,#22d3ee,#34d399); color:#041016; border:none; box-shadow:0 10px 30px rgba(34,211,238,.25);} 
+.secondary-button{background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.14);} 
+.error-message{background:rgba(239,68,68,.12); border:1px solid rgba(239,68,68,.4);} 
+.subtitle{color:#a3e3ff}
