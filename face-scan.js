@@ -103,6 +103,23 @@
     scanLine.classList.remove('active');
     status.textContent = 'Dokončeno!';
     setTimeout(()=>{
+      // Capture current frame so sharing/export has something to draw on
+      const canvasEl = document.getElementById('canvas');
+      if (canvasEl && video.videoWidth && video.videoHeight) {
+        const ctx = canvasEl.getContext('2d');
+        canvasEl.width = video.videoWidth;
+        canvasEl.height = video.videoHeight;
+        ctx.drawImage(video, 0, 0, canvasEl.width, canvasEl.height);
+        try {
+          currentImageData = canvasEl.toDataURL('image/jpeg', 0.9);
+          if (window.previewImg) {
+            previewImg.src = currentImageData;
+          }
+        } catch (err) {
+          console.error('Nelze vytvořit snímek pro sdílení:', err);
+        }
+      }
+
       // Trigger existing analyze flow but without image
       loadingDiv.classList.remove('hidden');
       // Reuse existing runAnalysis if available
