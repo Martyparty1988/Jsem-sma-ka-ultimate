@@ -1,194 +1,162 @@
 [
   {
-    "category": "Startovní dávka",
-    "description": "Zatím jen jedno pivo a špetka odvahy. Varna teprve vrní."
+    "category": "Svěží jak nový start",
+    "description": "AI nenašla žádnou katastrofu. Vypadáš až podezřele použitelně."
   },
   {
-    "category": "Čistá lajna",
-    "description": "Zorničky jak měsíční krajina. Na orbitě, ale s úsměvem."
+    "category": "Lehce načatej pátek",
+    "description": "Ještě držíš tvar, ale v očích už bliká malý nápis: pokračování bude drahé."
   },
   {
-    "category": "Mikrotrip",
-    "description": "Vidíš barvy, co neexistujou, a slyšíš svět dýchat. Klasickej čtvrtek."
+    "category": "Sociální baterka 12 %",
+    "description": "Úsměv jede, mozek šetří energii. Doporučení: voda, gauč a žádné velké životní rozhodnutí."
   },
   {
-    "category": "Speedová rozcvička",
-    "description": "Tělo jede jak mixér, mozek běží pozpátku. Jsi ready na realitu?"
+    "category": "Kebab volá",
+    "description": "Sken zachytil akutní potřebu něčeho mastného. Nejlépe dřív, než začneš filozofovat s lampou."
   },
   {
-    "category": "Pikovej princ",
-    "description": "Kráčíš po hraně mezi tancem a epilepsií. Koruna z hliníku, srdce z extáze."
+    "category": "Autopilot domů",
+    "description": "Tělo tvrdí, že ví cestu. Mozek u toho sedí vzadu a dělá, že neřídí."
   },
   {
-    "category": "Vařič snů",
-    "description": "Z kuchyně jde pára, ale tohle není guláš. Alchymie paneláku."
+    "category": "Ranní restart",
+    "description": "Vypadáš jako člověk, který se snaží zapnout bez nabíječky. Statečný pokus."
   },
   {
-    "category": "Zrcadlovej démon",
-    "description": "Koukáš do zrcadla a ono se kouká zpátky. Asi má taky lajnu."
+    "category": "Mírný glitch",
+    "description": "Obličej hlásí drobnou chybu vykreslování. Není to krize, jen aktualizace reality."
   },
   {
-    "category": "Tichá noc",
-    "description": "Všichni spí. Jen ty a perník máte směnu."
+    "category": "Afterparty archeolog",
+    "description": "Ve tváři se našly stopy dávné civilizace, tři historky a jedna ztracená důstojnost."
   },
   {
-    "category": "Špína v žilách",
-    "description": "Srdce buší jak policejní beranidlo. Hrdina čtvrté dávky."
+    "category": "Legenda u výčepu",
+    "description": "Sken tě zařadil mezi lokální památky. Obdivovat, nefotit zblízka."
   },
   {
-    "category": "Ztracenej trip",
-    "description": "Když se realita rozpadne, zůstane jen hluk a úsměv bez důvodu."
+    "category": "Pohled tisíce mil",
+    "description": "Oči jsou tady, ale mentálně jsi někde mezi lednicí a paralelním vesmírem."
   },
   {
-    "category": "Prach v nose",
-    "description": "Nosíš si prach z nebe. Jen není z nebe."
+    "category": "Hydratace nutná",
+    "description": "AI doporučuje vodu. Ne proto, že je chytrá, ale protože na tohle nemusí být génius."
   },
   {
-    "category": "Noční varna",
-    "description": "Sirky, hliník a ticho. Chemie má svoje kouzlo i prokletí."
-  },
-  {
-    "category": "Extázový mnich",
-    "description": "Osvícení nalezeno uprostřed parketu. Nirvána vibruje v 160 BPM."
-  },
-  {
-    "category": "Fetboy deluxe",
-    "description": "Ztratil jsi klíče, soudnost i ponětí o čase. Ale beat držíš."
-  },
-  {
-    "category": "Lajna pravdy",
-    "description": "Každej má tu svoji cestu. Ty ji máš vysypanou na stole."
-  },
-  {
-    "category": "Rozklepanej bůh",
-    "description": "Vládneš vesmíru, ale ruce máš jak vibrační křeslo."
-  },
-  {
-    "category": "Zimní pika",
-    "description": "Zuby ti cvakaj jak kastaněty. Tělo topí na nouzovej režim."
-  },
-  {
-    "category": "Dealer poezie",
-    "description": "Slova ti tečou z pusy jak sirup z laboratorní skleničky."
-  },
-  {
-    "category": "Turbo večírek",
-    "description": "Tři dny, nula spánku, jeden mozek. A ten to vzdal včera."
-  },
-  {
-    "category": "Přepálenej anděl",
-    "description": "Křídla z igelitu a hlava z cukru. Lítáš, dokud se neroztopíš."
-  },
-  {
-    "category": "Dávkovací omyl",
-    "description": "Říkal jsi 'jen trochu'. Tělo slyšelo 'všechno'."
+    "category": "Mistr výmluv",
+    "description": "Vypadáš připraven vysvětlit, že všechno bylo úplně normální. Nebylo, ale respekt za sebevědomí."
   },
   {
     "category": "Tovární nastavení",
-    "description": "Resetuješ se vodkou a cigárama. Windows by tě neunesly."
+    "description": "Systém se snaží obnovit výchozí hodnoty. Prosím nevypínat člověka během aktualizace."
   },
   {
-    "category": "Oční glitch",
-    "description": "Zorničky ti píšou Morseovku. Asi zpráva z pekla."
+    "category": "Boss level gauč",
+    "description": "Tvoje další mise je jasná: najít gauč, lehnout a nehýbat se jako profesionál."
   },
   {
-    "category": "Prachovej rytíř",
-    "description": "Nosíš bílý brnění a temnej výraz. Klasika sobotní směny."
+    "category": "Čistý chaos",
+    "description": "Sken je zmatený. Ty taky. Takže vlastně přesná shoda."
   },
   {
-    "category": "Elektrickej kříž",
-    "description": "Tělo napnutý jak drát, duše visí na zásuvce. Amen."
+    "category": "Nedělní Windows update",
+    "description": "Všechno funguje, jen pomaleji a s divnými zvuky. Restart doporučen."
   },
   {
-    "category": "Cukrovej reset",
-    "description": "Lízátko, pika a paranoia. Ideální trojkombinace pro úterý."
+    "category": "Tichý hrdina",
+    "description": "Nevypadáš zničeně. Vypadáš jako člověk, který zničení elegantně tají."
   },
   {
-    "category": "Večírek 404",
-    "description": "Lidi zmizeli, hudba hraje dál. Ty taky možná neexistuješ."
+    "category": "Včerejší echo",
+    "description": "Včerejšek ještě doznívá v obličeji. Dneska ho radši nezvěte na poradu."
   },
   {
-    "category": "Mazanec z varny",
-    "description": "Voníš jak chemickej experiment, ale srdce ti ještě tiká."
+    "category": "Na půl plynu",
+    "description": "Motor běží, kontrolky svítí, technická kontrola by se netvářila nadšeně."
   },
   {
-    "category": "Nespací zóna",
-    "description": "Už dávno nespíš, jen blikáš. Tvoje sny běží na loopu."
+    "category": "Dramatická únava",
+    "description": "Tvoje víčka mají vlastní odbory a právě vyhlásila stávku."
   },
   {
-    "category": "Třesavej romantik",
-    "description": "Objímáš radiátor a přemýšlíš o lásce. Nikdo tě nechce, ani teplo."
+    "category": "Kreatura snacků",
+    "description": "Sken našel silné napojení na chipsy, rohlík a všechno, co se dá jíst ve stoje."
   },
   {
-    "category": "Duch nonstopu",
-    "description": "Nejsi vidět, jen cítit. A to dost silně."
+    "category": "Slušný damage",
+    "description": "Není to konec světa, jen tvůj obličej poslal žádost o dovolenou."
   },
   {
-    "category": "Falešnej klid",
-    "description": "Tvůj tep hraje drum’n’bass. Venku ticho. Uvnitř válka."
+    "category": "Optimista bez dat",
+    "description": "Tvrdíš, že jsi v pohodě. AI tvrdí, že to je odvážná marketingová kampaň."
   },
   {
-    "category": "Kyselý prorok",
-    "description": "Vidíš budoucnost ve světlech lamp. A mluvíš s asfaltkou."
+    "category": "Noční manažer chaosu",
+    "description": "Vypadáš, že jsi v noci řídil projekt, o kterém nikdo nevěděl. Ani ty."
   },
   {
-    "category": "Perníkovej šaman",
-    "description": "Znáš všechny tvary kouře. Ale už ne svoje jméno."
+    "category": "Existenční loading",
+    "description": "Mozek načítá. Prosím počkej, než se objeví domovská obrazovka."
   },
   {
-    "category": "Sociální glitch",
-    "description": "Pokusíš se promluvit, ale vyjde z tebe jen šum a sliny."
+    "category": "Výraz 'už nikdy'",
+    "description": "Tohle je ten slavný moment, kdy člověk skládá sliby, které poruší příští pátek."
   },
   {
-    "category": "Červený oči",
-    "description": "Zíráš jak démon z plakátu. A plakát ti odpovídá."
+    "category": "Přeživší",
+    "description": "Gratuluju, aplikace detekovala základní známky života a lehce přehnané sebevědomí."
   },
   {
-    "category": "Ultrarychlej úpadek",
-    "description": "Ráno hrdina, večer legenda, ráno zase troska. Rychlej koloběh."
+    "category": "Šampion mikrospánku",
+    "description": "Mrknutí trvá podezřele dlouho. Kdyby to byl sport, máš medaili."
   },
   {
-    "category": "Držák z pekla",
-    "description": "Všichni padli, ty jedeš dál. Pika místo víry."
+    "category": "Rozhozená GPS",
+    "description": "Směr života je nejasný, ale směr do postele je extrémně doporučený."
   },
   {
-    "category": "Zfetovanej básník",
-    "description": "Každý slovo tě stojí dech. Poezie z roztřesený ruky."
+    "category": "Energetický dluh",
+    "description": "Tělo si půjčilo energii z budoucnosti a budoucnost právě poslala upomínku."
   },
   {
-    "category": "Vypnutej hráč",
-    "description": "Game over. Dýcháš jen setrvačností."
+    "category": "Party účetní",
+    "description": "Obličej spočítal škody rychleji než peněženka. Výsledek nechceš tisknout."
   },
   {
-    "category": "Ztracenej v beatě",
-    "description": "Srdce ti hraje BPM 180. Tělo čeká, kdy se zhroutí stage."
+    "category": "Hrdina posledního songu",
+    "description": "Sken našel člověka, který řekl ještě jeden track a myslel tím šest hodin."
   },
   {
-    "category": "Pražská mlha",
-    "description": "Nevidíš tři metry před sebe. Ale poznáš vůni speedu na dálku."
+    "category": "Filozof u zrcadla",
+    "description": "Jsi tři otázky od toho, abys sám sobě vysvětloval smysl života."
   },
   {
-    "category": "Kyselina v žilách",
-    "description": "Krvácíš barvy a směješ se asfaltu. To je ten vibe."
+    "category": "Rozbitý kompas",
+    "description": "Doma je tam, kde je nabíječka. Všechno ostatní je dobrodružství."
   },
   {
-    "category": "Rozbitej kompas",
-    "description": "Jdeš domů, ale domov už dávno neexistuje."
+    "category": "Velký návrat",
+    "description": "Ještě nejsi úplně zpátky, ale tvůj obličej už vyjednává podmínky."
   },
   {
-    "category": "Zpomalenej vesmír",
-    "description": "Všechno se hýbe jak v želé. Možná jsi v čase, možná v tripu."
+    "category": "Kaput, ale elegantně",
+    "description": "Sken hlásí únavu, ale pořád s určitou dávkou stylu. Takový noblesní rozpad."
   },
   {
-    "category": "Měsíční feťák",
-    "description": "Stojíš na balkoně a koukáš na měsíc. On kouká zpátky a směje se."
+    "category": "Meme materiál",
+    "description": "Tohle není diagnóza. Tohle je screenshot, který bude žít vlastním životem."
   },
   {
-    "category": "Elektronickej Lazar",
-    "description": "Vstal jsi z mrtvých, ale jen proto, že hraje techno."
+    "category": "Nultá úroveň dramatu",
+    "description": "Vypadáš v pohodě. Což je přesně to, co říkají lidi pět minut před zápletkou."
   },
   {
-    "category": "Prachovej restart",
-    "description": "Každá lajna je nový začátek. I konec zároveň."
+    "category": "Lokální legenda",
+    "description": "Sken ukazuje osobu známou v okruhu tří barů a jedné večerky."
+  },
+  {
+    "category": "Finální boss polštáře",
+    "description": "Další protivník: polštář. Máš vysokou šanci prohrát během osmi sekund."
   }
 ]
