@@ -1,70 +1,81 @@
 <!DOCTYPE html>
 <html lang="cs">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>  Jsem smažka</title>
-    <link rel="stylesheet" href="styles.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="description" content="Jsem smažka? Lokální srandovní sken stavu po večírku. Fotka zůstává v prohlížeči.">
+  <meta name="theme-color" content="#0b1220">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Smažka Scan">
+  <title>Jsem smažka?</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>  Jsem smažka?</h1>
-            <p class="subtitle">Lokální AI detekce devastace</p>
-        </header>
+  <main class="container" aria-labelledby="appTitle">
+    <header class="hero">
+      <p class="eyebrow">totálně lokální pseudo AI</p>
+      <h1 id="appTitle">Jsem smažka?</h1>
+      <p class="subtitle">Sken devastace po večírku. Přísně nevědecké, zato dramatické.</p>
+    </header>
 
-        <div class="camera-section">
-            <div class="video-container">
-                <video id="video" autoplay playsinline></video>
-                <div id="cameraError" class="error-message hidden"></div>
-            </div>
+    <section class="camera-section" aria-label="Kamera a sken">
+      <div class="video-container">
+        <video id="video" autoplay muted playsinline></video>
+        <div id="cameraError" class="error-message hidden" role="alert"></div>
+      </div>
 
-            <!-- Náhled je stále tu (pro sdílecí obrázek), ale běžně skrytý -->
-            <div class="preview-container hidden" id="previewContainer">
-                <img id="preview" alt="Náhled fotky">
-            </div>
+      <p id="scanHint" class="scan-hint">Povol kameru, srovnej obličej doprostřed a spusť sken.</p>
 
-            <div id="generalError" class="error-message hidden"></div>
+      <div class="preview-container hidden" id="previewContainer">
+        <img id="preview" alt="Náhled fotky pro sdílení výsledku">
+      </div>
 
-            <div class="button-group">
-                <!-- Skrytí tlačítek fotky/nahrání, necháme jen "Analyzovat" jako spouštěč scanu -->
-                <button id="captureButton" class="primary-button hidden">
-                    <span class="button-icon">📸</span>
-                    <span class="button-text">Vyfoť obličej</span>
-                </button>
-                <button id="uploadButton" class="secondary-button hidden">
-                    <span class="button-icon">📁</span>
-                    <span class="button-text">Nahrát fotku</span>
-                </button>
-                <button id="retakeButton" class="secondary-button hidden">
-                    <span class="button-icon">🔄</span>
-                    <span class="button-text">Znovu</span>
-                </button>
-                <button id="analyzeButton" class="primary-button">
-                    <span class="button-icon">🔎</span>
-                    <span class="button-text">Spustit sken</span>
-                </button>
-            </div>
+      <div id="generalError" class="error-message hidden" role="alert"></div>
 
-            <input type="file" id="uploadInput" accept="image/*" class="hidden">
+      <div class="button-group">
+        <button id="captureButton" class="secondary-button hidden" type="button">
+          <span class="button-icon" aria-hidden="true">📸</span>
+          <span class="button-text">Vyfotit ručně</span>
+        </button>
+        <button id="uploadButton" class="secondary-button hidden" type="button">
+          <span class="button-icon" aria-hidden="true">📁</span>
+          <span class="button-text">Nahrát fotku</span>
+        </button>
+        <button id="retakeButton" class="secondary-button hidden" type="button">
+          <span class="button-icon" aria-hidden="true">🔄</span>
+          <span class="button-text">Znovu</span>
+        </button>
+        <button id="analyzeButton" class="primary-button" type="button">
+          <span class="button-icon" aria-hidden="true">🔎</span>
+          <span class="button-text">Spustit sken</span>
+        </button>
+      </div>
 
-            <div id="loading" class="loading hidden">
-                <div class="spinner"></div>
-                <p>Analyzujem tvůj stav...</p>
-            </div>
-        </div>
+      <input type="file" id="uploadInput" accept="image/*" class="hidden">
 
-        <div id="result" class="result hidden"></div>
+      <div id="loading" class="loading hidden" aria-live="polite">
+        <div class="spinner" aria-hidden="true"></div>
+        <p>Vyhodnocuju damage level…</p>
+      </div>
+    </section>
 
-        <canvas id="canvas" style="display: none;"></canvas>
+    <section id="result" class="result hidden" aria-live="polite"></section>
 
-        <footer>
-            <p class="privacy-note"> Tak schválně jak jsi sjetej.</p>
-        </footer>
-    </div>
+    <canvas id="canvas" class="hidden" aria-hidden="true"></canvas>
 
-    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-    <script src="app.js"></script>
-    <script src="face-scan.js"></script>
+    <footer>
+      <p class="privacy-note">Fotka se nikam neposílá. Všechno běží jen v prohlížeči, výsledek je čistě meme a ne diagnóza.</p>
+    </footer>
+
+    <noscript>
+      <p class="error-message">Bez JavaScriptu tohle kouzlo nejede. Zapni JavaScript a dáme tomu šťávu.</p>
+    </noscript>
+  </main>
+
+  <script defer src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <script defer src="app.js"></script>
+  <script defer src="face-scan.js"></script>
 </body>
 </html>
