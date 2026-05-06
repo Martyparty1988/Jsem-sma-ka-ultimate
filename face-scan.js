@@ -1,145 +1,155 @@
-/* Face Scan Mode (no photo capture) */
-(function(){
-  const video = document.getElementById('video');
-  const captureButton = document.getElementById('captureButton');
-  const uploadButton = document.getElementById('uploadButton');
-  const retakeButton = document.getElementById('retakeButton');
-  const analyzeButton = document.getElementById('analyzeButton');
-  const resultDiv = document.getElementById('result');
-  const previewContainer = document.getElementById('previewContainer');
-  const generalError = document.getElementById('generalError');
-  const loadingDiv = document.getElementById('loading');
+/* Face Scan Mode – simulated local scan, no server upload */
+(() => {
+  'use strict';
 
-  // Build overlay UI
+  const app = window.SmazkaApp;
+  if (!app?.elements) return;
+
+  const { video, analyzeButton, retakeButton, result, previewContainer, loading } = app.elements;
+  const videoContainer = document.querySelector('.video-container');
+  if (!videoContainer) return;
+
   const overlay = document.createElement('div');
   overlay.id = 'scanOverlay';
-  overlay.style.cssText = 'position: absolute; inset: 0; pointer-events:none; border-radius: 16px;';
+  overlay.setAttribute('aria-hidden', 'true');
 
   const scanLine = document.createElement('div');
   scanLine.id = 'scanLine';
-  scanLine.style.cssText = 'position:absolute;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,#22d3ee,transparent);opacity:0;';
 
   const faceBox = document.createElement('div');
   faceBox.id = 'faceBox';
-  faceBox.style.cssText = 'position:absolute;border:2px solid #22d3ee;border-radius:12px;box-shadow:0 0 18px rgba(34,211,238,.4);opacity:0;';
 
   const status = document.createElement('div');
   status.id = 'scanStatus';
-  status.style.cssText = 'position:absolute;left:50%;transform:translateX(-50%);bottom:-44px;color:#7dd3fc;font-weight:600;text-shadow:0 2px 8px rgba(0,0,0,.5)';
   status.textContent = 'Inicializace kamery…';
 
   const barWrap = document.createElement('div');
   barWrap.id = 'scanBar';
-  barWrap.style.cssText = 'position:absolute;left:50%;transform:translateX(-50%);bottom:-78px;width:220px;height:6px;background:rgba(255,255,255,.08);border-radius:4px;overflow:hidden;opacity:0;';
   const bar = document.createElement('div');
-  bar.style.cssText = 'height:100%;width:0;background:linear-gradient(90deg,#22d3ee,#34d399);transition:width .1s';
+  bar.className = 'scan-bar-fill';
   barWrap.appendChild(bar);
 
-  const videoContainer = document.querySelector('.video-container');
-  if (videoContainer) {
-    videoContainer.style.position = 'relative';
-    overlay.appendChild(scanLine);
-    overlay.appendChild(faceBox);
-    overlay.appendChild(status);
-    overlay.appendChild(barWrap);
-    videoContainer.appendChild(overlay);
+  overlay.append(scanLine, faceBox, status, barWrap);
+  videoContainer.appendChild(overlay);
+
+  let scanTimer = null;
+  let detectTimer = null;
+  let progress = 0;
+  let isScanning = false;
+
+  const scanStages = [
+    [12, 'Hledám obličej…'],
+    [28, 'Zamykám pohled podezření…'],
+    [46, 'Měřím hladinu včerejška…'],
+    [64, 'Kontroluju chaos v očích…'],
+    [82, 'Počítám damage level…'],
+    [100, 'Dokončeno!']
+  ];
+
+  function setStatusByProgress(value) {
+    const stage = scanStages.find(([limit]) => value <= limit) || scanStages.at(-1);
+    status.textContent = stage[1];
   }
 
-  // Darker, cooler theme accents via CSS vars if present
-  const style = document.createElement('style');
-  style.textContent = `
-    .camera-section { background: radial-gradient(1200px 500px at 50% -20%, rgba(34,197,94,.06), transparent), #0b1220; }
-    .video-container { border:1px solid rgba(148,163,184,.15); box-shadow: 0 10px 30px rgba(2,6,23,.6), inset 0 0 0 1px rgba(255,255,255,.04); border-radius:16px; overflow:hidden; }
-    #video { object-fit: cover; }
-    @keyframes scanY { from{ top:0% } to{ top:100% } }
-    #scanLine.active { opacity:1; animation: scanY 1.8s linear infinite; }
-    #faceBox.show { opacity:1; transition: opacity .25s, transform .25s; }
-  `;
-  document.head.appendChild(style);
+  function setFaceBox() {
+    const bounds = videoContainer.getBoundingClientRect();
+    const width = Math.min(bounds.width * 0.54, 360);
+    const height = Math.min(bounds.height * 0.56, 380);
+    const left = (bounds.width - width) / 2;
+    const top = Math.max(22, (bounds.height - height) / 2);
 
-  // Hide photo workflow, show analyze only
-  function enableFaceScanUI(){
-    captureButton.classList.add('hidden');
-    uploadButton.classList.add('hidden');
-    analyzeButton.classList.remove('hidden');
-    retakeButton.classList.add('hidden');
-    previewContainer.classList.add('hidden');
-    resultDiv.classList.add('hidden');
-    generalError.classList.add('hidden');
+    Object.assign(faceBox.style, {
+      left: `${left}px`,
+      top: `${top}px`,
+      width: `${width}px`,
+      height: `${height}px`
+    });
+    faceBox.classList.add('show');
   }
 
-  // Lightweight simulated face detection + progress
-  let progress = 0; let scanTimer = null; let detectTimer = null;
-  function startFaceScan(){
-    enableFaceScanUI();
-    status.textContent = 'Hledám obličej…';
-    scanLine.classList.add('active');
-
-    // Simulate face lock after 0.8-1.6s
-    detectTimer = setTimeout(()=>{
-      // center 60% of the frame
-      const vc = videoContainer.getBoundingClientRect();
-      const w = Math.min(vc.width*0.5, 360);
-      const h = Math.min(vc.height*0.5, 360);
-      const x = (vc.width - w)/2; const y = (vc.height - h)/2;
-      Object.assign(faceBox.style,{left:x+'px',top:y+'px',width:w+'px',height:h+'px'});
-      faceBox.classList.add('show');
-      status.textContent = 'Obličej detekován! Skenuji…';
-      barWrap.style.opacity = '1';
-      progress = 0;
-      scanTimer = setInterval(()=>{
-        progress += 5 + Math.random()*5; // 5-10%
-        if(progress>100) progress=100;
-        bar.style.width = progress+'%';
-        if(progress>=100){
-          finishScan();
-        }
-      },120);
-    }, 800 + Math.random()*800);
-  }
-
-  function finishScan(){
+  function reset() {
+    clearTimeout(detectTimer);
     clearInterval(scanTimer);
+    detectTimer = null;
+    scanTimer = null;
+    progress = 0;
+    isScanning = false;
+    bar.style.width = '0%';
+    barWrap.classList.remove('show');
+    faceBox.classList.remove('show');
     scanLine.classList.remove('active');
-    status.textContent = 'Dokončeno!';
-    setTimeout(()=>{
-      // Capture current frame so sharing/export has something to draw on
-      const canvasEl = document.getElementById('canvas');
-      if (canvasEl && video.videoWidth && video.videoHeight) {
-        const ctx = canvasEl.getContext('2d');
-        canvasEl.width = video.videoWidth;
-        canvasEl.height = video.videoHeight;
-        ctx.drawImage(video, 0, 0, canvasEl.width, canvasEl.height);
-        try {
-          currentImageData = canvasEl.toDataURL('image/jpeg', 0.9);
-          if (window.previewImg) {
-            previewImg.src = currentImageData;
-          }
-        } catch (err) {
-          console.error('Nelze vytvořit snímek pro sdílení:', err);
-        }
-      }
-
-      // Trigger existing analyze flow but without image
-      loadingDiv.classList.remove('hidden');
-      // Reuse existing runAnalysis if available
-      if(typeof runAnalysis === 'function'){
-        runAnalysis();
-      }
-      // Reset UI bits after kick-off
-      faceBox.classList.remove('show');
-      barWrap.style.opacity = '0';
-      bar.style.width = '0%';
-    }, 300);
+    analyzeButton.disabled = false;
+    retakeButton.disabled = false;
+    loading.classList.add('hidden');
+    status.textContent = 'Připraveno ke skenu';
   }
 
-  // Wire analyze button to restart scan anytime
-  analyzeButton.addEventListener('click', ()=>{
-    // If video already running, just (re)start visualization
-    startFaceScan();
-  });
+  function finishScan() {
+    clearInterval(scanTimer);
+    scanTimer = null;
+    progress = 100;
+    bar.style.width = '100%';
+    setStatusByProgress(progress);
+    scanLine.classList.remove('active');
 
-  // Auto-start on load when video ready
-  if (video.readyState >= 2) startFaceScan();
-  else video.addEventListener('loadedmetadata', startFaceScan, { once: true });
+    window.setTimeout(() => {
+      app.captureCurrentFrame(0.92);
+      faceBox.classList.remove('show');
+      barWrap.classList.remove('show');
+      bar.style.width = '0%';
+      isScanning = false;
+      retakeButton.classList.remove('hidden');
+      previewContainer.classList.add('hidden');
+      app.runAnalysis({ skipImageCheck: true });
+    }, 280);
+  }
+
+  function start() {
+    if (isScanning || app.state.isAnalyzing) return;
+
+    if (!video.srcObject || !video.videoWidth) {
+      app.showError('Kamera ještě není připravená. Povol ji v prohlížeči, nebo použij nahrání fotky.');
+      return;
+    }
+
+    reset();
+    isScanning = true;
+    result.classList.add('hidden');
+    previewContainer.classList.add('hidden');
+    app.clearErrors();
+    app.setHint('Drž obličej ve středu. Tenhle nesmyslně vážný sken dělá všechno lokálně v prohlížeči.');
+    analyzeButton.disabled = true;
+    retakeButton.disabled = true;
+    scanLine.classList.add('active');
+    status.textContent = 'Hledám obličej…';
+
+    detectTimer = window.setTimeout(() => {
+      setFaceBox();
+      barWrap.classList.add('show');
+      progress = 4;
+
+      scanTimer = window.setInterval(() => {
+        progress = Math.min(100, progress + 4 + Math.random() * 8);
+        bar.style.width = `${progress}%`;
+        setStatusByProgress(progress);
+
+        if (progress >= 100) finishScan();
+      }, 115);
+    }, 450 + Math.random() * 450);
+  }
+
+  window.SmazkaFaceScan = { start, reset };
+
+  const autoStart = () => {
+    if (video.srcObject && video.videoWidth) {
+      status.textContent = 'Kamera připravena';
+      app.setHint('Dej obličej do středu a klikni na „Spustit sken“.');
+    }
+  };
+
+  if (video.readyState >= 2) autoStart();
+  video.addEventListener('loadedmetadata', autoStart);
+  window.addEventListener('resize', () => {
+    if (faceBox.classList.contains('show')) setFaceBox();
+  });
 })();
