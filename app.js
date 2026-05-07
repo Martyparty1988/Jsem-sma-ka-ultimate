@@ -31,9 +31,23 @@
     },
     {
       category: 'Afterparty archeolog',
-      description: 'V obličeji máš příběh, který by radši neměl mít pokračování. Ale meme potenciál slušný.'
+      description: 'V obličeji máš příběh, který by radši neměl mít pokračování. Meme potenciál slušný.'
     }
   ];
+
+  const weekdayForms = [
+    { nominative: 'neděle', accusative: 'neděli', adjective: 'nedělní', classic: 'Klasická neděle' },
+    { nominative: 'pondělí', accusative: 'pondělí', adjective: 'pondělní', classic: 'Klasický pondělí' },
+    { nominative: 'úterý', accusative: 'úterý', adjective: 'úterní', classic: 'Klasický úterý' },
+    { nominative: 'středa', accusative: 'středu', adjective: 'středeční', classic: 'Klasická středa' },
+    { nominative: 'čtvrtek', accusative: 'čtvrtek', adjective: 'čtvrteční', classic: 'Klasickej čtvrtek' },
+    { nominative: 'pátek', accusative: 'pátek', adjective: 'páteční', classic: 'Klasickej pátek' },
+    { nominative: 'sobota', accusative: 'sobotu', adjective: 'sobotní', classic: 'Klasická sobota' }
+  ];
+
+  const dayNominativePattern = 'pondělí|úterý|středa|čtvrtek|pátek|sobota|neděle';
+  const dayAccusativePattern = 'pondělí|úterý|středu|čtvrtek|pátek|sobotu|neděli';
+  const dayAdjectivePattern = 'pondělní|úterní|středeční|čtvrteční|páteční|sobotní|nedělní';
 
   const state = {
     currentImageData: null,
@@ -43,6 +57,32 @@
     isAnalyzing: false,
     lastCategory: ''
   };
+
+  function capitalizeFirst(text) {
+    const value = String(text || '');
+    return value ? value.charAt(0).toLocaleUpperCase('cs-CZ') + value.slice(1) : value;
+  }
+
+  function preserveInitialCase(replacement, originalMatch) {
+    const first = originalMatch?.charAt(0) || '';
+    return first === first.toLocaleUpperCase('cs-CZ') ? capitalizeFirst(replacement) : replacement;
+  }
+
+  function getTodayForms(date = new Date()) {
+    return weekdayForms[date.getDay()] || weekdayForms[0];
+  }
+
+  function syncWeekdayText(text) {
+    const today = getTodayForms();
+
+    return String(text || '')
+      .replace(new RegExp(`\\bKlasick(?:ej|ý|á)\\s+(?:${dayNominativePattern})\\b`, 'gi'), (match) => preserveInitialCase(today.classic, match))
+      .replace(new RegExp(`\\bIdeální trojkombinace pro\\s+(?:${dayAccusativePattern})\\b`, 'gi'), (match) => preserveInitialCase(`Ideální trojkombinace pro ${today.accusative}`, match))
+      .replace(new RegExp(`\\bpro\\s+(?:${dayAccusativePattern})\\b`, 'gi'), (match) => preserveInitialCase(`pro ${today.accusative}`, match))
+      .replace(new RegExp(`\\bv\\s+(?:${dayAccusativePattern})\\b`, 'gi'), (match) => preserveInitialCase(`v ${today.accusative}`, match))
+      .replace(new RegExp(`\\b(?:${dayAdjectivePattern})\\b`, 'gi'), (match) => preserveInitialCase(today.adjective, match))
+      .replace(new RegExp(`\\b(?:${dayNominativePattern})\\b`, 'gi'), (match) => preserveInitialCase(today.nominative, match));
+  }
 
   function hide(element) {
     element?.classList.add('hidden');
@@ -174,24 +214,26 @@
     if (lowered.includes('boss') || lowered.includes('legenda')) return '👑';
     if (lowered.includes('404') || lowered.includes('glitch')) return '⁉️';
     if (lowered.includes('zombie') || lowered.includes('duch')) return '🧟';
-    if (lowered.includes('vesmír') || lowered.includes('trip')) return '🌌';
+    if (lowered.includes('vesmír') || lowered.includes('trip') || lowered.includes('astrál')) return '🌌';
     if (lowered.includes('kebab')) return '🥙';
     if (lowered.includes('třes') || lowered.includes('rozklep')) return '🥶';
     if (lowered.includes('anděl')) return '👼';
+    if (lowered.includes('orloj') || lowered.includes('čas')) return '🕰️';
     return '🔎';
   }
 
   function displayResult(result) {
-    const category = String(result.category || 'Neznámý stav');
-    const description = String(result.description || 'AI se tváří tajemně a odmítá vypovídat.');
+    const category = syncWeekdayText(result.category || 'Neznámý stav');
+    const description = syncWeekdayText(result.description || 'AI se tváří tajemně a odmítá vypovídat.');
     const emoji = iconForCategory(category);
+    const todayLabel = capitalizeFirst(getTodayForms().nominative);
 
     state.lastAnalysisResult = { title: category, description };
     elements.result.replaceChildren();
 
     const badge = document.createElement('div');
     badge.className = 'result-badge';
-    badge.textContent = 'Výsledek skenu';
+    badge.textContent = `Výsledek skenu • ${todayLabel}`;
 
     const title = document.createElement('h2');
     title.textContent = `${emoji} ${category}`;
@@ -328,13 +370,15 @@
   }
 
   function drawResultPanel(ctx, title, description, top, width, height) {
+    const todayLabel = capitalizeFirst(getTodayForms().nominative).toLocaleUpperCase('cs-CZ');
+
     ctx.fillStyle = 'rgba(2, 6, 23, 0.92)';
     ctx.fillRect(0, top, width, height);
 
     ctx.fillStyle = '#67e8f9';
     ctx.font = '700 28px Segoe UI, sans-serif';
     ctx.textAlign = 'center';
-    ctx.fillText('LOKÁLNÍ AI DETEKCE DEVASTACE', width / 2, top + 58);
+    ctx.fillText(`LOKÁLNÍ AI DETEKCE DEVASTACE • ${todayLabel}`, width / 2, top + 58);
 
     ctx.fillStyle = '#d1fae5';
     let titleSize = 66;
@@ -467,7 +511,9 @@
     showError,
     clearErrors,
     setHint,
-    setBusy
+    setBusy,
+    syncWeekdayText,
+    getTodayForms
   };
 
   window.addEventListener('beforeunload', stopCamera);
