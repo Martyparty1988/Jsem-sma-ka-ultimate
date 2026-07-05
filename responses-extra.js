@@ -1,159 +1,194 @@
-(() => {
-  'use strict';
-
-  const extraResponses = [
-    {
-      category: 'Panelákovej Dalajláma',
-      description: 'Sedíš v astrálu, ponožky na útěku, duše ladí rádio Blaník z jiný dimenze.'
-    },
-    {
-      category: 'Junkovej orloj',
-      description: 'Praha odbila půlnoc, tvoje zorničky odbily konec směny a realita si vzala sick day.'
-    },
-    {
-      category: 'Funky popelník',
-      description: 'Voníš jak klubový koberec po apokalypse, ale aura má groove a trochu benzínu.'
-    },
-    {
-      category: 'Psychedelickej revizor',
-      description: 'Kontroluješ lístek do reality, jenže jízdenka je rohlík a tramvaj je tvoje svědomí.'
-    },
-    {
-      category: 'Králičí díra deluxe',
-      description: 'Spadl jsi do myšlenky, která měla sklep, Wi‑Fi a jedno hodně divný světlo.'
-    },
-    {
-      category: 'Mozek na leasing',
-      description: 'Splátka vědomí je po splatnosti. Inkaso provedla noc a nechala ti účtenku pod očima.'
-    },
-    {
-      category: 'Fantom benzínky',
-      description: 'Stojíš mezi párkem v rohlíku a osvícením. Oboje je teplý, podezřelý a trochu smutný.'
-    },
-    {
-      category: 'Šaman z nonstopu',
-      description: 'Mluvíš s lednicí, lednice mlčí, ale oba víte, že pravda je někde u energetáků.'
-    },
-    {
-      category: 'Disko patolog',
-      description: 'Zkoumáš vlastní výraz jako důkazní materiál. Příčina: noc. Mechanismus: basy.'
-    },
-    {
-      category: 'Garážovej mystik',
-      description: 'Tvoje aura bliká jak zářivka v dílně. Něco mezi prorokem, vrakem a starým reprákem.'
-    },
-    {
-      category: 'Svatá trojice chaosu',
-      description: 'Klíče nejsou, mobil žije vlastním životem a důstojnost čeká před klubem na taxi.'
-    },
-    {
-      category: 'Rohlíkovej nihilista',
-      description: 'Díváš se do prázdna a prázdno se ptá, jestli máš ještě drobný na večerku.'
-    },
-    {
-      category: 'Kotelní filozof',
-      description: 'Pochopil jsi vesmír, jen to neumíš říct bez šesti odboček a jednoho podezřelýho smíchu.'
-    },
-    {
-      category: 'Fialovej kanárek',
-      description: 'Zpíváš v hlavě písničku, kterou nikdo nesložil. Bohužel je chytlavá a má trauma.'
-    },
-    {
-      category: 'Krevní skupina bassline',
-      description: 'Máš rytmus místo pulsu. Doktor by brečel, DJ by zatleskal.'
-    },
-    {
-      category: 'Absurdní astronaut',
-      description: 'Skafandr nemáš, ale stejně opouštíš atmosféru. Řídicí středisko je kebabárna.'
-    },
-    {
-      category: 'Špinavej zen',
-      description: 'Našel jsi vnitřní klid. Ležel pod stolem, kouřil mentolku a říkal ti brácho.'
-    },
-    {
-      category: 'Kocour z matrixu',
-      description: 'Jednou jsi zamrkal a realita se načetla z Temu. Levná, barevná, podezřele hlučná.'
-    },
-    {
-      category: 'Vesmírnej popelář',
-      description: 'Sbíráš trosky svojí osobnosti do igelitky. Tříděný odpad, tříděný vzpomínky.'
-    },
-    {
-      category: 'Neonovej bezdomovec času',
-      description: 'Nevíš, kolik je hodin, ale čas tě už dávno vystěhoval z vlastního obličeje.'
-    },
-    {
-      category: 'Tripovej účetní',
-      description: 'Počítáš škody na duši, peněžence a reputaci. Excel se sám zavřel ze studu.'
-    },
-    {
-      category: 'Kazetovej démon',
-      description: 'Přehráváš stejnou větu dokola, jen pokaždý s větším přesvědčením a menší logikou.'
-    },
-    {
-      category: 'Kyselý metro',
-      description: 'V hlavě jede linka C přímo do podvědomí. Přestup na realitu je mimo provoz.'
-    },
-    {
-      category: 'Betonovej motýl',
-      description: 'Chceš lítat, ale máš křídla z paneláku a emoce z automatu na kafe.'
-    },
-    {
-      category: 'Měsíční skladník',
-      description: 'V očích máš inventuru vesmíru. Chybí tři hvězdy, dvě hodiny a jeden rozum.'
-    },
-    {
-      category: 'Funky márnice',
-      description: 'Vypadáš mrtvě, ale s rytmem. Pokud padneš, padneš do taktu.'
-    },
-    {
-      category: 'Čaroděj z večerky',
-      description: 'Kupuješ vodu a tváříš se, že to byl plán. Prodavač ví. Vždycky ví.'
-    },
-    {
-      category: 'Hologram po výplatě',
-      description: 'Fyzicky jsi tady, finančně jsi vzpomínka a mentálně leták na techno.'
-    },
-    {
-      category: 'Divnej princ periferie',
-      description: 'Koruna z kapuce, trůn z obrubníku, království mezi benzínkou a špatným nápadem.'
-    },
-    {
-      category: 'Klasickej čtvrtek z podsvětí',
-      description: 'Klasickej čtvrtek: duše v kabátu, mozek na balkóně a realita dole kouří u vchodu.'
-    },
-    {
-      category: 'Úterní error v hlavě',
-      description: 'Ideální trojkombinace pro úterý: oči jak reklama na problém, hlas jak starý reprák a plán žádnej.'
-    }
-  ];
-
-  function responseKey(item) {
-    return `${item.category}::${item.description}`;
+[
+  {
+    "category": "Startovní dávka",
+    "description": "Zatím jen jedno pivo a špetka odvahy. Varna teprve vrní."
+  },
+  {
+    "category": "Čistá lajna",
+    "description": "Zorničky jak měsíční krajina. Na orbitě, ale s úsměvem."
+  },
+  {
+    "category": "Mikrotrip",
+    "description": "Vidíš barvy, co neexistujou, a slyšíš svět dýchat. Klasickej čtvrtek."
+  },
+  {
+    "category": "Speedová rozcvička",
+    "description": "Tělo jede jak mixér, mozek běží pozpátku. Jsi ready na realitu?"
+  },
+  {
+    "category": "Pikovej princ",
+    "description": "Kráčíš po hraně mezi tancem a epilepsií. Koruna z hliníku, srdce z extáze."
+  },
+  {
+    "category": "Vařič snů",
+    "description": "Z kuchyně jde pára, ale tohle není guláš. Alchymie paneláku."
+  },
+  {
+    "category": "Zrcadlovej démon",
+    "description": "Koukáš do zrcadla a ono se kouká zpátky. Asi má taky lajnu."
+  },
+  {
+    "category": "Tichá noc",
+    "description": "Všichni spí. Jen ty a perník máte směnu."
+  },
+  {
+    "category": "Špína v žilách",
+    "description": "Srdce buší jak policejní beranidlo. Hrdina čtvrté dávky."
+  },
+  {
+    "category": "Ztracenej trip",
+    "description": "Když se realita rozpadne, zůstane jen hluk a úsměv bez důvodu."
+  },
+  {
+    "category": "Prach v nose",
+    "description": "Nosíš si prach z nebe. Jen není z nebe."
+  },
+  {
+    "category": "Noční varna",
+    "description": "Sirky, hliník a ticho. Chemie má svoje kouzlo i prokletí."
+  },
+  {
+    "category": "Extázový mnich",
+    "description": "Osvícení nalezeno uprostřed parketu. Nirvána vibruje v 160 BPM."
+  },
+  {
+    "category": "Fetboy deluxe",
+    "description": "Ztratil jsi klíče, soudnost i ponětí o čase. Ale beat držíš."
+  },
+  {
+    "category": "Lajna pravdy",
+    "description": "Každej má tu svoji cestu. Ty ji máš vysypanou na stole."
+  },
+  {
+    "category": "Rozklepanej bůh",
+    "description": "Vládneš vesmíru, ale ruce máš jak vibrační křeslo."
+  },
+  {
+    "category": "Zimní pika",
+    "description": "Zuby ti cvakaj jak kastaněty. Tělo topí na nouzovej režim."
+  },
+  {
+    "category": "Dealer poezie",
+    "description": "Slova ti tečou z pusy jak sirup z laboratorní skleničky."
+  },
+  {
+    "category": "Turbo večírek",
+    "description": "Tři dny, nula spánku, jeden mozek. A ten to vzdal včera."
+  },
+  {
+    "category": "Přepálenej anděl",
+    "description": "Křídla z igelitu a hlava z cukru. Lítáš, dokud se neroztopíš."
+  },
+  {
+    "category": "Dávkovací omyl",
+    "description": "Říkal jsi 'jen trochu'. Tělo slyšelo 'všechno'."
+  },
+  {
+    "category": "Tovární nastavení",
+    "description": "Resetuješ se vodkou a cigárama. Windows by tě neunesly."
+  },
+  {
+    "category": "Oční glitch",
+    "description": "Zorničky ti píšou Morseovku. Asi zpráva z pekla."
+  },
+  {
+    "category": "Prachovej rytíř",
+    "description": "Nosíš bílý brnění a temnej výraz. Klasika sobotní směny."
+  },
+  {
+    "category": "Elektrickej kříž",
+    "description": "Tělo napnutý jak drát, duše visí na zásuvce. Amen."
+  },
+  {
+    "category": "Cukrovej reset",
+    "description": "Lízátko, pika a paranoia. Ideální trojkombinace pro úterý."
+  },
+  {
+    "category": "Večírek 404",
+    "description": "Lidi zmizeli, hudba hraje dál. Ty taky možná neexistuješ."
+  },
+  {
+    "category": "Mazanec z varny",
+    "description": "Voníš jak chemickej experiment, ale srdce ti ještě tiká."
+  },
+  {
+    "category": "Nespací zóna",
+    "description": "Už dávno nespíš, jen blikáš. Tvoje sny běží na loopu."
+  },
+  {
+    "category": "Třesavej romantik",
+    "description": "Objímáš radiátor a přemýšlíš o lásce. Nikdo tě nechce, ani teplo."
+  },
+  {
+    "category": "Duch nonstopu",
+    "description": "Nejsi vidět, jen cítit. A to dost silně."
+  },
+  {
+    "category": "Falešnej klid",
+    "description": "Tvůj tep hraje drum’n’bass. Venku ticho. Uvnitř válka."
+  },
+  {
+    "category": "Kyselý prorok",
+    "description": "Vidíš budoucnost ve světlech lamp. A mluvíš s asfaltkou."
+  },
+  {
+    "category": "Perníkovej šaman",
+    "description": "Znáš všechny tvary kouře. Ale už ne svoje jméno."
+  },
+  {
+    "category": "Sociální glitch",
+    "description": "Pokusíš se promluvit, ale vyjde z tebe jen šum a sliny."
+  },
+  {
+    "category": "Červený oči",
+    "description": "Zíráš jak démon z plakátu. A plakát ti odpovídá."
+  },
+  {
+    "category": "Ultrarychlej úpadek",
+    "description": "Ráno hrdina, večer legenda, ráno zase troska. Rychlej koloběh."
+  },
+  {
+    "category": "Držák z pekla",
+    "description": "Všichni padli, ty jedeš dál. Pika místo víry."
+  },
+  {
+    "category": "Zfetovanej básník",
+    "description": "Každý slovo tě stojí dech. Poezie z roztřesený ruky."
+  },
+  {
+    "category": "Vypnutej hráč",
+    "description": "Game over. Dýcháš jen setrvačností."
+  },
+  {
+    "category": "Ztracenej v beatě",
+    "description": "Srdce ti hraje BPM 180. Tělo čeká, kdy se zhroutí stage."
+  },
+  {
+    "category": "Pražská mlha",
+    "description": "Nevidíš tři metry před sebe. Ale poznáš vůni speedu na dálku."
+  },
+  {
+    "category": "Kyselina v žilách",
+    "description": "Krvácíš barvy a směješ se asfaltu. To je ten vibe."
+  },
+  {
+    "category": "Rozbitej kompas",
+    "description": "Jdeš domů, ale domov už dávno neexistuje."
+  },
+  {
+    "category": "Zpomalenej vesmír",
+    "description": "Všechno se hýbe jak v želé. Možná jsi v čase, možná v tripu."
+  },
+  {
+    "category": "Měsíční feťák",
+    "description": "Stojíš na balkoně a koukáš na měsíc. On kouká zpátky a směje se."
+  },
+  {
+    "category": "Elektronickej Lazar",
+    "description": "Vstal jsi z mrtvých, ale jen proto, že hraje techno."
+  },
+  {
+    "category": "Prachovej restart",
+    "description": "Každá lajna je nový začátek. I konec zároveň."
   }
-
-  function appendExtraResponses() {
-    const app = window.SmazkaApp;
-    const library = app?.state?.responseLibrary;
-    if (!Array.isArray(library)) return false;
-
-    const existing = new Set(library.map(responseKey));
-    extraResponses.forEach((item) => {
-      if (!existing.has(responseKey(item))) {
-        library.push(item);
-        existing.add(responseKey(item));
-      }
-    });
-    return true;
-  }
-
-  window.SmazkaExtraResponses = extraResponses;
-
-  let attempts = 0;
-  const timer = window.setInterval(() => {
-    attempts += 1;
-    if (appendExtraResponses() || attempts > 30) {
-      window.clearInterval(timer);
-    }
-  }, 120);
-})();
+]
