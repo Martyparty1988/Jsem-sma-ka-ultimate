@@ -5,7 +5,7 @@
   const app = window.SmazkaApp;
   if (!app?.elements) return;
 
-  const { video, analyzeButton, retakeButton, result, previewContainer, loading } = app.elements;
+  const { video, retakeButton, previewContainer, loading } = app.elements;
   const videoContainer = document.querySelector('.video-container');
   if (!videoContainer) return;
 
@@ -138,7 +138,7 @@
 
     reset();
     isScanning = true;
-    result.classList.add('hidden');
+    app.hideResult?.();
     previewContainer.classList.add('hidden');
     app.clearErrors();
     app.setHint('Drž obličej ve středu. Tenhle nesmyslně vážný sken dělá všechno lokálně v prohlížeči.');

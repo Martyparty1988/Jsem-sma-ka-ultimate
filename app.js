@@ -14,6 +14,7 @@
     retakeButton: $('retakeButton'),
     analyzeButton: $('analyzeButton'),
     result: $('result'),
+    resultBackdrop: $('resultBackdrop'),
     loading: $('loading'),
     previewContainer: $('previewContainer'),
     preview: $('preview'),
@@ -99,6 +100,28 @@
 
   function show(element) {
     element?.classList.remove('hidden');
+  }
+
+  function hideResult({ restoreFocus = false } = {}) {
+    hide(elements.result);
+    hide(elements.resultBackdrop);
+    document.body.classList.remove('result-open');
+    if (elements.app) elements.app.inert = false;
+
+    if (restoreFocus) {
+      const target = !elements.retakeButton.classList.contains('hidden')
+        ? elements.retakeButton
+        : elements.analyzeButton;
+      window.requestAnimationFrame(() => target?.focus({ preventScroll: true }));
+    }
+  }
+
+  function showResult() {
+    show(elements.resultBackdrop);
+    show(elements.result);
+    document.body.classList.add('result-open');
+    if (elements.app) elements.app.inert = true;
+    elements.result.scrollTop = 0;
   }
 
   function setBusy(isBusy) {
@@ -309,11 +332,22 @@
     state.lastAnalysisResult = { title: category, description };
     elements.result.replaceChildren();
 
+    const closeButton = document.createElement('button');
+    closeButton.className = 'result-close';
+    closeButton.type = 'button';
+    closeButton.setAttribute('aria-label', 'Zavřít výsledek');
+    closeButton.textContent = '×';
+    closeButton.addEventListener('click', () => hideResult({ restoreFocus: true }));
+
+    const content = document.createElement('div');
+    content.className = 'result-content';
+
     const badge = document.createElement('div');
     badge.className = 'result-badge';
     badge.textContent = `Výsledek skenu • ${todayLabel}`;
 
     const title = document.createElement('h2');
+    title.id = 'resultTitle';
     title.textContent = `${emoji} ${category}`;
 
     const text = document.createElement('p');
@@ -327,13 +361,24 @@
     shareButton.innerHTML = '<span class="button-icon" aria-hidden="true">🚀</span><span>Sdílet / stáhnout</span>';
     shareButton.addEventListener('click', shareResult);
 
-    elements.result.append(badge, title, text, shareButton);
-    show(elements.result);
+    const newScanButton = document.createElement('button');
+    newScanButton.className = 'new-scan-button';
+    newScanButton.type = 'button';
+    newScanButton.innerHTML = '<span class="button-icon" aria-hidden="true">↻</span><span>Nový sken</span>';
+    newScanButton.addEventListener('click', startNewScan);
+
+    const actions = document.createElement('div');
+    actions.className = 'result-actions';
+    actions.append(shareButton, newScanButton);
+
+    content.append(badge, title, text, actions);
+    elements.result.setAttribute('aria-labelledby', title.id);
+    elements.result.append(closeButton, content);
+    showResult();
     state.shareImagePromise = prepareShareImage(category, description);
     triggerConfetti();
     window.requestAnimationFrame(() => {
-      elements.result.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-      shareButton.focus({ preventScroll: true });
+      closeButton.focus({ preventScroll: true });
     });
   }
 
@@ -346,7 +391,7 @@
     }
 
     clearErrors();
-    hide(elements.result);
+    hideResult();
     hide(elements.analyzeButton);
     show(elements.loading);
     setBusy(true);
@@ -368,7 +413,7 @@
     const layer = document.createElement('div');
     layer.className = 'confetti-layer';
     layer.setAttribute('aria-hidden', 'true');
-    const colors = ['#b7ff53', '#5ee7f7', '#ffffff', '#ff6b78'];
+    const colors = ['#22d3ee', '#34d399', '#ffffff', '#fb7185'];
 
     for (let index = 0; index < 44; index += 1) {
       const piece = document.createElement('i');
@@ -443,21 +488,21 @@
         elements.canvas.height = imageHeight + panelHeight;
 
         const gradient = ctx.createLinearGradient(0, 0, width, elements.canvas.height);
-        gradient.addColorStop(0, '#111718');
-        gradient.addColorStop(0.55, '#0b0f10');
-        gradient.addColorStop(1, '#050708');
+        gradient.addColorStop(0, '#0f172a');
+        gradient.addColorStop(0.55, '#071426');
+        gradient.addColorStop(1, '#020617');
         ctx.fillStyle = gradient;
         ctx.fillRect(0, 0, elements.canvas.width, elements.canvas.height);
       };
 
       const drawPhotoOverlay = () => {
         const vignette = ctx.createRadialGradient(width / 2, imageHeight * 0.42, 120, width / 2, imageHeight * 0.45, 690);
-        vignette.addColorStop(0, 'rgba(5, 7, 8, 0)');
-        vignette.addColorStop(1, 'rgba(5, 7, 8, 0.62)');
+        vignette.addColorStop(0, 'rgba(2, 6, 23, 0)');
+        vignette.addColorStop(1, 'rgba(2, 6, 23, 0.62)');
         ctx.fillStyle = vignette;
         ctx.fillRect(0, 0, width, imageHeight);
 
-        ctx.strokeStyle = 'rgba(183, 255, 83, 0.14)';
+        ctx.strokeStyle = 'rgba(34, 211, 238, 0.14)';
         ctx.lineWidth = 1;
         for (let x = 0; x <= width; x += 90) {
           ctx.beginPath();
@@ -472,9 +517,9 @@
           ctx.stroke();
         }
 
-        ctx.fillStyle = 'rgba(5, 7, 8, 0.72)';
+        ctx.fillStyle = 'rgba(2, 6, 23, 0.72)';
         ctx.fillRect(42, 42, 306, 58);
-        ctx.fillStyle = '#b7ff53';
+        ctx.fillStyle = '#67e8f9';
         ctx.font = '800 24px ui-monospace, monospace';
         ctx.textAlign = 'left';
         ctx.fillText('SMŽK / LOKÁLNÍ SCAN', 64, 80);
@@ -494,7 +539,7 @@
 
       image.onerror = () => {
         drawBase();
-        ctx.fillStyle = 'rgba(183, 255, 83, 0.08)';
+        ctx.fillStyle = 'rgba(34, 211, 238, 0.08)';
         ctx.fillRect(0, 0, width, imageHeight);
         ctx.fillStyle = '#f4f7f6';
         ctx.font = '800 72px Segoe UI, sans-serif';
@@ -511,13 +556,16 @@
   function drawResultPanel(ctx, title, description, top, width, height) {
     const todayLabel = capitalizeFirst(getTodayForms().nominative).toLocaleUpperCase('cs-CZ');
 
-    ctx.fillStyle = 'rgba(5, 7, 8, 0.97)';
+    ctx.fillStyle = 'rgba(2, 6, 23, 0.97)';
     ctx.fillRect(0, top, width, height);
 
-    ctx.fillStyle = '#b7ff53';
+    const accent = ctx.createLinearGradient(0, top, width, top);
+    accent.addColorStop(0, '#22d3ee');
+    accent.addColorStop(1, '#34d399');
+    ctx.fillStyle = accent;
     ctx.fillRect(0, top, width, 8);
 
-    ctx.fillStyle = '#b7ff53';
+    ctx.fillStyle = '#67e8f9';
     ctx.font = '700 28px Segoe UI, sans-serif';
     ctx.textAlign = 'center';
     ctx.fillText(`LOKÁLNÍ AI DETEKCE DEVASTACE • ${todayLabel}`, width / 2, top + 58);
@@ -617,7 +665,7 @@
       hide(elements.captureButton);
       show(elements.retakeButton);
       show(elements.analyzeButton);
-      hide(elements.result);
+      hideResult();
       clearErrors();
       runAnalysis();
     } catch (error) {
@@ -639,7 +687,7 @@
     hide(elements.captureButton);
     show(elements.retakeButton);
     show(elements.analyzeButton);
-    hide(elements.result);
+    hideResult();
     clearErrors();
   });
 
@@ -649,21 +697,24 @@
     elements.uploadInput.value = '';
   });
 
-  elements.retakeButton.addEventListener('click', async () => {
+  async function startNewScan() {
+    hideResult();
     window.SmazkaFaceScan?.reset?.();
     clearCurrentImage();
     hide(elements.retakeButton);
-    hide(elements.result);
     show(elements.analyzeButton);
     clearErrors();
     await initCamera();
-  });
+    elements.analyzeButton.focus({ preventScroll: true });
+  }
+
+  elements.retakeButton.addEventListener('click', startNewScan);
 
   elements.switchCameraButton.addEventListener('click', async () => {
     window.SmazkaFaceScan?.reset?.();
     state.facingMode = state.facingMode === 'user' ? 'environment' : 'user';
     clearCurrentImage();
-    hide(elements.result);
+    hideResult();
     show(elements.analyzeButton);
     await initCamera();
   });
@@ -674,6 +725,13 @@
       return;
     }
     runAnalysis();
+  });
+
+  elements.resultBackdrop.addEventListener('click', () => hideResult({ restoreFocus: true }));
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && !elements.result.classList.contains('hidden')) {
+      hideResult({ restoreFocus: true });
+    }
   });
 
   window.SmazkaApp = {
@@ -688,6 +746,7 @@
     runAnalysis,
     showError,
     clearErrors,
+    hideResult,
     setHint,
     setBusy,
     syncWeekdayText,

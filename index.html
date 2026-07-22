@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="description" content="Jsem smažka? Lokální srandovní sken stavu po večírku. Fotka zůstává v prohlížeči.">
-  <meta name="theme-color" content="#050708">
+  <meta name="theme-color" content="#07111f">
   <meta name="color-scheme" content="dark">
   <meta name="format-detection" content="telephone=no">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -27,11 +27,11 @@
     <nav class="topbar" aria-label="Stav aplikace">
       <div class="brand-lockup" aria-label="Smažka Scan">
         <span class="brand-mark" aria-hidden="true"></span>
-        <span>SMŽK / SCAN</span>
+        <span>Smažka Scan</span>
       </div>
       <div class="local-status" title="Fotka zůstává v tomto zařízení">
         <span class="status-dot" aria-hidden="true"></span>
-        <span>100% lokální</span>
+        <span>Lokálně</span>
       </div>
     </nav>
 
@@ -42,11 +42,6 @@
     </header>
 
     <section class="camera-section" id="scanner" aria-label="Kamera a sken">
-      <div class="scanner-label" aria-hidden="true">
-        <span>FACE DAMAGE ANALYZER</span>
-        <span class="scanner-version">V4.0</span>
-      </div>
-
       <div class="video-container" id="cameraStage">
         <video id="video" autoplay muted playsinline></video>
         <div class="preview-container hidden" id="previewContainer">
@@ -68,15 +63,15 @@
       <div id="generalError" class="error-message hidden" role="alert"></div>
 
       <div class="button-group">
-        <button id="captureButton" class="secondary-button hidden" type="button">
+        <button id="captureButton" class="secondary-button hidden" type="button" aria-label="Vyfotit ručně">
           <span class="button-icon" aria-hidden="true">📸</span>
           <span class="button-text">Vyfotit ručně</span>
         </button>
-        <button id="uploadButton" class="secondary-button" type="button">
+        <button id="uploadButton" class="secondary-button" type="button" aria-label="Nahrát fotku">
           <span class="button-icon" aria-hidden="true">📁</span>
           <span class="button-text">Nahrát fotku</span>
         </button>
-        <button id="retakeButton" class="secondary-button hidden" type="button">
+        <button id="retakeButton" class="secondary-button hidden" type="button" aria-label="Nový sken">
           <span class="button-icon" aria-hidden="true">🔄</span>
           <span class="button-text">Znovu</span>
         </button>
@@ -94,8 +89,6 @@
       </div>
     </section>
 
-    <section id="result" class="result hidden" aria-live="polite"></section>
-
     <canvas id="canvas" class="hidden" aria-hidden="true"></canvas>
 
     <footer>
@@ -110,6 +103,9 @@
       <p class="error-message">Bez JavaScriptu tohle kouzlo nejede. Zapni JavaScript a dáme tomu šťávu.</p>
     </noscript>
   </main>
+
+  <div id="resultBackdrop" class="result-backdrop hidden" aria-hidden="true"></div>
+  <section id="result" class="result hidden" role="dialog" aria-modal="true" aria-live="polite" tabindex="-1"></section>
 
   <script defer src="app.js"></script>
   <script defer src="face-scan.js"></script>
