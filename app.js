@@ -4,8 +4,12 @@
   const $ = (id) => document.getElementById(id);
 
   const elements = {
+    app: $('app'),
     video: $('video'),
     canvas: $('canvas'),
+    cameraStage: $('cameraStage'),
+    cameraIdle: $('cameraIdle'),
+    switchCameraButton: $('switchCameraButton'),
     captureButton: $('captureButton'),
     retakeButton: $('retakeButton'),
     analyzeButton: $('analyzeButton'),
@@ -17,7 +21,8 @@
     uploadButton: $('uploadButton'),
     uploadInput: $('uploadInput'),
     generalError: $('generalError'),
-    scanHint: $('scanHint')
+    scanHint: $('scanHint'),
+    installButton: $('installButton')
   };
 
   const fallbackResponses = [
@@ -55,7 +60,11 @@
     lastAnalysisResult: { title: '', description: '' },
     responseLibrary: [],
     isAnalyzing: false,
-    lastCategory: ''
+    lastCategory: '',
+    facingMode: 'user',
+    cameraRequestId: 0,
+    shareImagePromise: Promise.resolve(),
+    deferredInstallPrompt: null
   };
 
   function capitalizeFirst(text) {
@@ -94,10 +103,12 @@
 
   function setBusy(isBusy) {
     state.isAnalyzing = isBusy;
+    elements.app?.setAttribute('aria-busy', String(isBusy));
     elements.analyzeButton.disabled = isBusy;
     elements.retakeButton.disabled = isBusy;
     elements.uploadButton.disabled = isBusy;
     elements.captureButton.disabled = isBusy;
+    elements.switchCameraButton.disabled = isBusy;
   }
 
   function showError(message, target = elements.generalError) {
@@ -115,12 +126,22 @@
     if (elements.scanHint) elements.scanHint.textContent = message;
   }
 
+  async function fetchResponsePack(path) {
+    const response = await fetch(path, { cache: 'no-cache' });
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    return response.json();
+  }
+
   async function loadResponses() {
     try {
-      const response = await fetch('responses.json', { cache: 'no-cache' });
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      let data;
+      try {
+        data = await fetchResponsePack('responses.json');
+      } catch (primaryError) {
+        console.warn('Hlavní balíček hlášek není dostupný:', primaryError);
+        data = await fetchResponsePack('responses-extra.js');
+      }
 
-      const data = await response.json();
       if (!Array.isArray(data) || data.length === 0) {
         throw new Error('responses.json je prázdný nebo nemá správný formát');
       }
@@ -134,6 +155,18 @@
     }
   }
 
+  async function updateCameraSwitcher() {
+    if (!navigator.mediaDevices?.enumerateDevices) return;
+
+    try {
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      const videoInputs = devices.filter((device) => device.kind === 'videoinput');
+      videoInputs.length > 1 ? show(elements.switchCameraButton) : hide(elements.switchCameraButton);
+    } catch (error) {
+      console.warn('Seznam kamer není dostupný:', error);
+    }
+  }
+
   async function initCamera() {
     if (!navigator.mediaDevices?.getUserMedia) {
       showError('Tenhle prohlížeč neumí otevřít kameru. Nahraj fotku ručně.', elements.cameraError);
@@ -141,36 +174,52 @@
       return;
     }
 
-    stopCamera();
+    const requestId = state.cameraRequestId + 1;
+    state.cameraRequestId = requestId;
+    stopCamera({ invalidateRequest: false });
+    elements.cameraStage?.classList.remove('is-live');
+    elements.cameraStage?.classList.toggle('is-user-facing', state.facingMode === 'user');
+    elements.video.style.display = 'block';
 
     try {
-      state.cameraStream = await navigator.mediaDevices.getUserMedia({
+      const stream = await navigator.mediaDevices.getUserMedia({
         video: {
-          facingMode: 'user',
+          facingMode: { ideal: state.facingMode },
           width: { ideal: 1280 },
-          height: { ideal: 720 }
+          height: { ideal: 1280 }
         },
         audio: false
       });
 
-      elements.video.srcObject = state.cameraStream;
+      if (requestId !== state.cameraRequestId) {
+        stream.getTracks().forEach((track) => track.stop());
+        return;
+      }
+
+      state.cameraStream = stream;
+      elements.video.srcObject = stream;
       await elements.video.play().catch(() => undefined);
-      elements.video.style.display = 'block';
+      elements.cameraStage?.classList.add('is-live');
       clearErrors();
-      hide(elements.uploadButton);
+      show(elements.uploadButton);
+      await updateCameraSwitcher();
       setHint('Kamera běží. Dej obličej do středu a spusť sken.');
     } catch (error) {
+      if (requestId !== state.cameraRequestId) return;
       console.error('Kamera nejde spustit:', error);
+      elements.cameraStage?.classList.remove('is-live');
       showError('Kamera nechce spolupracovat. Povol oprávnění, nebo nahraj fotku ručně.', elements.cameraError);
       show(elements.uploadButton);
       setHint('Bez kamery můžeš použít nahrání fotky.');
     }
   }
 
-  function stopCamera() {
-    if (!state.cameraStream) return;
-    state.cameraStream.getTracks().forEach((track) => track.stop());
+  function stopCamera({ invalidateRequest = true } = {}) {
+    if (invalidateRequest) state.cameraRequestId += 1;
+    state.cameraStream?.getTracks().forEach((track) => track.stop());
     state.cameraStream = null;
+    elements.video.srcObject = null;
+    elements.cameraStage?.classList.remove('is-live');
   }
 
   function setCurrentImageData(dataUrl) {
@@ -178,7 +227,23 @@
     if (dataUrl && elements.preview) {
       elements.preview.src = dataUrl;
       show(elements.previewContainer);
+      elements.cameraStage?.classList.add('has-preview');
     }
+  }
+
+  function clearCurrentImage() {
+    state.currentImageData = null;
+    elements.preview.removeAttribute('src');
+    hide(elements.previewContainer);
+    elements.cameraStage?.classList.remove('has-preview');
+  }
+
+  function showCapturedFrame() {
+    stopCamera();
+    elements.video.style.display = 'none';
+    show(elements.previewContainer);
+    elements.cameraStage?.classList.add('has-preview');
+    hide(elements.switchCameraButton);
   }
 
   function captureCurrentFrame(quality = 0.92) {
@@ -187,7 +252,13 @@
     const context = elements.canvas.getContext('2d');
     elements.canvas.width = elements.video.videoWidth;
     elements.canvas.height = elements.video.videoHeight;
+    context.save();
+    if (state.facingMode === 'user') {
+      context.translate(elements.canvas.width, 0);
+      context.scale(-1, 1);
+    }
     context.drawImage(elements.video, 0, 0, elements.canvas.width, elements.canvas.height);
+    context.restore();
 
     const dataUrl = elements.canvas.toDataURL('image/jpeg', quality);
     setCurrentImageData(dataUrl);
@@ -198,10 +269,17 @@
     const library = state.responseLibrary.length ? state.responseLibrary : fallbackResponses;
     if (library.length === 1) return library[0];
 
-    let result = library[Math.floor(Math.random() * library.length)];
+    const randomIndex = () => {
+      if (!window.crypto?.getRandomValues) return Math.floor(Math.random() * library.length);
+      const value = new Uint32Array(1);
+      window.crypto.getRandomValues(value);
+      return value[0] % library.length;
+    };
+
+    let result = library[randomIndex()];
     let guard = 0;
     while (result.category === state.lastCategory && guard < 5) {
-      result = library[Math.floor(Math.random() * library.length)];
+      result = library[randomIndex()];
       guard += 1;
     }
     state.lastCategory = result.category;
@@ -251,8 +329,12 @@
 
     elements.result.append(badge, title, text, shareButton);
     show(elements.result);
-    prepareShareImage(category, description);
+    state.shareImagePromise = prepareShareImage(category, description);
     triggerConfetti();
+    window.requestAnimationFrame(() => {
+      elements.result.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      shareButton.focus({ preventScroll: true });
+    });
   }
 
   function runAnalysis(options = {}) {
@@ -265,6 +347,7 @@
 
     clearErrors();
     hide(elements.result);
+    hide(elements.analyzeButton);
     show(elements.loading);
     setBusy(true);
     setHint('AI simuluje brutálně seriózní analýzu…');
@@ -280,10 +363,27 @@
 
   function triggerConfetti() {
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    if (typeof window.confetti !== 'function') return;
 
-    window.confetti({ particleCount: 70, spread: 65, origin: { x: 0.25, y: 0.65 } });
-    window.confetti({ particleCount: 70, spread: 65, origin: { x: 0.75, y: 0.65 } });
+    document.querySelector('.confetti-layer')?.remove();
+    const layer = document.createElement('div');
+    layer.className = 'confetti-layer';
+    layer.setAttribute('aria-hidden', 'true');
+    const colors = ['#b7ff53', '#5ee7f7', '#ffffff', '#ff6b78'];
+
+    for (let index = 0; index < 44; index += 1) {
+      const piece = document.createElement('i');
+      piece.className = 'confetti-piece';
+      piece.style.left = `${4 + Math.random() * 92}%`;
+      piece.style.background = colors[index % colors.length];
+      piece.style.setProperty('--fall-delay', `${Math.random() * 0.32}s`);
+      piece.style.setProperty('--fall-duration', `${1.7 + Math.random() * 1.15}s`);
+      piece.style.setProperty('--drift', `${-80 + Math.random() * 160}px`);
+      piece.style.setProperty('--spin', `${-540 + Math.random() * 1080}deg`);
+      layer.appendChild(piece);
+    }
+
+    document.body.appendChild(layer);
+    window.setTimeout(() => layer.remove(), 3400);
   }
 
   function drawCoverImage(ctx, image, x, y, width, height) {
@@ -331,56 +431,98 @@
   }
 
   function prepareShareImage(title, description) {
-    const ctx = elements.canvas.getContext('2d');
-    const image = new Image();
-    const width = 1080;
-    const imageHeight = 820;
-    const panelHeight = 430;
+    return new Promise((resolve) => {
+      const ctx = elements.canvas.getContext('2d');
+      const image = new Image();
+      const width = 1080;
+      const imageHeight = 820;
+      const panelHeight = 430;
 
-    const drawBase = () => {
-      elements.canvas.width = width;
-      elements.canvas.height = imageHeight + panelHeight;
+      const drawBase = () => {
+        elements.canvas.width = width;
+        elements.canvas.height = imageHeight + panelHeight;
 
-      const gradient = ctx.createLinearGradient(0, 0, width, elements.canvas.height);
-      gradient.addColorStop(0, '#0b1220');
-      gradient.addColorStop(0.55, '#111827');
-      gradient.addColorStop(1, '#020617');
-      ctx.fillStyle = gradient;
-      ctx.fillRect(0, 0, elements.canvas.width, elements.canvas.height);
-    };
+        const gradient = ctx.createLinearGradient(0, 0, width, elements.canvas.height);
+        gradient.addColorStop(0, '#111718');
+        gradient.addColorStop(0.55, '#0b0f10');
+        gradient.addColorStop(1, '#050708');
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, elements.canvas.width, elements.canvas.height);
+      };
 
-    image.onload = () => {
-      drawBase();
-      drawCoverImage(ctx, image, 0, 0, width, imageHeight);
-      drawResultPanel(ctx, title, description, imageHeight, width, panelHeight);
-    };
+      const drawPhotoOverlay = () => {
+        const vignette = ctx.createRadialGradient(width / 2, imageHeight * 0.42, 120, width / 2, imageHeight * 0.45, 690);
+        vignette.addColorStop(0, 'rgba(5, 7, 8, 0)');
+        vignette.addColorStop(1, 'rgba(5, 7, 8, 0.62)');
+        ctx.fillStyle = vignette;
+        ctx.fillRect(0, 0, width, imageHeight);
 
-    image.onerror = () => {
-      drawBase();
-      ctx.fillStyle = 'rgba(34, 211, 238, 0.18)';
-      ctx.fillRect(0, 0, width, imageHeight);
-      ctx.fillStyle = '#e2e8f0';
-      ctx.font = '700 64px Segoe UI, sans-serif';
-      ctx.textAlign = 'center';
-      ctx.fillText('Jsem smažka?', width / 2, imageHeight / 2);
-      drawResultPanel(ctx, title, description, imageHeight, width, panelHeight);
-    };
+        ctx.strokeStyle = 'rgba(183, 255, 83, 0.14)';
+        ctx.lineWidth = 1;
+        for (let x = 0; x <= width; x += 90) {
+          ctx.beginPath();
+          ctx.moveTo(x, 0);
+          ctx.lineTo(x, imageHeight);
+          ctx.stroke();
+        }
+        for (let y = 0; y <= imageHeight; y += 90) {
+          ctx.beginPath();
+          ctx.moveTo(0, y);
+          ctx.lineTo(width, y);
+          ctx.stroke();
+        }
 
-    image.src = state.currentImageData || '';
+        ctx.fillStyle = 'rgba(5, 7, 8, 0.72)';
+        ctx.fillRect(42, 42, 306, 58);
+        ctx.fillStyle = '#b7ff53';
+        ctx.font = '800 24px ui-monospace, monospace';
+        ctx.textAlign = 'left';
+        ctx.fillText('SMŽK / LOKÁLNÍ SCAN', 64, 80);
+      };
+
+      const finish = () => {
+        drawPhotoOverlay();
+        drawResultPanel(ctx, title, description, imageHeight, width, panelHeight);
+        resolve();
+      };
+
+      image.onload = () => {
+        drawBase();
+        drawCoverImage(ctx, image, 0, 0, width, imageHeight);
+        finish();
+      };
+
+      image.onerror = () => {
+        drawBase();
+        ctx.fillStyle = 'rgba(183, 255, 83, 0.08)';
+        ctx.fillRect(0, 0, width, imageHeight);
+        ctx.fillStyle = '#f4f7f6';
+        ctx.font = '800 72px Segoe UI, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('Jsem smažka?', width / 2, imageHeight / 2);
+        finish();
+      };
+
+      if (state.currentImageData) image.src = state.currentImageData;
+      else image.onerror();
+    });
   }
 
   function drawResultPanel(ctx, title, description, top, width, height) {
     const todayLabel = capitalizeFirst(getTodayForms().nominative).toLocaleUpperCase('cs-CZ');
 
-    ctx.fillStyle = 'rgba(2, 6, 23, 0.92)';
+    ctx.fillStyle = 'rgba(5, 7, 8, 0.97)';
     ctx.fillRect(0, top, width, height);
 
-    ctx.fillStyle = '#67e8f9';
+    ctx.fillStyle = '#b7ff53';
+    ctx.fillRect(0, top, width, 8);
+
+    ctx.fillStyle = '#b7ff53';
     ctx.font = '700 28px Segoe UI, sans-serif';
     ctx.textAlign = 'center';
     ctx.fillText(`LOKÁLNÍ AI DETEKCE DEVASTACE • ${todayLabel}`, width / 2, top + 58);
 
-    ctx.fillStyle = '#d1fae5';
+    ctx.fillStyle = '#ffffff';
     let titleSize = 66;
     ctx.font = `800 ${titleSize}px Segoe UI, sans-serif`;
     while (ctx.measureText(title).width > width - 96 && titleSize > 38) {
@@ -389,17 +531,18 @@
     }
     ctx.fillText(title, width / 2, top + 145);
 
-    ctx.fillStyle = '#e2e8f0';
+    ctx.fillStyle = '#d9e1df';
     ctx.font = 'italic 38px Segoe UI, sans-serif';
     wrapText(ctx, description, width / 2, top + 220, width - 130, 48, 3);
 
-    ctx.fillStyle = 'rgba(226, 232, 240, 0.55)';
+    ctx.fillStyle = 'rgba(217, 225, 223, 0.5)';
     ctx.font = '28px Segoe UI, sans-serif';
     ctx.fillText('jsemsmazka.cz • jen pro srandu, ne diagnóza', width / 2, top + height - 52);
   }
 
   async function shareResult() {
     try {
+      await state.shareImagePromise;
       const blob = await new Promise((resolve) => elements.canvas.toBlob(resolve, 'image/png'));
       if (!blob) throw new Error('Canvas nevytvořil obrázek');
 
@@ -417,6 +560,7 @@
 
       downloadBlob(blob);
     } catch (error) {
+      if (error?.name === 'AbortError') return;
       console.error('Sdílení selhalo:', error);
       showError('Sdílení se nepovedlo, zkus to ještě jednou. Mobil si asi taky dává detox.');
     }
@@ -430,31 +574,58 @@
     document.body.appendChild(link);
     link.click();
     link.remove();
-    URL.revokeObjectURL(url);
+    window.setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
 
-  function handleUploadedFile(file) {
+  function optimizeUploadedImage(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onerror = () => reject(new Error('Soubor se nepovedlo přečíst'));
+      reader.onload = () => {
+        const image = new Image();
+        image.onerror = () => reject(new Error('Obrázek se nepovedlo dekódovat'));
+        image.onload = () => {
+          const maxDimension = 1800;
+          const scale = Math.min(1, maxDimension / Math.max(image.naturalWidth, image.naturalHeight));
+          const canvas = document.createElement('canvas');
+          canvas.width = Math.max(1, Math.round(image.naturalWidth * scale));
+          canvas.height = Math.max(1, Math.round(image.naturalHeight * scale));
+          const context = canvas.getContext('2d');
+          context.drawImage(image, 0, 0, canvas.width, canvas.height);
+          resolve(canvas.toDataURL('image/jpeg', 0.9));
+        };
+        image.src = reader.result;
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  async function handleUploadedFile(file) {
     if (!file) return;
     if (!file.type.startsWith('image/')) {
       showError('Nahraj prosím obrázek, třeba JPEG nebo PNG. PDF s obličejem ještě neumíme, nejsme FBI.');
       return;
     }
 
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      setCurrentImageData(event.target.result);
-      elements.video.style.display = 'none';
-      stopCamera();
+    elements.uploadButton.disabled = true;
+    elements.analyzeButton.disabled = true;
+
+    try {
+      const imageData = await optimizeUploadedImage(file);
+      setCurrentImageData(imageData);
+      showCapturedFrame();
       hide(elements.captureButton);
-      hide(elements.uploadButton);
       show(elements.retakeButton);
       show(elements.analyzeButton);
       hide(elements.result);
       clearErrors();
       runAnalysis();
-    };
-    reader.onerror = () => showError('Fotka se nepovedla načíst. Zkus jinou.');
-    reader.readAsDataURL(file);
+    } catch (error) {
+      console.error('Fotka se nepovedla načíst:', error);
+      showError('Fotka se nepovedla načíst. Zkus jinou.');
+      elements.uploadButton.disabled = false;
+      elements.analyzeButton.disabled = false;
+    }
   }
 
   elements.captureButton.addEventListener('click', () => {
@@ -464,10 +635,8 @@
       return;
     }
 
-    elements.video.style.display = 'none';
-    stopCamera();
+    showCapturedFrame();
     hide(elements.captureButton);
-    hide(elements.uploadButton);
     show(elements.retakeButton);
     show(elements.analyzeButton);
     hide(elements.result);
@@ -482,13 +651,20 @@
 
   elements.retakeButton.addEventListener('click', async () => {
     window.SmazkaFaceScan?.reset?.();
-    state.currentImageData = null;
-    elements.preview.removeAttribute('src');
-    hide(elements.previewContainer);
+    clearCurrentImage();
     hide(elements.retakeButton);
     hide(elements.result);
     show(elements.analyzeButton);
     clearErrors();
+    await initCamera();
+  });
+
+  elements.switchCameraButton.addEventListener('click', async () => {
+    window.SmazkaFaceScan?.reset?.();
+    state.facingMode = state.facingMode === 'user' ? 'environment' : 'user';
+    clearCurrentImage();
+    hide(elements.result);
+    show(elements.analyzeButton);
     await initCamera();
   });
 
@@ -507,6 +683,8 @@
     stopCamera,
     captureCurrentFrame,
     setCurrentImageData,
+    clearCurrentImage,
+    showCapturedFrame,
     runAnalysis,
     showError,
     clearErrors,
@@ -516,13 +694,47 @@
     getTodayForms
   };
 
-  window.addEventListener('beforeunload', stopCamera);
+  window.addEventListener('pagehide', () => stopCamera());
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden && !state.currentImageData) {
+      stopCamera();
+      return;
+    }
 
-  if ('serviceWorker' in navigator && location.protocol === 'https:') {
+    if (!document.hidden && !state.currentImageData && !state.cameraStream) {
+      initCamera();
+    }
+  });
+
+  navigator.mediaDevices?.addEventListener?.('devicechange', updateCameraSwitcher);
+
+  window.addEventListener('beforeinstallprompt', (event) => {
+    event.preventDefault();
+    state.deferredInstallPrompt = event;
+    show(elements.installButton);
+  });
+
+  elements.installButton.addEventListener('click', async () => {
+    if (!state.deferredInstallPrompt) return;
+    state.deferredInstallPrompt.prompt();
+    await state.deferredInstallPrompt.userChoice;
+    state.deferredInstallPrompt = null;
+    hide(elements.installButton);
+  });
+
+  window.addEventListener('appinstalled', () => {
+    state.deferredInstallPrompt = null;
+    hide(elements.installButton);
+  });
+
+  const canRegisterServiceWorker = location.protocol === 'https:' || ['localhost', '127.0.0.1'].includes(location.hostname);
+  if ('serviceWorker' in navigator && canRegisterServiceWorker) {
     window.addEventListener('load', () => {
-      navigator.serviceWorker.register('service-worker.js').catch((error) => {
-        console.warn('Service worker registrace selhala:', error);
-      });
+      navigator.serviceWorker.register('service-worker.js')
+        .then((registration) => registration?.update())
+        .catch((error) => {
+          console.warn('Service worker registrace selhala:', error);
+        });
     });
   }
 

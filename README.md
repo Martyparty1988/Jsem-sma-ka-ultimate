@@ -5,11 +5,13 @@ Srandovní webová appka, která simuluje lokální AI sken obličeje a vygeneru
 ## Co appka umí
 
 - Spustí kameru přímo v prohlížeči.
+- Umí přepnout přední/zadní kameru a použít vlastní fotku.
 - Zobrazí animovaný pseudo scan obličeje.
 - Náhodně vybere hlášku z `responses.json`.
 - Vygeneruje sdílitelný PNG obrázek s výsledkem.
-- Funguje jako jednoduchá PWA díky `manifest.json` a `service-worker.js`.
+- Funguje jako instalovatelná PWA i offline díky `manifest.json` a `service-worker.js`.
 - Fotka se neposílá na server. Všechno běží lokálně v prohlížeči.
+- Nepoužívá žádný externí skript ani analytiku.
 
 ## Soubory
 
@@ -18,6 +20,7 @@ Srandovní webová appka, která simuluje lokální AI sken obličeje a vygeneru
 - `app.js` – kamera, stav aplikace, výsledky, sdílení a PWA registrace.
 - `face-scan.js` – animace skenu a zachycení aktuálního snímku.
 - `responses.json` – knihovna hlášek.
+- `responses-extra.js` – záložní kopie hláškového balíčku.
 - `manifest.json` – PWA nastavení.
 - `service-worker.js` – offline cache.
 - `icon.svg` – ikona aplikace.
