@@ -99,7 +99,7 @@ button:disabled {
 
 .container {
   position: relative;
-  width: min(100%, 620px);
+  width: min(100%, 480px);
   min-height: calc(100svh - max(32px, env(safe-area-inset-top)) - max(32px, env(safe-area-inset-bottom)));
   margin: 0 auto;
   padding: clamp(16px, 4vw, 28px);
@@ -229,6 +229,8 @@ h1 {
 
 .camera-section {
   position: relative;
+  width: min(100%, 390px);
+  margin-inline: auto;
   padding: 8px;
   border: 1px solid var(--line);
   border-radius: 24px;
@@ -239,8 +241,10 @@ h1 {
 .video-container {
   position: relative;
   isolation: isolate;
-  width: 100%;
-  height: clamp(260px, 42svh, 420px);
+  width: min(100%, 330px);
+  height: auto;
+  aspect-ratio: 3 / 4;
+  margin-inline: auto;
   overflow: hidden;
   border: 1px solid var(--line-strong);
   border-radius: 18px;
@@ -636,7 +640,7 @@ footer {
   bottom: 0;
   left: 0;
   z-index: 70;
-  width: min(100%, 620px);
+  width: min(100%, 480px);
   max-height: calc(100svh - max(22px, env(safe-area-inset-top)));
   margin: 0 auto;
   padding: 38px 20px max(22px, env(safe-area-inset-bottom));
@@ -675,7 +679,7 @@ footer {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 15px;
+  gap: 13px;
 }
 
 .result-close {
@@ -715,6 +719,161 @@ footer {
   border-radius: 50%;
   background: var(--green);
   box-shadow: 0 0 10px rgba(52, 211, 153, 0.85);
+}
+
+.result-visual {
+  --effect-accent: #22d3ee;
+  --effect-noise-opacity: 0.12;
+  position: relative;
+  isolation: isolate;
+  width: clamp(119px, 18.75svh, 168px);
+  height: auto;
+  aspect-ratio: 3 / 4;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--effect-accent) 48%, transparent);
+  border-radius: 22px;
+  background: #030816;
+  box-shadow:
+    0 18px 42px rgba(2, 6, 23, 0.5),
+    0 0 28px color-mix(in srgb, var(--effect-accent) 18%, transparent),
+    inset 0 1px rgba(255, 255, 255, 0.11);
+  animation: visualPop 0.66s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.result-visual::before,
+.result-visual::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.result-visual::before {
+  background:
+    repeating-linear-gradient(180deg, transparent 0 7px, rgba(255, 255, 255, 0.035) 8px),
+    linear-gradient(105deg, color-mix(in srgb, var(--effect-accent) 12%, transparent), transparent 46%);
+  mix-blend-mode: screen;
+}
+
+.result-visual::after {
+  background: linear-gradient(180deg, rgba(2, 6, 23, 0.03) 40%, rgba(2, 6, 23, 0.78) 100%);
+  box-shadow: inset 0 0 34px rgba(2, 6, 23, 0.42);
+}
+
+.result-visual img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+  animation: meltReveal 1.08s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.result-visual .result-badge {
+  position: absolute;
+  top: 9px;
+  right: 9px;
+  left: 9px;
+  z-index: 5;
+  justify-content: center;
+  overflow: hidden;
+  background: rgba(2, 6, 23, 0.64);
+  border-color: color-mix(in srgb, var(--effect-accent) 34%, transparent);
+  color: #ecfeff;
+  font-size: 0.54rem;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.effect-label {
+  position: absolute;
+  right: 9px;
+  bottom: 9px;
+  left: 9px;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 7px 9px;
+  border: 1px solid color-mix(in srgb, var(--effect-accent) 34%, transparent);
+  border-radius: 11px;
+  background: rgba(2, 6, 23, 0.66);
+  color: #e0f2fe;
+  font-size: 0.58rem;
+  font-weight: 800;
+  letter-spacing: 0.035em;
+  text-transform: uppercase;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.effect-label strong {
+  color: var(--effect-accent);
+  font-size: 0.72rem;
+}
+
+.effect-noise {
+  position: absolute;
+  inset: -12%;
+  z-index: 3;
+  opacity: var(--effect-noise-opacity);
+  pointer-events: none;
+  background:
+    repeating-linear-gradient(96deg, transparent 0 14px, var(--effect-accent) 15px 17px, transparent 18px 29px),
+    repeating-linear-gradient(0deg, transparent 0 28px, rgba(255, 255, 255, 0.32) 29px 30px);
+  background-size: 155% 100%, 100% 140%;
+  mix-blend-mode: screen;
+  transform: translate3d(0, 0, 0);
+  animation: effectNoise 2.6s steps(5, end) infinite;
+}
+
+.effect-soft {
+  --effect-accent: #34d399;
+  --effect-noise-opacity: 0.055;
+}
+
+.effect-wobble {
+  --effect-accent: #22d3ee;
+  --effect-noise-opacity: 0.1;
+}
+
+.effect-melt {
+  --effect-accent: #c084fc;
+  --effect-noise-opacity: 0.16;
+}
+
+.effect-critical {
+  --effect-accent: #fb7185;
+  --effect-noise-opacity: 0.22;
+  transform-origin: 50% 20%;
+  animation: visualPop 0.66s cubic-bezier(0.16, 1, 0.3, 1) both, criticalPulse 2.8s ease-in-out 1s infinite;
+}
+
+@keyframes visualPop {
+  from { opacity: 0; transform: translateY(15px) scale(0.94); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes meltReveal {
+  0% { opacity: 0.3; filter: blur(11px) saturate(1.8); transform: translateY(-7%) scale(1.12, 0.82); }
+  55% { opacity: 1; filter: blur(1px) saturate(1.35); transform: translateY(1.5%) scale(1.035, 1.08); }
+  100% { opacity: 1; filter: blur(0) saturate(1.12); transform: translateY(0) scale(1); }
+}
+
+@keyframes effectNoise {
+  0%, 100% { background-position: 0 0, 0 0; transform: translate3d(0, 0, 0); }
+  27% { background-position: 32px -19px, 0 22px; transform: translate3d(-3%, 1%, 0); }
+  31% { transform: translate3d(4%, -1%, 0); }
+  72% { background-position: -24px 31px, 0 -18px; transform: translate3d(1%, 0, 0); }
+}
+
+@keyframes criticalPulse {
+  0%, 88%, 100% { filter: none; }
+  91% { filter: hue-rotate(22deg) saturate(1.5); }
+  94% { filter: hue-rotate(-16deg) contrast(1.16); }
 }
 
 .result h2 {
@@ -917,7 +1076,7 @@ footer {
   }
 
   .container {
-    width: 100%;
+    width: min(100%, 430px);
     height: calc(100svh - max(16px, env(safe-area-inset-top)) - max(16px, env(safe-area-inset-bottom)));
     min-height: 0;
     display: flex;
@@ -945,8 +1104,13 @@ footer {
     margin-top: auto;
   }
 
+  .camera-section {
+    width: min(100%, 344px);
+  }
+
   .video-container {
-    height: clamp(250px, 41svh, 350px);
+    width: min(100%, 314px);
+    height: auto;
   }
 
   .result-actions {
@@ -969,7 +1133,7 @@ footer {
   }
 
   .video-container {
-    height: clamp(230px, 39svh, 305px);
+    width: min(100%, 286px);
   }
 }
 
@@ -1006,7 +1170,12 @@ footer {
   }
 
   .video-container {
-    height: clamp(220px, 38svh, 275px);
+    width: min(100%, 238px);
+    height: auto;
+  }
+
+  .camera-section {
+    width: min(100%, 270px);
   }
 
   .scan-hint {
@@ -1093,7 +1262,9 @@ footer {
   }
 
   .video-container {
+    width: min(100%, 380px);
     height: clamp(210px, 58svh, 300px);
+    aspect-ratio: auto;
   }
 }
 
