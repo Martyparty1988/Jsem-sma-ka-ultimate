@@ -4,33 +4,66 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="description" content="Jsem smažka? Lokální srandovní sken stavu po večírku. Fotka zůstává v prohlížeči.">
-  <meta name="theme-color" content="#0b1220">
+  <meta name="theme-color" content="#050708">
+  <meta name="color-scheme" content="dark">
+  <meta name="format-detection" content="telephone=no">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Smažka Scan">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Jsem smažka?">
+  <meta property="og:description" content="Lokální pseudo AI sken devastace po večírku. Fotka zůstává v zařízení.">
   <title>Jsem smažka?</title>
   <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icon-192.png">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <main class="container" aria-labelledby="appTitle">
+  <div class="ambient ambient-one" aria-hidden="true"></div>
+  <div class="ambient ambient-two" aria-hidden="true"></div>
+
+  <main class="container" id="app" aria-labelledby="appTitle">
+    <nav class="topbar" aria-label="Stav aplikace">
+      <div class="brand-lockup" aria-label="Smažka Scan">
+        <span class="brand-mark" aria-hidden="true"></span>
+        <span>SMŽK / SCAN</span>
+      </div>
+      <div class="local-status" title="Fotka zůstává v tomto zařízení">
+        <span class="status-dot" aria-hidden="true"></span>
+        <span>100% lokální</span>
+      </div>
+    </nav>
+
     <header class="hero">
       <p class="eyebrow">totálně lokální pseudo AI</p>
       <h1 id="appTitle">Jsem smažka?</h1>
       <p class="subtitle">Sken devastace po večírku. Přísně nevědecké, zato dramatické.</p>
     </header>
 
-    <section class="camera-section" aria-label="Kamera a sken">
-      <div class="video-container">
+    <section class="camera-section" id="scanner" aria-label="Kamera a sken">
+      <div class="scanner-label" aria-hidden="true">
+        <span>FACE DAMAGE ANALYZER</span>
+        <span class="scanner-version">V4.0</span>
+      </div>
+
+      <div class="video-container" id="cameraStage">
         <video id="video" autoplay muted playsinline></video>
+        <div class="preview-container hidden" id="previewContainer">
+          <img id="preview" alt="Náhled fotky pro sdílení výsledku">
+        </div>
+        <div class="camera-idle" id="cameraIdle" aria-hidden="true">
+          <span class="idle-eye"></span>
+          <span>Čekám na obraz</span>
+        </div>
+        <button id="switchCameraButton" class="stage-control hidden" type="button" aria-label="Přepnout kameru" title="Přepnout kameru">
+          <span aria-hidden="true">↻</span>
+        </button>
         <div id="cameraError" class="error-message hidden" role="alert"></div>
+        <div class="stage-vignette" aria-hidden="true"></div>
       </div>
 
-      <p id="scanHint" class="scan-hint">Povol kameru, srovnej obličej doprostřed a spusť sken.</p>
-
-      <div class="preview-container hidden" id="previewContainer">
-        <img id="preview" alt="Náhled fotky pro sdílení výsledku">
-      </div>
+      <p id="scanHint" class="scan-hint" aria-live="polite">Povol kameru, srovnej obličej doprostřed a spusť sken.</p>
 
       <div id="generalError" class="error-message hidden" role="alert"></div>
 
@@ -39,7 +72,7 @@
           <span class="button-icon" aria-hidden="true">📸</span>
           <span class="button-text">Vyfotit ručně</span>
         </button>
-        <button id="uploadButton" class="secondary-button hidden" type="button">
+        <button id="uploadButton" class="secondary-button" type="button">
           <span class="button-icon" aria-hidden="true">📁</span>
           <span class="button-text">Nahrát fotku</span>
         </button>
@@ -55,7 +88,7 @@
 
       <input type="file" id="uploadInput" accept="image/*" class="hidden">
 
-      <div id="loading" class="loading hidden" aria-live="polite">
+      <div id="loading" class="loading hidden" role="status" aria-live="polite">
         <div class="spinner" aria-hidden="true"></div>
         <p>Vyhodnocuju damage level…</p>
       </div>
@@ -66,7 +99,11 @@
     <canvas id="canvas" class="hidden" aria-hidden="true"></canvas>
 
     <footer>
-      <p class="privacy-note">Fotka se nikam neposílá. Všechno běží jen v prohlížeči, výsledek je čistě meme a ne diagnóza.</p>
+      <div class="privacy-note">
+        <span class="privacy-icon" aria-hidden="true">⌁</span>
+        <p>Fotka se nikam neposílá. Všechno běží jen v prohlížeči, výsledek je čistě meme a ne diagnóza.</p>
+      </div>
+      <button id="installButton" class="install-button hidden" type="button">Přidat jako aplikaci</button>
     </footer>
 
     <noscript>
@@ -74,9 +111,7 @@
     </noscript>
   </main>
 
-  <script defer src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
   <script defer src="app.js"></script>
-  <script defer src="responses-extra.js"></script>
   <script defer src="face-scan.js"></script>
 </body>
 </html>

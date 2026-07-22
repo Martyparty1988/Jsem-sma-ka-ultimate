@@ -1,4 +1,4 @@
-const CACHE_NAME = 'jsem-smazka-v3';
+const CACHE_NAME = 'jsem-smazka-v4';
 const APP_SHELL = [
   './',
   './index.html',
@@ -8,6 +8,8 @@ const APP_SHELL = [
   './responses.json',
   './responses-extra.js',
   './manifest.json',
+  './icon-192.png',
+  './icon-512.png',
   './icon.svg'
 ];
 
@@ -27,25 +29,44 @@ self.addEventListener('activate', (event) => {
   );
 });
 
+self.addEventListener('message', (event) => {
+  if (event.data?.type === 'SKIP_WAITING') self.skipWaiting();
+});
+
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
 
   const requestUrl = new URL(event.request.url);
   if (requestUrl.origin !== self.location.origin) return;
 
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      fetch(event.request)
+        .then((networkResponse) => {
+          const responseClone = networkResponse.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put('./index.html', responseClone));
+          return networkResponse;
+        })
+        .catch(() => caches.match('./index.html'))
+    );
+    return;
+  }
+
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {
-      const fetchPromise = fetch(event.request)
+      const networkPromise = fetch(event.request)
         .then((networkResponse) => {
-          if (networkResponse && networkResponse.status === 200) {
+          if (networkResponse.ok) {
             const responseClone = networkResponse.clone();
             caches.open(CACHE_NAME).then((cache) => cache.put(event.request, responseClone));
           }
           return networkResponse;
         })
-        .catch(() => cachedResponse || caches.match('./index.html'));
+        .catch(() => null);
 
-      return cachedResponse || fetchPromise;
+      return cachedResponse || networkPromise.then((networkResponse) => (
+        networkResponse || new Response('Offline', { status: 503, statusText: 'Offline' })
+      ));
     })
   );
 });
