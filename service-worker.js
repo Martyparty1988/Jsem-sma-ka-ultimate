@@ -1,4 +1,4 @@
-const CACHE_NAME = 'jsem-smazka-v18';
+const CACHE_NAME = 'jsem-smazka-v19';
 const APP_SHELL = [
   './',
   './index.html',
@@ -9,11 +9,13 @@ const APP_SHELL = [
   './experience-upgrades.css',
   './professional-polish.css?v=18',
   './camera-cleanup.css?v=18',
+  './diagnostic-upgrades.css',
   './app.js',
   './face-scan.js?v=18',
   './face-warp.js',
   './hard-responses.js',
   './experience-upgrades.js',
+  './diagnostic-upgrades.js',
   './responses.json',
   './responses-hard.json',
   './manifest.json',
@@ -23,11 +25,7 @@ const APP_SHELL = [
 ];
 
 self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then((cache) => cache.addAll(APP_SHELL))
-      .then(() => self.skipWaiting())
-  );
+  event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(APP_SHELL)));
 });
 
 self.addEventListener('activate', (event) => {
