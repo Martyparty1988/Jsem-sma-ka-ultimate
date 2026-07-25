@@ -1,4 +1,4 @@
-const CACHE_NAME = 'jsem-smazka-v7';
+const CACHE_NAME = 'jsem-smazka-v8';
 const APP_SHELL = [
   './',
   './index.html',
