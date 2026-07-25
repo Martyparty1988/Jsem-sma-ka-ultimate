@@ -1,4 +1,4 @@
-const CACHE_NAME = 'jsem-smazka-v13';
+const CACHE_NAME = 'jsem-smazka-v14';
 const APP_SHELL = [
   './',
   './index.html',
@@ -6,10 +6,12 @@ const APP_SHELL = [
   './face-warp.css',
   './result-fullscreen.css',
   './iphone-responsive.css',
+  './experience-upgrades.css',
   './app.js',
   './face-scan.js',
   './face-warp.js',
   './hard-responses.js',
+  './experience-upgrades.js',
   './responses.json',
   './responses-hard.json',
   './manifest.json',
