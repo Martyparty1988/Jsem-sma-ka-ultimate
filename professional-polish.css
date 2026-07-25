@@ -1,0 +1,215 @@
+/* Final professional polish for Smažka Scan. Keeps the satire, removes cheap scanner clutter. */
+
+:root {
+  --scanner-glass: rgba(3, 10, 24, 0.76);
+  --scanner-line: rgba(125, 211, 252, 0.72);
+  --scanner-muted: rgba(203, 213, 225, 0.76);
+}
+
+.video-container::before {
+  opacity: 0.2;
+  background: linear-gradient(to bottom, transparent 0%, rgba(34, 211, 238, 0.035) 48%, transparent 100%);
+  background-size: 100% 100%;
+}
+
+.video-container::after {
+  inset: 9px;
+  border-color: rgba(148, 210, 228, 0.09);
+  box-shadow: inset 0 0 32px rgba(2, 6, 23, 0.14);
+}
+
+#faceBox,
+.face-corner {
+  display: none !important;
+}
+
+#scanOverlay {
+  overflow: hidden;
+  background: linear-gradient(180deg, rgba(2, 6, 23, 0.05), transparent 24%, transparent 74%, rgba(2, 6, 23, 0.16));
+  transition: background 0.24s ease;
+}
+
+#scanOverlay.is-scanning {
+  background: linear-gradient(180deg, rgba(2, 6, 23, 0.14), transparent 25%, transparent 72%, rgba(2, 6, 23, 0.24));
+}
+
+#scanOverlay::before,
+#scanOverlay::after {
+  top: 13px;
+  padding: 6px 8px;
+  border-radius: 8px;
+  background: rgba(2, 6, 23, 0.58);
+  box-shadow: inset 0 1px rgba(255, 255, 255, 0.035);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  transition: opacity 0.2s ease, border-color 0.2s ease;
+}
+
+#scanOverlay::before {
+  content: 'SMAŽKA SCAN / LOKÁLNĚ';
+  left: 13px;
+  color: rgba(207, 250, 254, 0.92);
+  border-color: rgba(103, 232, 249, 0.18);
+  font-size: 0.52rem;
+  letter-spacing: 0.075em;
+}
+
+#scanOverlay::after {
+  content: 'OFFLINE';
+  right: 13px;
+  color: rgba(167, 243, 208, 0.92);
+  border-color: rgba(52, 211, 153, 0.17);
+  font-size: 0.52rem;
+  letter-spacing: 0.075em;
+}
+
+#scanOverlay.is-scanning::after {
+  content: 'SKENUJU';
+  border-color: rgba(52, 211, 153, 0.32);
+}
+
+#scanOverlay.is-complete::after {
+  content: 'HOTOVO';
+  color: #bbf7d0;
+  border-color: rgba(74, 222, 128, 0.38);
+}
+
+#scanLine {
+  right: 7%;
+  left: 7%;
+  height: 1px;
+  opacity: 0;
+  background: linear-gradient(90deg, transparent, rgba(103, 232, 249, 0.88) 20%, #ffffff 50%, rgba(52, 211, 153, 0.82) 80%, transparent);
+  box-shadow: 0 0 12px rgba(34, 211, 238, 0.52), 0 0 26px rgba(34, 211, 238, 0.16);
+}
+
+#scanLine::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  bottom: -22px;
+  left: 0;
+  height: 44px;
+  background: linear-gradient(to bottom, rgba(34, 211, 238, 0.055), transparent);
+  pointer-events: none;
+}
+
+#scanLine.active {
+  animation: professionalScanY 1.55s cubic-bezier(0.45, 0, 0.55, 1) infinite alternate;
+}
+
+@keyframes professionalScanY {
+  from { top: 13%; }
+  to { top: 84%; }
+}
+
+#scanStatus {
+  right: 12px;
+  bottom: 38px;
+  left: 12px;
+  width: auto;
+  min-height: 42px;
+  padding: 9px 12px;
+  border-color: rgba(148, 210, 228, 0.16);
+  border-radius: 12px;
+  background: var(--scanner-glass);
+  color: #e0f2fe;
+  font-size: 0.62rem;
+  font-weight: 760;
+  letter-spacing: 0.055em;
+  text-align: left;
+  transform: none;
+  box-shadow: 0 10px 28px rgba(2, 6, 23, 0.24), inset 0 1px rgba(255, 255, 255, 0.035);
+}
+
+#scanStatus::after {
+  color: #6ee7b7;
+  font-size: 0.68rem;
+  font-variant-numeric: tabular-nums;
+}
+
+#scanBar {
+  right: 12px;
+  bottom: 22px;
+  left: 12px;
+  width: auto;
+  height: 3px;
+  border-radius: 999px;
+  background: rgba(226, 232, 240, 0.12);
+  transform: none;
+  box-shadow: none;
+}
+
+#scanBar::after {
+  display: none;
+}
+
+.scan-bar-fill {
+  background: linear-gradient(90deg, #22d3ee, #34d399);
+  box-shadow: 0 0 10px rgba(34, 211, 238, 0.42);
+  transition: none;
+}
+
+.camera-section {
+  border-color: rgba(148, 210, 228, 0.13);
+  box-shadow: 0 18px 54px rgba(2, 6, 23, 0.46), inset 0 1px rgba(255, 255, 255, 0.035);
+}
+
+.primary-button,
+.secondary-button,
+.destroy-more-button,
+.share-button,
+.new-scan-button {
+  letter-spacing: -0.01em;
+}
+
+.primary-button {
+  box-shadow: 0 10px 25px rgba(34, 211, 238, 0.18), inset 0 1px rgba(255, 255, 255, 0.3);
+}
+
+.loading {
+  background: rgba(3, 8, 22, 0.82);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+.spinner {
+  width: 30px;
+  height: 30px;
+  border-width: 2px;
+  animation-duration: 0.9s;
+}
+
+@media (max-width: 640px) {
+  #scanOverlay::before,
+  #scanOverlay::after {
+    top: 10px;
+    padding: 5px 7px;
+    font-size: 0.47rem;
+  }
+
+  #scanOverlay::before { left: 10px; }
+  #scanOverlay::after { right: 10px; }
+
+  #scanStatus {
+    right: 10px;
+    bottom: 34px;
+    left: 10px;
+    min-height: 40px;
+    padding: 8px 10px;
+    font-size: 0.57rem;
+  }
+
+  #scanBar {
+    right: 10px;
+    bottom: 19px;
+    left: 10px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #scanLine.active {
+    animation: none !important;
+    top: 50%;
+  }
+}
