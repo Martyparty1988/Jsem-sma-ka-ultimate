@@ -1,0 +1,249 @@
+/* Visual layer for animated local face warping. Keeps the original neon/dark UI. */
+
+.warp-result-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: 100%;
+  object-fit: cover;
+  background: #030816;
+  transform: translateZ(0);
+}
+
+.result:not(.hidden) .result-content {
+  animation: resultContentReveal 0.52s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.result:not(.hidden) .result-visual {
+  isolation: isolate;
+  animation: resultVisualReveal 0.66s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.result-visual::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  pointer-events: none;
+  opacity: 0;
+  background:
+    linear-gradient(180deg, transparent 0%, rgba(103, 232, 249, 0.28) 48%, transparent 54%),
+    repeating-linear-gradient(0deg, rgba(255,255,255,0.025) 0 1px, transparent 1px 5px);
+  mix-blend-mode: screen;
+}
+
+.result.warp-progress .result-visual::after {
+  animation: warpScanner 0.98s ease-in-out both;
+}
+
+.result.warp-progress .effect-label {
+  animation: damageReadout 0.98s ease-out both;
+}
+
+.result.warp-progress .warp-result-canvas {
+  animation: warpChromaticPulse 0.98s ease-out both;
+}
+
+.effect-bulge .effect-label,
+.effect-pinch .effect-label {
+  border-color: rgba(103, 232, 249, 0.34);
+}
+
+.effect-wave .effect-label,
+.effect-squeeze .effect-label,
+.effect-rubber .effect-label {
+  border-color: rgba(52, 211, 153, 0.38);
+}
+
+.effect-melt .effect-label,
+.effect-drip .effect-label,
+.effect-collapse .effect-label {
+  border-color: rgba(251, 113, 133, 0.46);
+}
+
+.effect-critical .effect-label,
+.effect-implosion .effect-label,
+.effect-liquid .effect-label {
+  border-color: rgba(251, 113, 133, 0.68);
+  box-shadow: 0 0 26px rgba(251, 113, 133, calc(var(--effect-strength, .8) * .28));
+}
+
+#scanOverlay {
+  overflow: hidden;
+}
+
+#scanOverlay::before {
+  content: '';
+  position: absolute;
+  inset: -35%;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0;
+  background: conic-gradient(from 180deg, transparent, rgba(34, 211, 238, 0.14), transparent 32%, rgba(52, 211, 153, 0.12), transparent 68%);
+}
+
+#scanOverlay:has(#scanLine.active)::before {
+  opacity: 1;
+  animation: scanRadar 2.1s linear infinite;
+}
+
+#scanLine.active {
+  box-shadow:
+    0 0 10px rgba(103, 232, 249, 0.95),
+    0 0 28px rgba(34, 211, 238, 0.72),
+    0 0 56px rgba(34, 211, 238, 0.34);
+  filter: saturate(1.35);
+}
+
+#faceBox.show {
+  animation: faceLockIn 0.34s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+#faceBox.show::after {
+  content: '';
+  position: absolute;
+  inset: 18%;
+  border: 1px solid rgba(103, 232, 249, 0.18);
+  border-radius: 50%;
+  box-shadow: 0 0 34px rgba(34, 211, 238, 0.12);
+  animation: faceTargetPulse 0.95s ease-in-out infinite alternate;
+}
+
+#scanBar.show .scan-bar-fill {
+  box-shadow: 0 0 18px rgba(34, 211, 238, 0.8), 0 0 28px rgba(52, 211, 153, 0.42);
+}
+
+#scanStatus {
+  text-shadow: 0 0 16px rgba(34, 211, 238, 0.44);
+}
+
+.video-container:has(#scanLine.active) {
+  border-color: rgba(103, 232, 249, 0.58);
+  box-shadow:
+    inset 0 0 70px rgba(2, 6, 23, 0.54),
+    0 0 0 1px rgba(34, 211, 238, 0.16),
+    0 0 38px rgba(34, 211, 238, 0.16);
+}
+
+button,
+.primary-button,
+.secondary-button,
+.share-button,
+.new-scan-button,
+.install-button {
+  min-height: 44px;
+}
+
+.result-close,
+.stage-control {
+  min-width: 44px;
+  min-height: 44px;
+}
+
+@keyframes resultContentReveal {
+  from { opacity: 0; transform: translateY(18px) scale(0.975); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes resultVisualReveal {
+  0% { opacity: 0; transform: scale(0.92) rotateX(7deg); filter: brightness(1.5) blur(8px); }
+  58% { opacity: 1; transform: scale(1.018) rotateX(0); filter: brightness(1.18) blur(0); }
+  100% { opacity: 1; transform: scale(1); filter: brightness(1); }
+}
+
+@keyframes warpScanner {
+  0% { opacity: 0; transform: translateY(-58%); }
+  18% { opacity: 0.9; }
+  76% { opacity: 0.6; }
+  100% { opacity: 0; transform: translateY(58%); }
+}
+
+@keyframes warpChromaticPulse {
+  0% { filter: saturate(1) contrast(1); }
+  45% { filter: saturate(1.42) contrast(1.12); }
+  100% { filter: saturate(1.08) contrast(1.04); }
+}
+
+@keyframes damageReadout {
+  0%, 28% { opacity: 0.25; transform: translateY(8px); }
+  60% { opacity: 1; transform: translateY(-2px) scale(1.025); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes scanRadar {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes faceLockIn {
+  from { opacity: 0; transform: scale(1.1); filter: blur(4px); }
+  to { opacity: 1; transform: scale(1); filter: blur(0); }
+}
+
+@keyframes faceTargetPulse {
+  from { opacity: 0.35; transform: scale(0.92); }
+  to { opacity: 0.85; transform: scale(1.04); }
+}
+
+@media (max-width: 390px) {
+  body {
+    padding-top: max(8px, env(safe-area-inset-top));
+    padding-right: max(8px, env(safe-area-inset-right));
+    padding-bottom: max(10px, env(safe-area-inset-bottom));
+    padding-left: max(8px, env(safe-area-inset-left));
+  }
+
+  .container {
+    min-height: calc(100svh - max(18px, env(safe-area-inset-top)) - max(20px, env(safe-area-inset-bottom)));
+    padding: 13px;
+    border-radius: 23px;
+  }
+
+  .hero {
+    margin-bottom: 10px;
+  }
+
+  .camera-section {
+    padding: 7px;
+  }
+
+  .button-group {
+    gap: 8px;
+  }
+
+  .result {
+    padding-right: max(10px, env(safe-area-inset-right));
+    padding-bottom: max(10px, env(safe-area-inset-bottom));
+    padding-left: max(10px, env(safe-area-inset-left));
+  }
+
+  .result-actions {
+    gap: 9px;
+  }
+}
+
+@media (min-width: 800px) {
+  .result {
+    width: min(92vw, 570px);
+  }
+
+  .result-visual {
+    max-height: min(55vh, 560px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .result:not(.hidden) .result-content,
+  .result:not(.hidden) .result-visual,
+  .result.warp-progress .result-visual::after,
+  .result.warp-progress .effect-label,
+  .result.warp-progress .warp-result-canvas,
+  #scanOverlay:has(#scanLine.active)::before,
+  #faceBox.show,
+  #faceBox.show::after {
+    animation: none !important;
+  }
+
+  .result-visual::after {
+    display: none;
+  }
+}
