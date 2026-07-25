@@ -159,13 +159,7 @@
 
   async function loadResponses() {
     try {
-      let data;
-      try {
-        data = await fetchResponsePack('responses.json');
-      } catch (primaryError) {
-        console.warn('Hlavní balíček hlášek není dostupný:', primaryError);
-        data = await fetchResponsePack('responses-extra.js');
-      }
+      const data = await fetchResponsePack('responses.json');
 
       if (!Array.isArray(data) || data.length === 0) {
         throw new Error('responses.json je prázdný nebo nemá správný formát');
