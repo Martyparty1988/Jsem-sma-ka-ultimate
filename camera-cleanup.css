@@ -1,0 +1,52 @@
+/* Camera cleanup: keep the live image unobstructed during scanning. */
+
+/* The small top HUD labels duplicated the lower status panel and overlapped
+   the camera switch control on iPhone. Keep the camera surface clean. */
+#scanOverlay::before,
+#scanOverlay::after {
+  content: none !important;
+  display: none !important;
+}
+
+/* Hide the camera switch control only while a scan is running. */
+.video-container:has(#scanOverlay.is-scanning) #switchCameraButton,
+.video-container:has(#scanOverlay.is-complete) #switchCameraButton {
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+  transform: none !important;
+  animation: none !important;
+}
+
+/* The switch button must never rotate or retain a sticky mobile hover state. */
+#switchCameraButton,
+#switchCameraButton:hover,
+#switchCameraButton:active,
+#switchCameraButton:focus {
+  transform: none !important;
+  animation: none !important;
+}
+
+/* Remove broad decorative layers over the live image. The thin scan line,
+   bottom status and progress remain as the only scan feedback. */
+#scanOverlay,
+#scanOverlay.is-scanning,
+#scanOverlay.is-complete {
+  background: transparent !important;
+}
+
+#scanLine::after {
+  content: none !important;
+  display: none !important;
+}
+
+.video-container::before {
+  content: none !important;
+  display: none !important;
+}
+
+/* Avoid any generic busy layer covering the camera during the local scan. */
+.camera-section:has(#scanOverlay.is-scanning) .loading,
+.camera-section:has(#scanOverlay.is-complete) .loading {
+  display: none !important;
+}
