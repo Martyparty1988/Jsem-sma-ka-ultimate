@@ -1,0 +1,27 @@
+name: Export merged diagnostics workspace
+
+on:
+  push:
+    branches:
+      - agent/export-merged-diagnostics-main-20260725
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/export-merged-diagnostics-main-20260725
+      - run: rm -rf .git
+      - uses: actions/upload-artifact@v4
+        with:
+          name: smazka-merged-diagnostics-workspace
+          path: .
+          include-hidden-files: true
+          retention-days: 3
