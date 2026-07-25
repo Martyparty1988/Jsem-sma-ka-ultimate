@@ -33,6 +33,11 @@
   background: linear-gradient(180deg, rgba(2, 6, 23, 0.14), transparent 25%, transparent 72%, rgba(2, 6, 23, 0.24));
 }
 
+/* Never place the generic rotating loader over a face scan. */
+.camera-section:has(#scanOverlay.is-scanning) .loading {
+  display: none !important;
+}
+
 #scanOverlay::before,
 #scanOverlay::after {
   top: 13px;
