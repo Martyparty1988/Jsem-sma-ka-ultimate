@@ -41,8 +41,15 @@
   object-position: center center;
 }
 
+/* The final result must stay a clean photo: no scan grid or animated noise over the face. */
+.result-visual::before,
+.result-visual .effect-noise {
+  display: none !important;
+}
+
 .result-visual::after {
-  background: radial-gradient(ellipse at center, transparent 48%, rgba(2, 6, 23, 0.48) 100%);
+  background: radial-gradient(ellipse at center, transparent 58%, rgba(2, 6, 23, 0.28) 100%);
+  box-shadow: none;
 }
 
 .result-visual .result-badge {
