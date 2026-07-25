@@ -1,0 +1,76 @@
+name: Export latest main workspace
+
+on:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  export-workspace:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Consolidate response source
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+
+          app_path = Path('app.js')
+          app = app_path.read_text(encoding='utf-8')
+          pattern = re.compile(
+              r"      let data;\n"
+              r"      try \{\n"
+              r"        data = await fetchResponsePack\('responses\.json'\);\n"
+              r"      \} catch \(primaryError\) \{\n"
+              r"        console\.warn\('Hlavní balíček hlášek není dostupný:', primaryError\);\n"
+              r"        data = await fetchResponsePack\('responses-extra\.js'\);\n"
+              r"      \}\n"
+          )
+          app, count = pattern.subn("      const data = await fetchResponsePack('responses.json');\n", app, count=1)
+          if count != 1:
+              raise SystemExit('Nepodařilo se upravit načítání responses.json')
+          app_path.write_text(app, encoding='utf-8')
+
+          sw_path = Path('service-worker.js')
+          sw = sw_path.read_text(encoding='utf-8')
+          sw = sw.replace("  './responses-extra.js',\n", '')
+          sw = re.sub(r"const CACHE_NAME = 'jsem-smazka-v\d+';", "const CACHE_NAME = 'jsem-smazka-v9';", sw, count=1)
+          sw_path.write_text(sw, encoding='utf-8')
+
+          extra = Path('responses-extra.js')
+          if extra.exists():
+              extra.unlink()
+
+          if 'responses-extra.js' in app_path.read_text(encoding='utf-8'):
+              raise SystemExit('app.js stále odkazuje na responses-extra.js')
+          if 'responses-extra.js' in sw_path.read_text(encoding='utf-8'):
+              raise SystemExit('service-worker.js stále odkazuje na responses-extra.js')
+          PY
+
+      - name: Validate source
+        run: |
+          python3 -m json.tool responses.json >/dev/null
+          node --check app.js
+          node --check face-scan.js
+          node --check face-warp.js
+          node --check service-worker.js
+          git diff --check
+
+      - name: Remove temporary workflow from export
+        run: rm -f .github/workflows/export-latest-main.yml
+
+      - name: Upload workspace
+        uses: actions/upload-artifact@v4
+        with:
+          name: smazka-latest-main-workspace
+          path: |
+            .
+            !.git/**
+          retention-days: 3
