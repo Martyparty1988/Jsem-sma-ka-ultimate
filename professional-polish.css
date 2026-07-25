@@ -33,7 +33,7 @@
   background: linear-gradient(180deg, rgba(2, 6, 23, 0.14), transparent 25%, transparent 72%, rgba(2, 6, 23, 0.24));
 }
 
-/* Never place the generic rotating loader over a face scan. */
+/* Never place the generic loader over a face scan. */
 .camera-section:has(#scanOverlay.is-scanning) .loading {
   display: none !important;
 }
@@ -178,11 +178,14 @@
   -webkit-backdrop-filter: blur(18px);
 }
 
+/* The old rotating square/circle loader is intentionally gone. */
 .spinner {
-  width: 30px;
-  height: 30px;
-  border-width: 2px;
-  animation-duration: 0.9s;
+  display: none !important;
+  animation: none !important;
+}
+
+.loading p {
+  margin: 0;
 }
 
 @media (max-width: 640px) {
