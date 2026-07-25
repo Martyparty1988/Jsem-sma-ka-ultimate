@@ -1,0 +1,357 @@
+name: Finalize face warp upgrade
+
+on:
+  push:
+    branches:
+      - agent/finalize-face-warp-20260725
+
+permissions:
+  contents: write
+
+jobs:
+  finalize-and-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+        with:
+          ref: agent/finalize-face-warp-20260725
+          fetch-depth: 0
+
+      - name: Apply approved source changes
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+
+          root = Path('.')
+
+          app_path = root / 'app.js'
+          app = app_path.read_text(encoding='utf-8')
+          pattern = re.compile(
+              r"      let data;\n"
+              r"      try \{\n"
+              r"        data = await fetchResponsePack\('responses\.json'\);\n"
+              r"      \} catch \(primaryError\) \{\n"
+              r"        console\.warn\('Hlavní balíček hlášek není dostupný:', primaryError\);\n"
+              r"        data = await fetchResponsePack\('responses-extra\.js'\);\n"
+              r"      \}\n"
+          )
+          app, count = pattern.subn("      const data = await fetchResponsePack('responses.json');\n", app, count=1)
+          if count != 1:
+              raise SystemExit('Nepodařilo se bezpečně upravit načítání responses.json')
+          app_path.write_text(app, encoding='utf-8')
+
+          index_path = root / 'index.html'
+          index = index_path.read_text(encoding='utf-8')
+          if 'face-warp.css' not in index:
+              index = index.replace(
+                  '  <link rel="stylesheet" href="styles.css">',
+                  '  <link rel="stylesheet" href="styles.css">\n  <link rel="stylesheet" href="face-warp.css">'
+              )
+          if 'src="face-warp.js"' not in index:
+              index = index.replace(
+                  '  <script defer src="app.js"></script>\n  <script defer src="face-scan.js"></script>',
+                  '  <script defer src="app.js"></script>\n  <script defer src="face-warp.js"></script>\n  <script defer src="face-scan.js"></script>'
+              )
+          index_path.write_text(index, encoding='utf-8')
+
+          sw_path = root / 'service-worker.js'
+          sw = sw_path.read_text(encoding='utf-8')
+          sw = re.sub(r"const CACHE_NAME = 'jsem-smazka-v\d+';", "const CACHE_NAME = 'jsem-smazka-v7';", sw, count=1)
+          sw = sw.replace("  './responses-extra.js',\n", '')
+          if "  './face-warp.css'," not in sw:
+              sw = sw.replace("  './styles.css',\n", "  './styles.css',\n  './face-warp.css',\n")
+          if "  './face-warp.js'," not in sw:
+              sw = sw.replace("  './app.js',\n", "  './app.js',\n  './face-warp.js',\n")
+          sw_path.write_text(sw, encoding='utf-8')
+
+          extra = root / 'responses-extra.js'
+          if extra.exists():
+              extra.unlink()
+
+          css = r'''/* Face warp integration and scan/result polish. Kept separate for a small, cacheable upgrade. */
+.warp-result-canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+  background: #030816;
+}
+
+.result.warp-progress .result-visual {
+  box-shadow:
+    0 22px 56px rgba(2, 6, 23, 0.62),
+    0 0 42px color-mix(in srgb, var(--effect-accent) 28%, transparent),
+    inset 0 1px rgba(255, 255, 255, 0.14);
+}
+
+.result.warp-progress .effect-noise {
+  opacity: calc(var(--effect-noise-opacity) + 0.08);
+}
+
+#scanOverlay::before,
+#scanOverlay::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+#scanOverlay:has(#scanLine.active)::before {
+  opacity: 1;
+  background:
+    radial-gradient(circle at 50% 42%, rgba(34, 211, 238, 0.16), transparent 34%),
+    repeating-linear-gradient(180deg, transparent 0 15px, rgba(103, 232, 249, 0.045) 16px 17px);
+  animation: scanFieldPulse 1.15s ease-in-out infinite alternate;
+}
+
+#scanOverlay:has(#scanLine.active)::after {
+  opacity: 1;
+  border: 1px solid rgba(103, 232, 249, 0.26);
+  border-radius: inherit;
+  box-shadow: inset 0 0 54px rgba(34, 211, 238, 0.12);
+  animation: scanFrameCharge 0.9s ease-in-out infinite alternate;
+}
+
+#scanLine.active {
+  height: 3px;
+  background: linear-gradient(90deg, transparent 1%, #22d3ee 24%, #fff 50%, #34d399 76%, transparent 99%);
+  box-shadow:
+    0 0 18px rgba(255, 255, 255, 0.8),
+    0 0 38px rgba(34, 211, 238, 0.95),
+    0 0 72px rgba(52, 211, 153, 0.36);
+}
+
+.video-container:has(#scanLine.active) {
+  animation: scanStagePulse 0.85s ease-in-out infinite alternate;
+}
+
+.result:not(.hidden) .result-content > * {
+  animation: resultItemReveal 0.48s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.result:not(.hidden) .result-content > :nth-child(2) { animation-delay: 0.07s; }
+.result:not(.hidden) .result-content > :nth-child(3) { animation-delay: 0.13s; }
+.result:not(.hidden) .result-content > :nth-child(4) { animation-delay: 0.19s; }
+
+.result-close,
+.stage-control {
+  min-width: 44px;
+  min-height: 44px;
+}
+
+.primary-button,
+.secondary-button,
+.share-button,
+.new-scan-button,
+.install-button {
+  min-height: 48px;
+}
+
+.result {
+  padding-right: max(20px, env(safe-area-inset-right));
+  padding-left: max(20px, env(safe-area-inset-left));
+}
+
+@keyframes scanFieldPulse {
+  from { filter: saturate(1); transform: scale(1); }
+  to { filter: saturate(1.45); transform: scale(1.012); }
+}
+
+@keyframes scanFrameCharge {
+  from { opacity: 0.42; }
+  to { opacity: 0.92; }
+}
+
+@keyframes scanStagePulse {
+  from { border-color: rgba(148, 210, 228, 0.25); }
+  to { border-color: rgba(103, 232, 249, 0.62); }
+}
+
+@keyframes resultItemReveal {
+  from { opacity: 0; transform: translateY(12px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@media (max-width: 370px) {
+  .result {
+    padding-right: max(14px, env(safe-area-inset-right));
+    padding-left: max(14px, env(safe-area-inset-left));
+  }
+
+  .result-visual {
+    width: clamp(116px, 18svh, 146px);
+  }
+
+  .result h2 {
+    padding-inline: 4px;
+    font-size: clamp(1.65rem, 8vw, 2.1rem);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #scanOverlay:has(#scanLine.active)::before,
+  #scanOverlay:has(#scanLine.active)::after,
+  .video-container:has(#scanLine.active),
+  .result:not(.hidden) .result-content > * {
+    animation: none !important;
+  }
+}
+'''
+          (root / 'face-warp.css').write_text(css, encoding='utf-8')
+
+          # Hard guards: one response source only and the original Czech phrases untouched.
+          if 'responses-extra.js' in app_path.read_text(encoding='utf-8'):
+              raise SystemExit('app.js stále odkazuje na responses-extra.js')
+          if 'responses-extra.js' in sw_path.read_text(encoding='utf-8'):
+              raise SystemExit('service-worker.js stále odkazuje na responses-extra.js')
+          if not (root / 'responses.json').exists():
+              raise SystemExit('responses.json chybí')
+          PY
+
+      - name: Validate JSON and JavaScript syntax
+        shell: bash
+        run: |
+          python3 -m json.tool responses.json >/dev/null
+          node --check app.js
+          node --check face-scan.js
+          node --check face-warp.js
+          node --check service-worker.js
+          git diff --check
+
+      - name: Install Playwright in temporary directory
+        shell: bash
+        run: |
+          mkdir -p /tmp/smazka-playwright
+          cd /tmp/smazka-playwright
+          npm init -y >/dev/null 2>&1
+          npm install --silent playwright@1.54.1
+          npx playwright install --with-deps chromium
+
+      - name: Run static-server browser tests
+        shell: bash
+        run: |
+          mkdir -p screenshots /tmp/smazka-test
+          cat > /tmp/smazka-test/face.svg <<'SVG'
+          <svg xmlns="http://www.w3.org/2000/svg" width="900" height="1200" viewBox="0 0 900 1200">
+            <defs>
+              <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+                <stop stop-color="#0f172a"/><stop offset="1" stop-color="#164e63"/>
+              </linearGradient>
+              <radialGradient id="skin"><stop stop-color="#f6c7a5"/><stop offset="1" stop-color="#b96e55"/></radialGradient>
+            </defs>
+            <rect width="900" height="1200" fill="url(#bg)"/>
+            <ellipse cx="450" cy="520" rx="285" ry="360" fill="url(#skin)"/>
+            <ellipse cx="338" cy="455" rx="48" ry="35" fill="#fff"/><circle cx="348" cy="458" r="18" fill="#111827"/>
+            <ellipse cx="562" cy="455" rx="48" ry="35" fill="#fff"/><circle cx="552" cy="458" r="18" fill="#111827"/>
+            <path d="M450 480 Q415 620 470 620" fill="none" stroke="#7c3f36" stroke-width="22" stroke-linecap="round"/>
+            <path d="M300 715 Q450 830 600 705" fill="none" stroke="#551b24" stroke-width="34" stroke-linecap="round"/>
+            <path d="M245 330 Q335 270 390 325M510 325 Q570 270 655 330" fill="none" stroke="#3f2a25" stroke-width="30" stroke-linecap="round"/>
+          </svg>
+          SVG
+
+          cat > /tmp/smazka-test/test.mjs <<'JS'
+          import { chromium, devices } from '/tmp/smazka-playwright/node_modules/playwright/index.mjs';
+          import fs from 'node:fs/promises';
+
+          const baseUrl = 'http://127.0.0.1:4173';
+          const imagePath = '/tmp/smazka-test/face.svg';
+          const failures = [];
+
+          async function exercise(browser, name, contextOptions, screenshotPath) {
+            const context = await browser.newContext(contextOptions);
+            const page = await context.newPage();
+            const errors = [];
+            const requests = [];
+            page.on('console', (message) => {
+              if (message.type() === 'error') errors.push(message.text());
+            });
+            page.on('pageerror', (error) => errors.push(error.message));
+            page.on('request', (request) => requests.push(request.url()));
+
+            await page.goto(baseUrl, { waitUntil: 'networkidle' });
+            await page.setInputFiles('#uploadInput', imagePath);
+            await page.waitForSelector('#result:not(.hidden) .warp-result-canvas', { timeout: 12000 });
+            await page.evaluate(() => window.SmazkaApp.state.shareImagePromise);
+            await page.waitForTimeout(contextOptions.reducedMotion === 'reduce' ? 80 : 1150);
+
+            const snapshot = await page.evaluate(() => ({
+              title: window.SmazkaApp.state.lastAnalysisResult.title,
+              severity: window.SmazkaApp.state.effectSeverity,
+              effectPrefix: String(window.SmazkaApp.state.effectImageData || '').slice(0, 22),
+              shareWidth: document.querySelector('#canvas').width,
+              shareHeight: document.querySelector('#canvas').height,
+              warpWidth: document.querySelector('.warp-result-canvas')?.width || 0,
+              warpHeight: document.querySelector('.warp-result-canvas')?.height || 0,
+              responseCount: window.SmazkaApp.state.responseLibrary.length
+            }));
+
+            if (!snapshot.title) failures.push(`${name}: chybí výsledek`);
+            if (snapshot.warpWidth < 400 || snapshot.warpHeight < 500) failures.push(`${name}: deformace nemá platný canvas`);
+            if (!snapshot.effectPrefix.startsWith('data:image/png')) failures.push(`${name}: finální deformace není PNG`);
+            if (snapshot.shareWidth !== 1080 || snapshot.shareHeight !== 1350) failures.push(`${name}: sdílecí karta nemá 1080×1350`);
+            if (snapshot.responseCount < 40) failures.push(`${name}: responses.json se nenačetl kompletně`);
+            if (requests.some((url) => url.includes('responses-extra.js'))) failures.push(`${name}: aplikace načítá responses-extra.js`);
+            if (errors.length) failures.push(`${name}: konzole: ${errors.join(' | ')}`);
+
+            await page.screenshot({ path: screenshotPath, fullPage: true });
+            await context.close();
+            return snapshot;
+          }
+
+          const browser = await chromium.launch({ headless: true });
+          const mobile = await exercise(browser, 'mobile', {
+            ...devices['iPhone 13'],
+            viewport: { width: 390, height: 844 }
+          }, 'screenshots/mobile-result.png');
+          const desktop = await exercise(browser, 'desktop', {
+            viewport: { width: 1280, height: 900 },
+            deviceScaleFactor: 1
+          }, 'screenshots/desktop-result.png');
+          const reduced = await exercise(browser, 'reduced-motion', {
+            viewport: { width: 390, height: 844 },
+            reducedMotion: 'reduce'
+          }, 'screenshots/mobile-reduced-motion.png');
+          await browser.close();
+
+          await fs.writeFile('screenshots/test-results.json', JSON.stringify({ mobile, desktop, reduced, failures }, null, 2));
+          if (failures.length) {
+            console.error(failures.join('\n'));
+            process.exit(1);
+          }
+          console.log(JSON.stringify({ mobile, desktop, reduced }, null, 2));
+          JS
+
+          python3 -m http.server 4173 --bind 127.0.0.1 >/tmp/smazka-server.log 2>&1 &
+          server_pid=$!
+          trap 'kill $server_pid' EXIT
+          sleep 1
+          node /tmp/smazka-test/test.mjs
+
+      - name: Remove temporary workflow from final tree
+        shell: bash
+        run: rm -f .github/workflows/agent-finalize.yml
+
+      - name: Upload validated workspace and screenshots
+        uses: actions/upload-artifact@v4
+        with:
+          name: smazka-final-workspace
+          path: |
+            .
+            !.git/**
+          if-no-files-found: error
+          retention-days: 3
+
+      - name: Commit validated changes to temporary branch
+        shell: bash
+        run: |
+          rm -rf screenshots
+          git config user.name "OpenAI Codex"
+          git config user.email "codex@openai.com"
+          git add -A
+          git commit -m "Finalize face warps and consolidate responses"
+          git push origin HEAD:agent/finalize-face-warp-20260725
