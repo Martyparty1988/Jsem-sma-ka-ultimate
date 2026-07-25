@@ -154,6 +154,9 @@
     app.setHint('Drž obličej přirozeně uprostřed. Sken probíhá pouze v tomto zařízení.');
     app.setBusy(true);
 
+    // setBusy disables controls, but its generic loader must never cover the face scan.
+    loading.classList.add('hidden');
+
     overlay.classList.add('is-scanning');
     scanLine.classList.add('active');
     barWrap.classList.add('show');
