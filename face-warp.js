@@ -1,4 +1,4 @@
-/* Animated face deformation upgrade – local canvas pixel warping, no external libraries. */
+/* Pure geometric face deformation – original pixels only, no filters or replacement. */
 (() => {
   'use strict';
 
@@ -11,23 +11,23 @@
 
   const tiers = {
     mild: [
-      { key: 'bulge', label: 'Lehký otok reality', modes: ['bulge'] },
-      { key: 'pinch', label: 'Tvář stažená do bodu', modes: ['pinch'] }
+      { key: 'bulge', label: 'Lehce roztažený obličej', modes: ['bulge'] },
+      { key: 'pinch', label: 'Lehce zmáčknutý obličej', modes: ['pinch'] }
     ],
     medium: [
-      { key: 'wave', label: 'Vlnění časoprostoru', modes: ['wave', 'bulge'] },
-      { key: 'squeeze', label: 'Komprese osobnosti', modes: ['squeeze', 'pinch'] },
-      { key: 'rubber', label: 'Gumový ksicht', modes: ['wave', 'squeeze'] }
+      { key: 'wave', label: 'Zvlněný obličej', modes: ['wave', 'bulge'] },
+      { key: 'squeeze', label: 'Gumově zmáčknutý obličej', modes: ['squeeze', 'pinch'] },
+      { key: 'rubber', label: 'Gumový obličej', modes: ['wave', 'squeeze'] }
     ],
     high: [
-      { key: 'melt', label: 'Obličej teče', modes: ['melt', 'wave'] },
-      { key: 'drip', label: 'Gravitace vyhrála', modes: ['melt', 'bulge'] },
-      { key: 'collapse', label: 'Kolaps geometrie', modes: ['melt', 'pinch', 'wave'] }
+      { key: 'melt', label: 'Protažený obličej', modes: ['melt', 'wave'] },
+      { key: 'drip', label: 'Obličej tažený dolů', modes: ['melt', 'bulge'] },
+      { key: 'collapse', label: 'Silně deformovaný obličej', modes: ['melt', 'pinch', 'wave'] }
     ],
     critical: [
-      { key: 'critical', label: 'Totální rozpad', modes: ['melt', 'wave', 'bulge', 'glitch'] },
-      { key: 'implosion', label: 'Imploze obličeje', modes: ['melt', 'pinch', 'squeeze', 'glitch'] },
-      { key: 'liquid', label: 'Tekutá existence', modes: ['melt', 'wave', 'squeeze', 'glitch'] }
+      { key: 'critical', label: 'Extrémně roztažený obličej', modes: ['melt', 'wave', 'bulge'] },
+      { key: 'implosion', label: 'Extrémně zmáčknutý obličej', modes: ['melt', 'pinch', 'squeeze'] },
+      { key: 'liquid', label: 'Tekutě protažený obličej', modes: ['melt', 'wave', 'squeeze'] }
     ]
   };
 
@@ -89,7 +89,7 @@
   function renderFrame(source, output, profile, severity, progress, seed) {
     const width = output.width;
     const height = output.height;
-    const strength = (severity / 100) * easeOut(progress);
+    const strength = Math.min(0.78, (severity / 100) * 0.82) * easeOut(progress);
     const has = (mode) => profile.modes.includes(mode);
     const strip = width >= 700 ? 5 : 4;
     const horizontal = document.createElement('canvas');
@@ -99,61 +99,69 @@
     const context = output.getContext('2d');
 
     for (let y = 0; y < height; y += strip) {
-      const faceY = (y / height - 0.43) / 0.36;
-      const mask = Math.exp(-faceY * faceY * 1.7);
+      const vertical = y / height;
+      const faceY = (vertical - 0.45) / 0.34;
+      const faceMask = Math.exp(-faceY * faceY * 1.75);
+      const featureProtection = Math.exp(-Math.pow((vertical - 0.43) / 0.14, 2));
+      const mask = faceMask * (1 - featureProtection * 0.38);
+
       let scale = 1;
-      if (has('bulge')) scale += 0.28 * strength * mask;
-      if (has('pinch')) scale -= 0.2 * strength * mask;
-      if (has('squeeze')) scale -= 0.11 * strength * mask * (0.55 + 0.45 * Math.sin(y * 0.035 + seed));
-      const wave = has('wave') ? Math.sin(y * 0.045 + seed * 0.17) * width * 0.045 * strength * mask : 0;
-      const jitter = has('glitch') ? (noise(y * 0.9 + seed) - 0.5) * width * 0.025 * strength * mask : 0;
+      if (has('bulge')) scale += 0.2 * strength * mask;
+      if (has('pinch')) scale -= 0.14 * strength * mask;
+      if (has('squeeze')) scale -= 0.09 * strength * mask * (0.62 + 0.38 * Math.sin(y * 0.03 + seed));
+
+      const wave = has('wave')
+        ? Math.sin(y * 0.038 + seed * 0.13) * width * 0.03 * strength * mask
+        : 0;
+
       const drawWidth = width * scale;
-      const dx = (width - drawWidth) / 2 + wave + jitter;
-      hctx.drawImage(source, 0, y, width, Math.min(strip + 1, height - y), dx, y, drawWidth, Math.min(strip + 1, height - y));
+      const dx = (width - drawWidth) / 2 + wave;
+      hctx.drawImage(
+        source,
+        0,
+        y,
+        width,
+        Math.min(strip + 1, height - y),
+        dx,
+        y,
+        drawWidth,
+        Math.min(strip + 1, height - y)
+      );
     }
 
     context.clearRect(0, 0, width, height);
     context.drawImage(horizontal, 0, 0);
 
     if (has('melt')) {
-      const meltTop = Math.round(height * 0.2);
-      const meltHeight = Math.round(height * 0.62);
+      const meltTop = Math.round(height * 0.48);
+      const meltHeight = Math.round(height * 0.36);
       const center = width / 2;
-      const radius = width * 0.39;
-      for (let x = Math.round(width * 0.11); x < width * 0.89; x += strip) {
+      const radius = width * 0.38;
+
+      for (let x = Math.round(width * 0.14); x < width * 0.86; x += strip) {
         const normalized = (x - center) / radius;
-        const mask = Math.pow(Math.max(0, 1 - normalized * normalized), 1.3);
-        const random = noise(x * 0.43 + seed * 9.13);
-        const pull = Math.round(height * (0.025 + 0.22 * strength * strength) * mask * (0.25 + random * 0.75));
-        const sway = Math.round(Math.sin(x * 0.047 + seed) * width * 0.022 * strength * mask);
-        if (pull > 1) context.drawImage(horizontal, x, meltTop, strip + 1, meltHeight, x + sway, meltTop, strip + 1, meltHeight + pull);
+        const mask = Math.pow(Math.max(0, 1 - normalized * normalized), 1.5);
+        const random = noise(x * 0.41 + seed * 8.7);
+        const pull = Math.round(
+          height * (0.008 + 0.095 * strength * strength) * mask * (0.4 + random * 0.6)
+        );
+        const sway = Math.round(Math.sin(x * 0.043 + seed) * width * 0.01 * strength * mask);
+
+        if (pull > 1) {
+          context.drawImage(
+            horizontal,
+            x,
+            meltTop,
+            strip + 1,
+            meltHeight,
+            x + sway,
+            meltTop,
+            strip + 1,
+            meltHeight + pull
+          );
+        }
       }
     }
-
-    if (has('glitch') && strength > 0.45) {
-      const tears = 3 + Math.round(strength * 7);
-      for (let index = 0; index < tears; index += 1) {
-        const y = Math.round(height * (0.18 + noise(seed + index * 8.4) * 0.64));
-        const band = Math.max(3, Math.round(height * (0.006 + noise(seed * 2 + index) * 0.022)));
-        const shift = Math.round((noise(seed * 4 + index * 12.2) - 0.5) * width * 0.17 * strength);
-        context.globalAlpha = 0.55 + strength * 0.3;
-        context.drawImage(horizontal, 0, y, width, band, shift, y, width, band);
-      }
-      context.globalAlpha = 1;
-    }
-
-    const tint = context.createLinearGradient(0, 0, width, height);
-    tint.addColorStop(0, `rgba(34,211,238,${0.02 + strength * 0.08})`);
-    tint.addColorStop(0.55, 'rgba(2,6,23,0)');
-    tint.addColorStop(1, `rgba(244,63,94,${0.02 + strength * 0.13})`);
-    context.fillStyle = tint;
-    context.fillRect(0, 0, width, height);
-
-    const vignette = context.createRadialGradient(width / 2, height * 0.42, height * 0.12, width / 2, height * 0.46, height * 0.7);
-    vignette.addColorStop(0, 'rgba(2,6,23,0)');
-    vignette.addColorStop(1, `rgba(2,6,23,${0.14 + strength * 0.34})`);
-    context.fillStyle = vignette;
-    context.fillRect(0, 0, width, height);
   }
 
   async function animateCanvas(canvas, imageData, profile, severity, seed, runId) {
@@ -163,13 +171,16 @@
     canvas.height = 640;
     const source = createSource(image, canvas.width, canvas.height);
     renderFrame(source, canvas, profile, severity, 0, seed);
+
     if (reducedMotion()) {
       renderFrame(source, canvas, profile, severity, 1, seed);
       return;
     }
+
     const started = performance.now();
     const duration = 980;
     elements.result.classList.add('warp-progress');
+
     await new Promise((resolve) => {
       const frame = (now) => {
         if (runId !== activeRun) return resolve();
@@ -180,6 +191,7 @@
       };
       requestAnimationFrame(frame);
     });
+
     elements.result.classList.remove('warp-progress');
   }
 
@@ -228,21 +240,6 @@
     context.fillRect(0, 0, width, canvas.height);
     drawCover(context, image, 0, 0, width, imageHeight);
 
-    const vignette = context.createRadialGradient(width / 2, imageHeight * 0.42, 120, width / 2, imageHeight * 0.45, 690);
-    vignette.addColorStop(0, 'rgba(2,6,23,0)');
-    vignette.addColorStop(1, 'rgba(2,6,23,0.62)');
-    context.fillStyle = vignette;
-    context.fillRect(0, 0, width, imageHeight);
-
-    context.strokeStyle = 'rgba(34,211,238,0.14)';
-    context.lineWidth = 1;
-    for (let x = 0; x <= width; x += 90) {
-      context.beginPath(); context.moveTo(x, 0); context.lineTo(x, imageHeight); context.stroke();
-    }
-    for (let y = 0; y <= imageHeight; y += 90) {
-      context.beginPath(); context.moveTo(0, y); context.lineTo(width, y); context.stroke();
-    }
-
     context.fillStyle = 'rgba(2,6,23,0.76)';
     context.fillRect(42, 42, 430, 62);
     context.fillStyle = '#67e8f9';
@@ -290,6 +287,7 @@
     const token = resultToken();
     if (elements.result.dataset.warpToken === token) return;
     elements.result.dataset.warpToken = token;
+
     const runId = ++activeRun;
     const severity = Math.max(12, Math.min(98, Number(state.lastAnalysisResult?.severity || state.effectSeverity || 50)));
     const seed = cryptoRandom(100000) + 1;
@@ -299,11 +297,12 @@
 
     visual.className = `result-visual effect-${profile.key}`;
     visual.style.setProperty('--effect-strength', String(severity / 100));
+
     const oldMedia = visual.querySelector('img, canvas');
     const canvas = document.createElement('canvas');
     canvas.className = 'warp-result-canvas';
     canvas.setAttribute('role', 'img');
-    canvas.setAttribute('aria-label', `Deformovaný náhled po skenu. Intenzita efektu ${severity} procent.`);
+    canvas.setAttribute('aria-label', `Geometricky deformovaný původní obličej. Intenzita efektu ${severity} procent.`);
     oldMedia?.replaceWith(canvas);
 
     const label = visual.querySelector('.effect-label');
