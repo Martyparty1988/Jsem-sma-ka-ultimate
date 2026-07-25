@@ -12,22 +12,31 @@
   const tiers = {
     mild: [
       { key: 'bulge', label: 'Lehce roztažený obličej', modes: ['bulge'] },
-      { key: 'pinch', label: 'Lehce zmáčknutý obličej', modes: ['pinch'] }
+      { key: 'pinch', label: 'Lehce zmáčknutý obličej', modes: ['pinch'] },
+      { key: 'tilt', label: 'Křivě posunutý obličej', modes: ['tilt', 'wave'] }
     ],
     medium: [
       { key: 'wave', label: 'Zvlněný obličej', modes: ['wave', 'bulge'] },
       { key: 'squeeze', label: 'Gumově zmáčknutý obličej', modes: ['squeeze', 'pinch'] },
-      { key: 'rubber', label: 'Gumový obličej', modes: ['wave', 'squeeze'] }
+      { key: 'rubber', label: 'Gumový obličej', modes: ['wave', 'squeeze', 'tilt'] },
+      { key: 'forehead', label: 'Přefouknuté čelo', modes: ['forehead', 'pinch'] },
+      { key: 'jaw', label: 'Roztažená čelist', modes: ['jaw', 'bulge'] }
     ],
     high: [
       { key: 'melt', label: 'Protažený obličej', modes: ['melt', 'wave'] },
-      { key: 'drip', label: 'Obličej tažený dolů', modes: ['melt', 'bulge'] },
-      { key: 'collapse', label: 'Silně deformovaný obličej', modes: ['melt', 'pinch', 'wave'] }
+      { key: 'drip', label: 'Obličej tažený dolů', modes: ['melt', 'bulge', 'jaw'] },
+      { key: 'collapse', label: 'Silně deformovaný obličej', modes: ['melt', 'pinch', 'wave'] },
+      { key: 'wide', label: 'Obličej roztažený do stran', modes: ['wide', 'bulge', 'wave'] },
+      { key: 'accordion', label: 'Obličej jako harmonika', modes: ['accordion', 'squeeze', 'tilt'] },
+      { key: 'crooked', label: 'Totálně křivý obličej', modes: ['tilt', 'jaw', 'wave'] }
     ],
     critical: [
-      { key: 'critical', label: 'Extrémně roztažený obličej', modes: ['melt', 'wave', 'bulge'] },
-      { key: 'implosion', label: 'Extrémně zmáčknutý obličej', modes: ['melt', 'pinch', 'squeeze'] },
-      { key: 'liquid', label: 'Tekutě protažený obličej', modes: ['melt', 'wave', 'squeeze'] }
+      { key: 'critical', label: 'Extrémně roztažený obličej', modes: ['wide', 'melt', 'wave', 'bulge'] },
+      { key: 'implosion', label: 'Extrémně zmáčknutý obličej', modes: ['melt', 'pinch', 'squeeze', 'accordion'] },
+      { key: 'liquid', label: 'Tekutě protažený obličej', modes: ['melt', 'wave', 'squeeze', 'jaw'] },
+      { key: 'megahead', label: 'Hlava nafouknutá na maximum', modes: ['forehead', 'wide', 'bulge'] },
+      { key: 'facequake', label: 'Obličej po zemětřesení', modes: ['wave', 'tilt', 'accordion', 'melt'] },
+      { key: 'junkymelt', label: 'Totální junky rozpad', modes: ['melt', 'wide', 'jaw', 'wave'] }
     ]
   };
 
@@ -89,7 +98,7 @@
   function renderFrame(source, output, profile, severity, progress, seed) {
     const width = output.width;
     const height = output.height;
-    const strength = Math.min(0.78, (severity / 100) * 0.82) * easeOut(progress);
+    const strength = Math.min(1.08, 0.2 + (severity / 100) * 0.98) * easeOut(progress);
     const has = (mode) => profile.modes.includes(mode);
     const strip = width >= 700 ? 5 : 4;
     const horizontal = document.createElement('canvas');
@@ -100,22 +109,31 @@
 
     for (let y = 0; y < height; y += strip) {
       const vertical = y / height;
-      const faceY = (vertical - 0.45) / 0.34;
-      const faceMask = Math.exp(-faceY * faceY * 1.75);
-      const featureProtection = Math.exp(-Math.pow((vertical - 0.43) / 0.14, 2));
-      const mask = faceMask * (1 - featureProtection * 0.38);
+      const faceY = (vertical - 0.45) / 0.35;
+      const faceMask = Math.exp(-faceY * faceY * 1.55);
+      const foreheadMask = Math.exp(-Math.pow((vertical - 0.29) / 0.18, 2));
+      const jawMask = Math.exp(-Math.pow((vertical - 0.64) / 0.18, 2));
+      const featureProtection = Math.exp(-Math.pow((vertical - 0.43) / 0.12, 2));
+      const mask = faceMask * (1 - featureProtection * 0.24);
 
       let scale = 1;
-      if (has('bulge')) scale += 0.2 * strength * mask;
-      if (has('pinch')) scale -= 0.14 * strength * mask;
-      if (has('squeeze')) scale -= 0.09 * strength * mask * (0.62 + 0.38 * Math.sin(y * 0.03 + seed));
+      if (has('bulge')) scale += 0.34 * strength * mask;
+      if (has('wide')) scale += 0.48 * strength * mask;
+      if (has('pinch')) scale -= 0.24 * strength * mask;
+      if (has('squeeze')) scale -= 0.18 * strength * mask * (0.58 + 0.42 * Math.sin(y * 0.034 + seed));
+      if (has('forehead')) scale += 0.52 * strength * foreheadMask;
+      if (has('jaw')) scale += 0.46 * strength * jawMask;
+      if (has('accordion')) scale += Math.sin(y * 0.075 + seed) * 0.22 * strength * mask;
 
       const wave = has('wave')
-        ? Math.sin(y * 0.038 + seed * 0.13) * width * 0.03 * strength * mask
+        ? Math.sin(y * 0.042 + seed * 0.13) * width * 0.055 * strength * mask
+        : 0;
+      const tilt = has('tilt')
+        ? (vertical - 0.5) * width * 0.17 * strength * mask
         : 0;
 
-      const drawWidth = width * scale;
-      const dx = (width - drawWidth) / 2 + wave;
+      const drawWidth = width * Math.max(0.54, scale);
+      const dx = (width - drawWidth) / 2 + wave + tilt;
       hctx.drawImage(
         source,
         0,
@@ -133,19 +151,19 @@
     context.drawImage(horizontal, 0, 0);
 
     if (has('melt')) {
-      const meltTop = Math.round(height * 0.48);
-      const meltHeight = Math.round(height * 0.36);
+      const meltTop = Math.round(height * 0.43);
+      const meltHeight = Math.round(height * 0.43);
       const center = width / 2;
-      const radius = width * 0.38;
+      const radius = width * 0.4;
 
-      for (let x = Math.round(width * 0.14); x < width * 0.86; x += strip) {
+      for (let x = Math.round(width * 0.11); x < width * 0.89; x += strip) {
         const normalized = (x - center) / radius;
-        const mask = Math.pow(Math.max(0, 1 - normalized * normalized), 1.5);
+        const mask = Math.pow(Math.max(0, 1 - normalized * normalized), 1.35);
         const random = noise(x * 0.41 + seed * 8.7);
         const pull = Math.round(
-          height * (0.008 + 0.095 * strength * strength) * mask * (0.4 + random * 0.6)
+          height * (0.012 + 0.16 * strength * strength) * mask * (0.32 + random * 0.68)
         );
-        const sway = Math.round(Math.sin(x * 0.043 + seed) * width * 0.01 * strength * mask);
+        const sway = Math.round(Math.sin(x * 0.043 + seed) * width * 0.018 * strength * mask);
 
         if (pull > 1) {
           context.drawImage(
@@ -178,7 +196,7 @@
     }
 
     const started = performance.now();
-    const duration = 980;
+    const duration = 1080;
     elements.result.classList.add('warp-progress');
 
     await new Promise((resolve) => {
@@ -241,11 +259,11 @@
     drawCover(context, image, 0, 0, width, imageHeight);
 
     context.fillStyle = 'rgba(2,6,23,0.76)';
-    context.fillRect(42, 42, 430, 62);
+    context.fillRect(42, 42, 540, 62);
     context.fillStyle = '#67e8f9';
     context.font = '800 24px ui-monospace, monospace';
     context.textAlign = 'left';
-    context.fillText(`SMŽK / ${profile.key.toUpperCase()} / ${severity}%`, 64, 82);
+    context.fillText(`SMŽK / ${profile.key.toUpperCase()} / DAMAGE ${severity}%`, 64, 82);
 
     context.fillStyle = 'rgba(2,6,23,0.97)';
     context.fillRect(0, imageHeight, width, panelHeight);
