@@ -8,7 +8,8 @@ Srandovní webová appka, která simuluje lokální AI sken obličeje a vygeneru
 - Umí přepnout přední/zadní kameru a použít vlastní fotku.
 - Zobrazí animovaný pseudo scan obličeje.
 - Náhodně vybere hlášku z `responses.json`.
-- Vygeneruje sdílitelný PNG obrázek s výsledkem.
+- Podle damage levelu lokálně a animovaně deformuje obličej (nafouknutí, stažení, vlnění a stékání).
+- Vygeneruje sdílitelný PNG obrázek s deformovaným obličejem a hláškou.
 - Funguje jako instalovatelná PWA i offline díky `manifest.json` a `service-worker.js`.
 - Fotka se neposílá na server. Všechno běží lokálně v prohlížeči.
 - Nepoužívá žádný externí skript ani analytiku.
@@ -17,10 +18,11 @@ Srandovní webová appka, která simuluje lokální AI sken obličeje a vygeneru
 
 - `index.html` – základ stránky, metadata a struktura UI.
 - `styles.css` – responzivní dark/neon design.
+- `face-warp.css` – vizuální efekty deformace, skenu a výsledku.
 - `app.js` – kamera, stav aplikace, výsledky, sdílení a PWA registrace.
 - `face-scan.js` – animace skenu a zachycení aktuálního snímku.
+- `face-warp.js` – lokální canvas deformace obličeje a příprava sdíleného PNG.
 - `responses.json` – knihovna hlášek.
-- `responses-extra.js` – záložní kopie hláškového balíčku.
 - `manifest.json` – PWA nastavení.
 - `service-worker.js` – offline cache.
 - `icon.svg` – ikona aplikace.
