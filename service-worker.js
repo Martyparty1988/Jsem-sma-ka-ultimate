@@ -1,9 +1,10 @@
-const CACHE_NAME = 'jsem-smazka-v9';
+const CACHE_NAME = 'jsem-smazka-v10';
 const APP_SHELL = [
   './',
   './index.html',
   './styles.css',
   './face-warp.css',
+  './result-fullscreen.css',
   './app.js',
   './face-scan.js',
   './face-warp.js',
