@@ -61,6 +61,20 @@
         shape: [0.095, 0.07, 0.055, 0.018],
         flow: [0.105, 0.028, 0.022, 0.016],
         twist: 0.006
+      },
+      {
+        key: 'signal-glitch',
+        label: 'Signál se láme',
+        shape: [0.035, 0.09, 0.04, 0.03],
+        flow: [0.16, -0.018, 0.14, 0.018],
+        twist: 0.058
+      },
+      {
+        key: 'kebab-lens',
+        label: 'Kebab lens',
+        shape: [0.15, 0.095, 0.03, 0.018],
+        flow: [0.18, 0.038, 0.02, 0.02],
+        twist: -0.018
       }
     ],
     high: [
@@ -91,6 +105,20 @@
         shape: [0.055, 0.095, 0.085, 0.038],
         flow: [0.055, 0.012, 0.135, 0.072],
         twist: 0.072
+      },
+      {
+        key: 'gravity-loss',
+        label: 'Ztráta gravitace',
+        shape: [0.025, -0.08, 0.12, 0.065],
+        flow: [-0.055, 0.075, 0.105, -0.075],
+        twist: 0.045
+      },
+      {
+        key: 'eye-sink',
+        label: 'Propad očí',
+        shape: [-0.055, -0.125, 0.075, 0.115],
+        flow: [-0.02, 0.025, 0.055, 0.045],
+        twist: -0.028
       }
     ],
     critical: [
@@ -210,7 +238,14 @@
     return value[0] % max;
   }
 
-  function chooseProfile(severity, seed) {
+  function chooseProfile(severity, seed, preferredKey = '') {
+    if (preferredKey) {
+      const preferred = Object.values(tiers)
+        .flat()
+        .find((profile) => profile.key === preferredKey);
+      if (preferred) return preferred;
+    }
+
     const tier = severity < 30 ? tiers.mild : severity < 58 ? tiers.medium : severity < 82 ? tiers.high : tiers.critical;
     return tier[Math.abs(seed) % tier.length];
   }
@@ -541,7 +576,7 @@
     const runId = ++activeRun;
     const severity = Math.max(12, Math.min(98, Number(state.lastAnalysisResult?.severity || state.effectSeverity || 50)));
     const seed = cryptoRandom(100000) + 1;
-    const profile = chooseProfile(severity, seed);
+    const profile = chooseProfile(severity, seed, state.lastAnalysisResult?.effectProfile?.key || state.effectProfile?.key);
     const visual = elements.result.querySelector('.result-visual');
     if (!visual) return;
 
