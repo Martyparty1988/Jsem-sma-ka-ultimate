@@ -26,9 +26,10 @@
     result.classList.toggle('details-open', open);
     if (detailsButton) {
       detailsButton.setAttribute('aria-expanded', String(open));
-      detailsButton.querySelector('span:last-child').textContent = open
-        ? 'Skrýt detailní rozbor'
-        : 'Zobrazit detailní rozbor';
+      const label = detailsButton.querySelector('.in-frame-details-label');
+      if (label) {
+        label.textContent = open ? 'Skrýt detailní rozbor' : 'Zobrazit detailní rozbor';
+      }
     }
 
     if (open) {
@@ -59,7 +60,7 @@
       detailsButton.type = 'button';
       detailsButton.className = 'in-frame-details-toggle';
       detailsButton.setAttribute('aria-expanded', 'false');
-      detailsButton.innerHTML = '<span aria-hidden="true">⌁</span><span>Zobrazit detailní rozbor</span><i aria-hidden="true">⌄</i>';
+      detailsButton.innerHTML = '<span aria-hidden="true">⌁</span><span class="in-frame-details-label">Zobrazit detailní rozbor</span><i aria-hidden="true">⌄</i>';
       detailsButton.addEventListener('click', () => setDetailsOpen(!result.classList.contains('details-open')));
     }
 
