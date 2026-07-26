@@ -1,4 +1,4 @@
-/* Smažka Scan v28
+/* Smažka Scan v29
    One visual authority for the app shell, scanner, reveal and result.
    Loaded last so older feature styles can stay focused on behaviour. */
 
@@ -1303,14 +1303,54 @@ h1 {
 
   body.result-in-frame .result.details-open .in-frame-result-gradient {
     height: 100%;
-    background: rgba(3, 4, 7, 0.9);
-    backdrop-filter: blur(18px) saturate(90%);
-    -webkit-backdrop-filter: blur(18px) saturate(90%);
+    background:
+      linear-gradient(180deg, rgba(2, 3, 5, 0.94), rgba(2, 3, 5, 0.985) 72%, #020305);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
   }
 
   body.result-in-frame .result.details-open .diagnostic-panel {
-    border-color: rgba(255, 255, 255, 0.09);
-    background: rgba(255, 255, 255, 0.045);
+    border-color: rgba(99, 243, 255, 0.2);
+    background:
+      linear-gradient(160deg, rgba(10, 16, 21, 0.985), rgba(5, 8, 12, 0.995));
+    box-shadow:
+      0 16px 34px rgba(0, 0, 0, 0.3),
+      inset 0 1px rgba(255, 255, 255, 0.055);
+  }
+
+  body.result-in-frame .result.details-open .diagnostic-heading strong {
+    color: #8ff7ff;
+    font-size: 0.78rem;
+    text-shadow: 0 0 16px rgba(99, 243, 255, 0.24);
+  }
+
+  body.result-in-frame .result.details-open .diagnostic-heading small {
+    color: rgba(247, 249, 242, 0.72);
+    font-size: 0.7rem;
+    line-height: 1.25;
+  }
+
+  body.result-in-frame .result.details-open .diagnostic-copy span {
+    color: rgba(247, 249, 242, 0.84);
+    font-size: 0.76rem;
+    font-weight: 610;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.9);
+  }
+
+  body.result-in-frame .result.details-open .diagnostic-copy strong {
+    color: #fff;
+    font-size: 0.76rem;
+    font-weight: 830;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.92);
+  }
+
+  body.result-in-frame .result.details-open .diagnostic-row.is-danger .diagnostic-copy strong {
+    color: #ff9db3;
+  }
+
+  body.result-in-frame .result.details-open .diagnostic-meter {
+    height: 5px;
+    background: rgba(255, 255, 255, 0.11);
   }
 
   body.result-in-frame .result.details-open .diagnostic-meter i {
@@ -1318,8 +1358,9 @@ h1 {
   }
 
   body.result-in-frame .result.details-open .result-tool-button {
-    border-color: rgba(255, 255, 255, 0.09);
-    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.13);
+    background: rgba(255, 255, 255, 0.075);
+    color: rgba(255, 255, 255, 0.92);
   }
 
   body.result-in-frame .result.details-open .result-tool-button:first-child {

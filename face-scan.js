@@ -1,4 +1,4 @@
-/* Face Scan Mode – local face lock with native detection when available. */
+/* Face Scan Mode – real on-device MediaPipe landmarks for eyes, nose, mouth and face contour. */
 (() => {
   'use strict';
 
@@ -9,9 +9,37 @@
   const videoContainer = app.elements.cameraStage || document.querySelector('.video-container');
   if (!videoContainer) return;
 
+  const SVG_NS = 'http://www.w3.org/2000/svg';
+  const MODEL_ROOT = 'vendor/mediapipe-face-mesh/';
+  const DETECTION_MAX_AGE = 620;
+  const SCAN_DURATION = 3000;
+
+  const FACE_OVAL = [
+    10, 338, 297, 332, 284, 251, 389, 356, 454, 323, 361, 288,
+    397, 365, 379, 378, 400, 377, 152, 148, 176, 149, 150, 136,
+    172, 58, 132, 93, 234, 127, 162, 21, 54, 103, 67, 109
+  ];
+  const RIGHT_EYE = [33, 7, 163, 144, 145, 153, 154, 155, 133, 173, 157, 158, 159, 160, 161, 246];
+  const LEFT_EYE = [263, 249, 390, 373, 374, 380, 381, 382, 362, 398, 384, 385, 386, 387, 388, 466];
+  const RIGHT_BROW = [70, 63, 105, 66, 107, 55, 65, 52, 53, 46];
+  const LEFT_BROW = [336, 296, 334, 293, 300, 285, 295, 282, 283, 276];
+  const NOSE_BRIDGE = [168, 6, 197, 195, 5, 4, 1, 19, 94, 2];
+  const NOSE_BASE = [98, 97, 2, 326, 327];
+  const OUTER_LIPS = [61, 146, 91, 181, 84, 17, 314, 405, 321, 375, 291, 409, 270, 269, 267, 0, 37, 39, 40, 185];
+  const INNER_LIPS = [78, 95, 88, 178, 87, 14, 317, 402, 318, 324, 308, 415, 310, 311, 312, 13, 82, 81, 80, 191];
+  const RIGHT_IRIS = [468, 469, 470, 471, 472];
+  const LEFT_IRIS = [473, 474, 475, 476, 477];
+
+  const dotGroups = [
+    { className: 'landmark-eye', indices: [33, 133, 159, 145, 263, 362, 386, 374, 468, 473] },
+    { className: 'landmark-nose', indices: [168, 6, 4, 1, 2, 98, 327] },
+    { className: 'landmark-mouth', indices: [61, 0, 291, 17, 78, 13, 308, 14] },
+    { className: 'landmark-jaw', indices: [10, 127, 234, 132, 172, 152, 397, 361, 454, 356] }
+  ];
+
   const overlay = document.createElement('div');
   overlay.id = 'scanOverlay';
-  overlay.className = 'is-tracking';
+  overlay.className = 'is-tracking model-loading';
   overlay.dataset.stage = 'idle';
 
   const tracker = document.createElement('div');
@@ -20,40 +48,41 @@
 
   const faceFrame = document.createElement('div');
   faceFrame.className = 'face-lock-frame';
-  faceFrame.dataset.mode = 'guided';
+  faceFrame.dataset.mode = 'target';
 
-  const mesh = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  const mesh = document.createElementNS(SVG_NS, 'svg');
   mesh.setAttribute('class', 'face-landmark-mesh');
-  mesh.setAttribute('viewBox', '0 0 100 128');
   mesh.setAttribute('preserveAspectRatio', 'none');
-  mesh.innerHTML = `
-    <path class="face-contour" d="M50 5 C26 5 15 25 15 55 C15 89 29 118 50 124 C71 118 85 89 85 55 C85 25 74 5 50 5 Z" />
-    <path class="mesh-line mesh-brow" d="M25 39 C34 34 42 35 47 39 M53 39 C59 35 68 34 76 39" />
-    <path class="mesh-line mesh-eye" d="M25 48 C31 43 41 43 47 48 C40 54 32 54 25 48 Z M53 48 C60 43 69 43 76 48 C69 54 60 54 53 48 Z" />
-    <path class="mesh-line mesh-nose" d="M50 49 C47 61 45 70 50 76 C54 75 57 73 59 70" />
-    <path class="mesh-line mesh-mouth" d="M34 87 C43 82 57 82 66 87 C58 95 43 95 34 87 Z" />
-    <path class="mesh-line mesh-center" d="M50 12 L50 116 M20 63 C34 59 66 59 80 63" />
-    <path class="mesh-line mesh-jaw" d="M18 66 L22 79 L28 92 L37 106 L50 116 L63 106 L72 92 L78 79 L82 66" />
-    <g class="landmark-points">
-      <circle class="landmark landmark-eye" cx="32" cy="48" r="1.45" />
-      <circle class="landmark landmark-eye" cx="40" cy="48" r="1.45" />
-      <circle class="landmark landmark-eye" cx="60" cy="48" r="1.45" />
-      <circle class="landmark landmark-eye" cx="68" cy="48" r="1.45" />
-      <circle class="landmark landmark-nose" cx="50" cy="67" r="1.5" />
-      <circle class="landmark landmark-nose" cx="46" cy="75" r="1.2" />
-      <circle class="landmark landmark-nose" cx="56" cy="74" r="1.2" />
-      <circle class="landmark landmark-mouth" cx="39" cy="87" r="1.3" />
-      <circle class="landmark landmark-mouth" cx="50" cy="90" r="1.45" />
-      <circle class="landmark landmark-mouth" cx="61" cy="87" r="1.3" />
-      <circle class="landmark landmark-jaw" cx="22" cy="79" r="1.15" />
-      <circle class="landmark landmark-jaw" cx="28" cy="92" r="1.15" />
-      <circle class="landmark landmark-jaw" cx="37" cy="106" r="1.15" />
-      <circle class="landmark landmark-jaw" cx="50" cy="116" r="1.25" />
-      <circle class="landmark landmark-jaw" cx="63" cy="106" r="1.15" />
-      <circle class="landmark landmark-jaw" cx="72" cy="92" r="1.15" />
-      <circle class="landmark landmark-jaw" cx="78" cy="79" r="1.15" />
-    </g>
-  `;
+  mesh.setAttribute('aria-hidden', 'true');
+
+  function createMeshPath(className) {
+    const path = document.createElementNS(SVG_NS, 'path');
+    path.setAttribute('class', className);
+    mesh.appendChild(path);
+    return path;
+  }
+
+  const meshPaths = {
+    contour: createMeshPath('face-contour'),
+    brows: createMeshPath('mesh-line mesh-brow'),
+    eyes: createMeshPath('mesh-line mesh-eye'),
+    irises: createMeshPath('mesh-line mesh-iris'),
+    nose: createMeshPath('mesh-line mesh-nose'),
+    mouth: createMeshPath('mesh-line mesh-mouth')
+  };
+
+  const landmarkNodes = [];
+  dotGroups.forEach((group) => {
+    group.indices.forEach((index) => {
+      const circle = document.createElementNS(SVG_NS, 'circle');
+      circle.setAttribute('class', `landmark ${group.className}`);
+      circle.setAttribute('r', '1.85');
+      circle.hidden = true;
+      circle.dataset.index = String(index);
+      mesh.appendChild(circle);
+      landmarkNodes.push({ index, circle });
+    });
+  });
 
   const lockLabel = document.createElement('span');
   lockLabel.className = 'face-lock-label';
@@ -75,8 +104,8 @@
   scanLine.id = 'scanLine';
   scanLine.setAttribute('aria-hidden', 'true');
 
-  faceFrame.append(mesh, lockLabel, eyeLeftLabel, eyeRightLabel, mouthLabel, scanLine);
-  tracker.appendChild(faceFrame);
+  faceFrame.append(lockLabel, scanLine);
+  tracker.append(faceFrame, mesh, eyeLeftLabel, eyeRightLabel, mouthLabel);
 
   const status = document.createElement('div');
   status.id = 'scanStatus';
@@ -84,7 +113,7 @@
   status.setAttribute('aria-live', 'polite');
   status.innerHTML = `
     <span class="scan-state-dot" aria-hidden="true"></span>
-    <span class="scan-state-copy">Zarovnej obličej</span>
+    <span class="scan-state-copy">Načítám mapu obličeje</span>
     <strong class="scan-state-progress">0%</strong>
   `;
 
@@ -106,32 +135,26 @@
   let finishTimer = null;
   let detectionTimer = null;
   let detectionBusy = false;
-  let startedAt = 0;
-  let duration = 2800;
+  let lastAnimationAt = 0;
+  let scanElapsed = 0;
+  let lostFaceAt = 0;
   let progress = 0;
   let isScanning = false;
   let currentStage = '';
   let faceDetected = false;
-  let detector = null;
-  let detectorMode = 'guided';
+  let faceMesh = null;
+  let modelState = 'loading';
+  let detectorFailures = 0;
+  let stableFaceFrames = 0;
+  let landmarkCount = 0;
   let lastDetectionAt = 0;
-
-  try {
-    if ('FaceDetector' in window) {
-      detector = new window.FaceDetector({ fastMode: true, maxDetectedFaces: 1 });
-      detectorMode = 'native';
-      faceFrame.dataset.mode = 'native';
-    }
-  } catch (error) {
-    console.info('Nativní detekce obličeje není dostupná, používám lokální vodicí režim.', error);
-    detector = null;
-  }
+  let lastRawLandmarks = null;
 
   const scanStages = [
     [13, 'Zamykám obličej', 'lock'],
-    [31, 'Oči rozpoznány', 'eyes'],
+    [31, 'Oči přesně zamčeny', 'eyes'],
     [48, 'Nos a ústa zamčeny', 'features'],
-    [68, 'Mapuju čelist', 'jaw'],
+    [68, 'Kontura obličeje hotová', 'jaw'],
     [89, 'Vyhodnocuju damage', 'analysis'],
     [100, 'Sken dokončen', 'complete']
   ];
@@ -140,15 +163,44 @@
     if (statusCopy) statusCopy.textContent = message;
   }
 
-  function setDetected(detected, source = detectorMode) {
-    faceDetected = Boolean(detected);
+  function modelAvailable() {
+    return modelState === 'ready' || modelState === 'warming';
+  }
+
+  function hasFreshLandmarks(now = performance.now()) {
+    return Boolean(
+      faceDetected
+      && lastRawLandmarks?.length >= 468
+      && now - lastDetectionAt <= DETECTION_MAX_AGE
+    );
+  }
+
+  function setDetected(detected) {
+    const next = Boolean(detected);
+    const changed = next !== faceDetected;
+    faceDetected = next;
     overlay.classList.toggle('face-detected', faceDetected);
     overlay.classList.toggle('face-searching', !faceDetected);
-    faceFrame.dataset.mode = source;
+    faceFrame.dataset.mode = faceDetected ? 'landmarks' : 'target';
 
     if (!isScanning) {
-      setStatus(faceDetected ? 'Obličej rozpoznán' : detector ? 'Hledám obličej' : 'Zarovnej obličej');
-      lockLabel.textContent = faceDetected ? 'FACE LOCK' : 'FACE TARGET';
+      setStatus(
+        faceDetected
+          ? `${landmarkCount} bodů obličeje zamčeno`
+          : modelState === 'loading' || modelState === 'warming'
+            ? 'Načítám mapu obličeje'
+            : modelState === 'failed'
+              ? 'Přesná detekce není dostupná'
+              : 'Hledám oči, nos a ústa'
+      );
+      lockLabel.textContent = faceDetected ? `${landmarkCount}-POINT LOCK` : 'FACE TARGET';
+    }
+
+    if (!changed) return;
+    if (faceDetected) {
+      app.setHint('Obličej přesně zamčen. Můžeš spustit sken.');
+    } else if (modelState === 'ready') {
+      app.setHint('Podívej se do kamery a nech v záběru celý obličej.');
     }
   }
 
@@ -157,25 +209,29 @@
     const height = videoContainer.clientHeight;
     if (!width || !height) return;
 
-    const pulse = Math.sin(now / 1100) * Math.min(3, width * 0.006);
-    const frameWidth = Math.min(width * 0.62, height * 0.53) + pulse;
-    const frameHeight = Math.min(height * 0.69, frameWidth * 1.42);
+    const pulse = Math.sin(now / 1100) * Math.min(2, width * 0.004);
+    const frameWidth = Math.min(width * 0.62, height * 0.5) + pulse;
+    const frameHeight = Math.min(height * 0.67, frameWidth * 1.42);
     const left = (width - frameWidth) / 2;
     const top = Math.max(height * 0.075, height * 0.43 - frameHeight * 0.48);
-    setFrameRect(left, top, frameWidth, frameHeight);
+    setFrameRect(left, top, frameWidth, frameHeight, true);
   }
 
-  function setFrameRect(left, top, width, height) {
+  function setFrameRect(left, top, width, height, target = false) {
     const containerWidth = videoContainer.clientWidth;
     const containerHeight = videoContainer.clientHeight;
     if (!containerWidth || !containerHeight) return;
 
-    const minWidth = containerWidth * 0.38;
-    const maxWidth = containerWidth * 0.82;
-    const safeWidth = Math.max(minWidth, Math.min(maxWidth, width));
-    const safeHeight = Math.max(safeWidth * 1.12, Math.min(containerHeight * 0.82, height));
+    const safeWidth = Math.max(
+      containerWidth * (target ? 0.38 : 0.24),
+      Math.min(containerWidth * 0.92, width)
+    );
+    const safeHeight = Math.max(
+      containerHeight * (target ? 0.4 : 0.24),
+      Math.min(containerHeight * 0.9, height)
+    );
     const safeLeft = Math.max(6, Math.min(containerWidth - safeWidth - 6, left));
-    const safeTop = Math.max(8, Math.min(containerHeight - safeHeight - 54, top));
+    const safeTop = Math.max(8, Math.min(containerHeight - safeHeight - 56, top));
 
     faceFrame.style.left = `${safeLeft}px`;
     faceFrame.style.top = `${safeTop}px`;
@@ -183,88 +239,238 @@
     faceFrame.style.height = `${safeHeight}px`;
   }
 
-  function mapNativeFace(box) {
+  function mapLandmarks(landmarks) {
     const sourceWidth = video.videoWidth;
     const sourceHeight = video.videoHeight;
     const targetWidth = videoContainer.clientWidth;
     const targetHeight = videoContainer.clientHeight;
-    if (!sourceWidth || !sourceHeight || !targetWidth || !targetHeight) return;
+    if (!sourceWidth || !sourceHeight || !targetWidth || !targetHeight) return null;
 
     const scale = Math.max(targetWidth / sourceWidth, targetHeight / sourceHeight);
-    const renderedWidth = sourceWidth * scale;
-    const renderedHeight = sourceHeight * scale;
-    const offsetX = (targetWidth - renderedWidth) / 2;
-    const offsetY = (targetHeight - renderedHeight) / 2;
+    const offsetX = (targetWidth - sourceWidth * scale) / 2;
+    const offsetY = (targetHeight - sourceHeight * scale) / 2;
+    const mirrored = app.state?.facingMode === 'user';
 
-    let left = Number(box.x || box.left || 0) * scale + offsetX;
-    let top = Number(box.y || box.top || 0) * scale + offsetY;
-    let width = Number(box.width || 0) * scale;
-    let height = Number(box.height || 0) * scale;
+    const points = landmarks.map((landmark) => {
+      const sourceX = Number(landmark?.x || 0) * sourceWidth;
+      const sourceY = Number(landmark?.y || 0) * sourceHeight;
+      const renderedX = sourceX * scale + offsetX;
+      return {
+        x: mirrored ? targetWidth - renderedX : renderedX,
+        y: sourceY * scale + offsetY
+      };
+    });
 
-    const expandedWidth = width * 1.2;
-    const expandedHeight = height * 1.28;
-    left -= (expandedWidth - width) / 2;
-    top -= height * 0.17;
-    width = expandedWidth;
-    height = expandedHeight;
+    return { points, targetWidth, targetHeight };
+  }
 
-    if (app.state?.facingMode === 'user') {
-      left = targetWidth - left - width;
+  function pathFromGroups(points, groups, close = false) {
+    return groups.map((indices) => {
+      const segment = indices.map((index) => points[index]).filter(Boolean);
+      if (segment.length < 2) return '';
+      const commands = segment.map((point, index) => (
+        `${index ? 'L' : 'M'}${point.x.toFixed(1)} ${point.y.toFixed(1)}`
+      ));
+      if (close) commands.push('Z');
+      return commands.join(' ');
+    }).join(' ');
+  }
+
+  function averagePoint(points, indices) {
+    const valid = indices.map((index) => points[index]).filter(Boolean);
+    if (!valid.length) return null;
+    const total = valid.reduce((sum, point) => ({
+      x: sum.x + point.x,
+      y: sum.y + point.y
+    }), { x: 0, y: 0 });
+    return { x: total.x / valid.length, y: total.y / valid.length };
+  }
+
+  function placeFeatureLabel(label, point, offsetY = -13) {
+    if (!point) return;
+    label.style.left = `${point.x}px`;
+    label.style.top = `${point.y + offsetY}px`;
+  }
+
+  function renderLandmarks(landmarks) {
+    const mapped = mapLandmarks(landmarks);
+    if (!mapped) return false;
+
+    const { points, targetWidth, targetHeight } = mapped;
+    mesh.setAttribute('viewBox', `0 0 ${targetWidth} ${targetHeight}`);
+
+    meshPaths.contour.setAttribute('d', pathFromGroups(points, [FACE_OVAL], true));
+    meshPaths.brows.setAttribute('d', pathFromGroups(points, [RIGHT_BROW, LEFT_BROW]));
+    meshPaths.eyes.setAttribute('d', pathFromGroups(points, [RIGHT_EYE, LEFT_EYE], true));
+    meshPaths.irises.setAttribute(
+      'd',
+      landmarks.length >= 478 ? pathFromGroups(points, [RIGHT_IRIS.slice(1), LEFT_IRIS.slice(1)], true) : ''
+    );
+    meshPaths.nose.setAttribute('d', pathFromGroups(points, [NOSE_BRIDGE, NOSE_BASE]));
+    meshPaths.mouth.setAttribute('d', pathFromGroups(points, [OUTER_LIPS, INNER_LIPS], true));
+
+    landmarkNodes.forEach(({ index, circle }) => {
+      const point = points[index];
+      if (!point) {
+        circle.hidden = true;
+        return;
+      }
+      circle.hidden = false;
+      circle.setAttribute('cx', point.x.toFixed(1));
+      circle.setAttribute('cy', point.y.toFixed(1));
+    });
+
+    const outline = FACE_OVAL.map((index) => points[index]).filter(Boolean);
+    if (outline.length) {
+      const bounds = outline.reduce((value, point) => ({
+        minX: Math.min(value.minX, point.x),
+        minY: Math.min(value.minY, point.y),
+        maxX: Math.max(value.maxX, point.x),
+        maxY: Math.max(value.maxY, point.y)
+      }), {
+        minX: Number.POSITIVE_INFINITY,
+        minY: Number.POSITIVE_INFINITY,
+        maxX: Number.NEGATIVE_INFINITY,
+        maxY: Number.NEGATIVE_INFINITY
+      });
+      const width = bounds.maxX - bounds.minX;
+      const height = bounds.maxY - bounds.minY;
+      setFrameRect(
+        bounds.minX - width * 0.06,
+        bounds.minY - height * 0.06,
+        width * 1.12,
+        height * 1.12
+      );
     }
 
-    setFrameRect(left, top, width, height);
+    placeFeatureLabel(eyeLeftLabel, averagePoint(points, LEFT_EYE));
+    placeFeatureLabel(eyeRightLabel, averagePoint(points, RIGHT_EYE));
+    placeFeatureLabel(mouthLabel, averagePoint(points, OUTER_LIPS), 18);
+    overlay.classList.add('has-landmarks');
+    return true;
+  }
+
+  function clearLandmarks() {
+    Object.values(meshPaths).forEach((path) => path.setAttribute('d', ''));
+    landmarkNodes.forEach(({ circle }) => {
+      circle.hidden = true;
+    });
+    overlay.classList.remove('has-landmarks');
+    landmarkCount = 0;
+    lastRawLandmarks = null;
+    setGuidedFrame();
+  }
+
+  function handleFaceMeshResults(results) {
+    modelState = 'ready';
+    detectorFailures = 0;
+    overlay.classList.remove('model-loading', 'model-failed');
+
+    const landmarks = results?.multiFaceLandmarks?.[0];
+    if (landmarks?.length >= 468 && renderLandmarks(landmarks)) {
+      landmarkCount = landmarks.length;
+      lastRawLandmarks = landmarks;
+      lastDetectionAt = performance.now();
+      stableFaceFrames = Math.min(3, stableFaceFrames + 1);
+      setDetected(stableFaceFrames >= 2);
+      return;
+    }
+
+    stableFaceFrames = 0;
+    if (performance.now() - lastDetectionAt > DETECTION_MAX_AGE) {
+      clearLandmarks();
+      setDetected(false);
+    }
+  }
+
+  async function initializeFaceMesh() {
+    if (typeof window.FaceMesh !== 'function') {
+      modelState = 'failed';
+      overlay.classList.remove('model-loading');
+      overlay.classList.add('model-failed');
+      setDetected(false);
+      app.setHint('Přesný model obličeje se nenačetl. Obnov stránku a zkus to znovu.');
+      return;
+    }
+
+    try {
+      faceMesh = new window.FaceMesh({
+        locateFile: (file) => new URL(`${MODEL_ROOT}${file}`, document.baseURI).toString()
+      });
+      faceMesh.setOptions({
+        maxNumFaces: 1,
+        refineLandmarks: true,
+        selfieMode: false,
+        minDetectionConfidence: 0.62,
+        minTrackingConfidence: 0.62
+      });
+      faceMesh.onResults(handleFaceMeshResults);
+      modelState = 'warming';
+      app.setHint('Načítám přesnou mapu očí, nosu, úst a kontury…');
+      scheduleDetection(40);
+    } catch (error) {
+      console.error('MediaPipe Face Mesh nejde inicializovat:', error);
+      modelState = 'failed';
+      overlay.classList.remove('model-loading');
+      overlay.classList.add('model-failed');
+      faceMesh = null;
+      setDetected(false);
+      app.setHint('Přesná detekce se nespustila. Obnov stránku a zkus to znovu.');
+    }
   }
 
   async function detectFace() {
-    if (document.hidden || !previewContainer.classList.contains('hidden') || !result.classList.contains('hidden')) {
-      scheduleDetection(260);
+    if (
+      document.hidden
+      || !previewContainer.classList.contains('hidden')
+      || !result.classList.contains('hidden')
+    ) {
+      scheduleDetection(280);
       return;
     }
 
     if (!video.srcObject || video.readyState < 2 || !video.videoWidth) {
-      setDetected(false, detectorMode);
-      setGuidedFrame();
+      stableFaceFrames = 0;
+      if (performance.now() - lastDetectionAt > DETECTION_MAX_AGE) {
+        clearLandmarks();
+        setDetected(false);
+      }
       scheduleDetection(240);
       return;
     }
 
-    if (!detector) {
+    if (!faceMesh || !modelAvailable()) {
       setGuidedFrame();
-      setDetected(isScanning, 'guided');
-      scheduleDetection(180);
+      scheduleDetection(modelState === 'failed' ? 1000 : 220);
       return;
     }
 
     if (detectionBusy) {
-      scheduleDetection(120);
+      scheduleDetection(90);
       return;
     }
 
     detectionBusy = true;
     try {
-      const faces = await detector.detect(video);
-      const face = faces?.[0];
-      if (face?.boundingBox) {
-        mapNativeFace(face.boundingBox);
-        lastDetectionAt = performance.now();
-        setDetected(true, 'native');
-      } else if (performance.now() - lastDetectionAt > 520) {
-        setDetected(false, 'native');
-        setGuidedFrame();
-      }
+      await faceMesh.send({ image: video });
     } catch (error) {
-      console.info('Detekce obličeje přešla do vodicího režimu.', error);
-      detector = null;
-      detectorMode = 'guided';
-      setGuidedFrame();
-      setDetected(isScanning, 'guided');
+      detectorFailures += 1;
+      console.warn('MediaPipe frame se nepovedl zpracovat:', error);
+      if (detectorFailures >= 3) {
+        modelState = 'failed';
+        overlay.classList.remove('model-loading');
+        overlay.classList.add('model-failed');
+        clearLandmarks();
+        setDetected(false);
+        app.setHint('Přesná detekce se zastavila. Obnov stránku a zkus sken znovu.');
+      }
     } finally {
       detectionBusy = false;
-      scheduleDetection(isScanning ? 110 : 180);
+      scheduleDetection(isScanning ? 90 : 135);
     }
   }
 
-  function scheduleDetection(delay = 180) {
+  function scheduleDetection(delay = 135) {
     clearTimeout(detectionTimer);
     detectionTimer = window.setTimeout(detectFace, delay);
   }
@@ -296,7 +502,9 @@
     stopAnimation();
     clearTimeout(finishTimer);
     finishTimer = null;
-    startedAt = 0;
+    lastAnimationAt = 0;
+    scanElapsed = 0;
+    lostFaceAt = 0;
     progress = 0;
     isScanning = false;
     currentStage = '';
@@ -311,12 +519,29 @@
     document.body.classList.remove('face-scan-active');
     app.setBusy(false);
     loading.classList.add('hidden');
-    lockLabel.textContent = faceDetected ? 'FACE LOCK' : 'FACE TARGET';
-    setStatus(faceDetected ? 'Obličej rozpoznán' : detector ? 'Hledám obličej' : 'Zarovnej obličej');
-    scheduleDetection(80);
+    lockLabel.textContent = hasFreshLandmarks() ? `${landmarkCount}-POINT LOCK` : 'FACE TARGET';
+    setStatus(
+      hasFreshLandmarks()
+        ? `${landmarkCount} bodů obličeje zamčeno`
+        : modelState === 'failed'
+          ? 'Přesná detekce není dostupná'
+          : 'Hledám oči, nos a ústa'
+    );
+    scheduleDetection(60);
+  }
+
+  function cancelScan(message) {
+    reset();
+    app.showError(message);
+    app.setHint('Nech v záběru celý obličej a spusť sken znovu.');
   }
 
   function captureAndAnalyze() {
+    if (!hasFreshLandmarks()) {
+      cancelScan('Obličej se před zachycením ztratil. Sken bez skutečných bodů nebudu předstírat.');
+      return;
+    }
+
     const dataUrl = app.captureCurrentFrame(0.92);
     if (!dataUrl) {
       reset();
@@ -352,18 +577,33 @@
 
   function animateScan(now) {
     if (!isScanning) return;
-    if (!startedAt) startedAt = now;
+    if (!lastAnimationAt) lastAnimationAt = now;
 
-    const elapsed = now - startedAt;
-    const linear = Math.min(1, elapsed / duration);
-    const eased = 1 - Math.pow(1 - linear, 1.18);
-    setProgress(eased * 100);
+    const delta = Math.min(80, Math.max(0, now - lastAnimationAt));
+    lastAnimationAt = now;
 
-    if (!detector) setGuidedFrame(now);
+    if (hasFreshLandmarks(now)) {
+      if (lostFaceAt) {
+        lostFaceAt = 0;
+        currentStage = '';
+      }
+      scanElapsed += delta;
+      const linear = Math.min(1, scanElapsed / SCAN_DURATION);
+      const eased = 1 - Math.pow(1 - linear, 1.18);
+      setProgress(eased * 100);
 
-    if (linear >= 1) {
-      finishScan();
-      return;
+      if (linear >= 1) {
+        finishScan();
+        return;
+      }
+    } else {
+      if (!lostFaceAt) lostFaceAt = now;
+      currentStage = '';
+      setStatus('Obličej mimo záběr — sken čeká');
+      if (now - lostFaceAt > 1500) {
+        cancelScan('Obličej zmizel ze záběru. Sken jsem zastavil, místo abych si body vymyslel.');
+        return;
+      }
     }
 
     animationFrame = requestAnimationFrame(animateScan);
@@ -377,21 +617,40 @@
       return;
     }
 
+    if (modelState === 'loading' || modelState === 'warming') {
+      app.setHint('Ještě chvíli — načítám přesnou mapu bodů obličeje.');
+      setStatus('Načítám mapu obličeje');
+      scheduleDetection(0);
+      return;
+    }
+
+    if (modelState === 'failed') {
+      app.showError('Přesný model obličeje se nenačetl. Obnov stránku a zkus to znovu.');
+      return;
+    }
+
+    if (!hasFreshLandmarks()) {
+      app.showError('Nejdřív potřebuju skutečně zamknout oči, nos, ústa a konturu. Podívej se do kamery.');
+      app.setHint('Nech v záběru celý obličej, dokud se obrys nepřichytí k rysům.');
+      scheduleDetection(0);
+      return;
+    }
+
     reset();
     isScanning = true;
-    duration = 2850 + Math.random() * 350;
+    scanElapsed = 0;
+    lastAnimationAt = 0;
     app.hideResult?.();
     previewContainer.classList.add('hidden');
     app.clearErrors();
-    app.setHint('Drž obličej v rámečku. Oči, nos, ústa a čelist se mapují pouze v tomto zařízení.');
+    app.setHint('Drž pozici. Obrys teď sleduje skutečné oči, nos, ústa a čelist.');
     app.setBusy(true);
 
     loading.classList.add('hidden');
     document.body.classList.add('face-scan-active');
     overlay.classList.remove('is-tracking', 'is-complete');
     overlay.classList.add('is-scanning');
-    lockLabel.textContent = 'FACE LOCK';
-    if (!detector) setDetected(true, 'guided');
+    lockLabel.textContent = `${landmarkCount}-POINT LOCK`;
     scanLine.classList.add('active');
     barWrap.classList.add('show');
     setProgress(0);
@@ -402,22 +661,38 @@
     start,
     reset,
     get mode() {
-      return detector ? 'native' : 'guided';
+      return modelState === 'ready' ? 'mediapipe-landmarks' : modelState;
+    },
+    get hasFace() {
+      return hasFreshLandmarks();
     }
   };
 
   const autoStart = () => {
     if (video.srcObject && video.videoWidth) {
-      setGuidedFrame();
-      setStatus(detector ? 'Hledám obličej' : 'Zarovnej obličej');
-      app.setHint('Umísti obličej do rámečku a spusť sken.');
-      scheduleDetection(60);
+      if (lastRawLandmarks?.length >= 468) {
+        renderLandmarks(lastRawLandmarks);
+      } else {
+        setGuidedFrame();
+      }
+      app.setHint(
+        modelState === 'ready'
+          ? 'Podívej se do kamery. Obrys se přichytí ke skutečným rysům.'
+          : 'Načítám přesnou mapu očí, nosu, úst a kontury…'
+      );
+      scheduleDetection(40);
     }
   };
 
   if (video.readyState >= 2) autoStart();
   video.addEventListener('loadedmetadata', autoStart);
-  window.addEventListener('resize', () => setGuidedFrame(), { passive: true });
+  window.addEventListener('resize', () => {
+    if (lastRawLandmarks?.length >= 468 && hasFreshLandmarks()) {
+      renderLandmarks(lastRawLandmarks);
+    } else {
+      setGuidedFrame();
+    }
+  }, { passive: true });
   document.addEventListener('visibilitychange', () => {
     if (document.hidden && isScanning) reset();
     if (!document.hidden) scheduleDetection(80);
@@ -427,8 +702,10 @@
     clearTimeout(detectionTimer);
     clearTimeout(finishTimer);
     document.body.classList.remove('face-scan-active');
+    const closeResult = faceMesh?.close?.();
+    closeResult?.catch?.(() => undefined);
   }, { once: true });
 
   setGuidedFrame();
-  scheduleDetection(120);
+  initializeFaceMesh();
 })();

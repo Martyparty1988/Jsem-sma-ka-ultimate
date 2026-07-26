@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'v28';
+const CACHE_VERSION = 'v29';
 const CACHE_NAME = `jsem-smazka-${CACHE_VERSION}`;
 
 const CORE_ASSETS = [
@@ -18,13 +18,14 @@ const STYLE_ASSETS = [
   './diagnostic-upgrades.css',
   './ios-one-screen.css?v=27',
   './in-frame-result.css?v=24',
-  './face-landmarks.css?v=25',
-  './visual-system.css?v=28'
+  './face-landmarks.css?v=29',
+  './visual-system.css?v=29'
 ];
 
 const SCRIPT_ASSETS = [
   './app.js?v=28',
-  './face-scan.js?v=25',
+  './vendor/mediapipe-face-mesh/face_mesh.js?v=0.4.1633559619',
+  './face-scan.js?v=29',
   './face-warp.js?v=27',
   './hard-responses.js',
   './experience-upgrades.js?v=28',
@@ -39,11 +40,23 @@ const DATA_ASSETS = [
   './responses-hard.json'
 ];
 
+const FACE_MODEL_ASSETS = [
+  './vendor/mediapipe-face-mesh/face_mesh.binarypb',
+  './vendor/mediapipe-face-mesh/face_mesh_solution_packed_assets_loader.js',
+  './vendor/mediapipe-face-mesh/face_mesh_solution_packed_assets.data',
+  './vendor/mediapipe-face-mesh/face_mesh_solution_simd_wasm_bin.data',
+  './vendor/mediapipe-face-mesh/face_mesh_solution_simd_wasm_bin.js',
+  './vendor/mediapipe-face-mesh/face_mesh_solution_simd_wasm_bin.wasm',
+  './vendor/mediapipe-face-mesh/face_mesh_solution_wasm_bin.js',
+  './vendor/mediapipe-face-mesh/face_mesh_solution_wasm_bin.wasm'
+];
+
 const APP_SHELL = [
   ...CORE_ASSETS,
   ...STYLE_ASSETS,
   ...SCRIPT_ASSETS,
-  ...DATA_ASSETS
+  ...DATA_ASSETS,
+  ...FACE_MODEL_ASSETS
 ];
 
 self.addEventListener('install', (event) => {

@@ -6,7 +6,7 @@ Srandovní webová appka, která simuluje lokální AI sken obličeje a vygeneru
 
 - Spustí kameru přímo v prohlížeči.
 - Umí přepnout přední/zadní kameru a použít vlastní fotku.
-- Zobrazí animovaný pseudo scan obličeje.
+- Zobrazí animovaný pseudo scan nad skutečnými lokálně detekovanými body obličeje.
 - Náhodně vybere hlášku z `responses.json`.
 - Podle damage levelu lokálně a animovaně deformuje obličej (nafouknutí, stažení, vlnění a stékání).
 - Vygeneruje sdílitelný PNG obrázek s deformovaným obličejem a hláškou.
@@ -21,7 +21,8 @@ Srandovní webová appka, která simuluje lokální AI sken obličeje a vygeneru
 - `visual-system.css` – finální toxic/iOS vizuální systém, mobilní kamera, reveal a výsledkový layout.
 - `face-warp.css` – vizuální efekty deformace, skenu a výsledku.
 - `app.js` – kamera, stav aplikace, výsledky, sdílení a PWA registrace.
-- `face-scan.js` – animace skenu a zachycení aktuálního snímku.
+- `face-scan.js` – MediaPipe mapování očí, nosu, úst a kontury, animace skenu a zachycení snímku.
+- `vendor/mediapipe-face-mesh/` – lokální Apache-2.0 MediaPipe Face Mesh model a WebAssembly runtime.
 - `face-warp.js` – lokální canvas deformace obličeje a příprava sdíleného PNG.
 - `responses.json` – knihovna hlášek.
 - `manifest.json` – PWA nastavení.
