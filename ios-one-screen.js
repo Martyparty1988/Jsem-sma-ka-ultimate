@@ -10,8 +10,10 @@
   const topbar = document.querySelector('.topbar');
   const localStatus = topbar?.querySelector('.local-status');
   const footer = document.querySelector('footer');
+  const cameraStage = elements.cameraStage;
+  const scanHint = elements.scanHint;
 
-  if (!buttonGroup || !topbar) return;
+  if (!buttonGroup || !topbar || !cameraStage) return;
 
   document.body.classList.add('ios-one-screen-ready');
   elements.analyzeButton?.setAttribute('aria-label', 'Spustit sken');
@@ -20,6 +22,14 @@
   if (elements.switchCameraButton && !elements.switchCameraButton.classList.contains('dock-camera-button')) {
     elements.switchCameraButton.classList.add('dock-camera-button');
     buttonGroup.appendChild(elements.switchCameraButton);
+  }
+
+  buttonGroup.classList.add('camera-control-dock');
+  if (buttonGroup.parentElement !== cameraStage) cameraStage.appendChild(buttonGroup);
+
+  if (scanHint) {
+    scanHint.classList.add('camera-hint-overlay');
+    if (scanHint.parentElement !== cameraStage) cameraStage.appendChild(scanHint);
   }
 
   const settingsButton = document.createElement('button');
@@ -81,6 +91,11 @@
 
   let previousFocus = null;
 
+  function syncVisibleViewport() {
+    const height = Math.round(window.visualViewport?.height || window.innerHeight);
+    document.documentElement.style.setProperty('--visible-viewport-height', `${height}px`);
+  }
+
   function openSettings() {
     previousFocus = document.activeElement;
     document.body.classList.add('settings-open');
@@ -103,6 +118,7 @@
   function syncDock() {
     const retakeVisible = elements.retakeButton && !elements.retakeButton.classList.contains('hidden');
     elements.switchCameraButton?.classList.toggle('dock-suppressed', Boolean(retakeVisible));
+    buttonGroup.classList.toggle('dock-has-retake', Boolean(retakeVisible));
   }
 
   settingsButton.addEventListener('click', openSettings);
@@ -120,10 +136,20 @@
     if (button) controlsObserver.observe(button, { attributes: true, attributeFilter: ['class'] });
   });
 
+  syncVisibleViewport();
   syncDock();
+
+  window.addEventListener('resize', syncVisibleViewport, { passive: true });
+  window.addEventListener('orientationchange', syncVisibleViewport, { passive: true });
+  window.visualViewport?.addEventListener('resize', syncVisibleViewport, { passive: true });
+  window.visualViewport?.addEventListener('scroll', syncVisibleViewport, { passive: true });
 
   window.addEventListener('pagehide', () => {
     controlsObserver.disconnect();
     if (elements.app) elements.app.inert = false;
+    window.removeEventListener('resize', syncVisibleViewport);
+    window.removeEventListener('orientationchange', syncVisibleViewport);
+    window.visualViewport?.removeEventListener('resize', syncVisibleViewport);
+    window.visualViewport?.removeEventListener('scroll', syncVisibleViewport);
   }, { once: true });
 })();
