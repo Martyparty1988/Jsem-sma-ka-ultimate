@@ -1,0 +1,442 @@
+/* Mobile one-screen shell: large camera, fixed iOS-style control dock, settings sheet. */
+
+.ios-settings-backdrop,
+.ios-settings-sheet {
+  display: none;
+}
+
+@media (max-width: 640px) {
+  html,
+  body {
+    width: 100%;
+    height: 100%;
+    overscroll-behavior: none;
+  }
+
+  body {
+    min-height: 100dvh;
+    overflow: hidden;
+    padding:
+      max(6px, env(safe-area-inset-top))
+      max(6px, env(safe-area-inset-right))
+      max(6px, env(safe-area-inset-bottom))
+      max(6px, env(safe-area-inset-left));
+  }
+
+  .container {
+    width: 100%;
+    height: calc(100dvh - max(6px, env(safe-area-inset-top)) - max(6px, env(safe-area-inset-bottom)));
+    min-height: 0;
+    max-height: none;
+    display: flex;
+    flex-direction: column;
+    margin: 0;
+    padding: 8px 8px calc(88px + env(safe-area-inset-bottom));
+    overflow: hidden;
+    border-radius: 28px;
+  }
+
+  .topbar {
+    flex: 0 0 auto;
+    min-height: 34px;
+    margin: 0 3px 5px;
+  }
+
+  .brand-lockup {
+    gap: 7px;
+    font-size: 0.74rem;
+  }
+
+  .brand-mark {
+    width: 23px;
+    height: 23px;
+    border-radius: 7px;
+  }
+
+  .local-status {
+    min-height: 32px;
+    padding: 6px 9px;
+    font-size: 0.65rem;
+  }
+
+  .topbar-tools {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+  }
+
+  .ios-settings-button {
+    width: 34px;
+    height: 34px;
+    display: inline-grid;
+    place-items: center;
+    flex: 0 0 34px;
+    padding: 0;
+    border: 1px solid rgba(148, 210, 228, 0.16);
+    border-radius: 50%;
+    background: rgba(8, 18, 32, 0.72);
+    color: #dff8ff;
+    box-shadow: inset 0 1px rgba(255, 255, 255, 0.05);
+    font-size: 1rem;
+  }
+
+  .hero {
+    flex: 0 0 auto;
+    margin-bottom: 6px;
+  }
+
+  .eyebrow {
+    display: none;
+  }
+
+  h1 {
+    font-size: clamp(2.05rem, 9.6vw, 2.75rem);
+    line-height: 0.94;
+  }
+
+  .subtitle {
+    max-width: 92%;
+    margin-top: 4px;
+    overflow: hidden;
+    color: rgba(168, 199, 231, 0.8);
+    font-size: clamp(0.68rem, 2.5vw, 0.78rem);
+    line-height: 1.2;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .camera-section {
+    width: 100%;
+    min-height: 0;
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    margin: 0;
+    padding: 5px;
+    border-radius: 24px;
+  }
+
+  .video-container {
+    width: 100%;
+    min-height: 0;
+    max-height: none;
+    flex: 1 1 auto;
+    aspect-ratio: auto;
+    border-radius: 20px;
+  }
+
+  .video-container::after {
+    border-radius: 15px;
+  }
+
+  .scan-hint {
+    min-height: 29px;
+    flex: 0 0 auto;
+    padding: 5px 5px 0;
+    overflow: hidden;
+    font-size: 0.68rem;
+    line-height: 1.25;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  #generalError {
+    position: absolute;
+    z-index: 24;
+    right: 10px;
+    bottom: 92px;
+    left: 10px;
+    max-height: 74px;
+    overflow: auto;
+    border-radius: 14px;
+    box-shadow: 0 12px 32px rgba(2, 6, 23, 0.55);
+  }
+
+  .button-group {
+    position: absolute;
+    z-index: 40;
+    right: 9px;
+    bottom: max(8px, env(safe-area-inset-bottom));
+    left: 9px;
+    height: 76px;
+    display: grid;
+    grid-template-columns: 58px minmax(76px, 1fr) 58px;
+    align-items: center;
+    gap: 12px;
+    padding: 6px 12px;
+    border: 1px solid rgba(148, 210, 228, 0.16);
+    border-radius: 24px;
+    background: rgba(3, 10, 24, 0.82);
+    box-shadow: 0 18px 46px rgba(2, 6, 23, 0.52), inset 0 1px rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(22px) saturate(135%);
+    -webkit-backdrop-filter: blur(22px) saturate(135%);
+  }
+
+  .button-group .button-text {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    padding: 0 !important;
+    margin: -1px !important;
+    overflow: hidden !important;
+    clip: rect(0, 0, 0, 0) !important;
+    white-space: nowrap !important;
+    border: 0 !important;
+  }
+
+  .button-group .button-icon {
+    font-size: 1.25rem;
+    line-height: 1;
+  }
+
+  .primary-button {
+    grid-column: 2;
+    order: initial;
+    width: 70px;
+    min-width: 70px;
+    height: 70px;
+    min-height: 70px;
+    justify-self: center;
+    padding: 0;
+    border-radius: 50%;
+    box-shadow:
+      0 0 0 5px rgba(34, 211, 238, 0.09),
+      0 12px 30px rgba(34, 211, 238, 0.28),
+      inset 0 1px rgba(255, 255, 255, 0.42);
+  }
+
+  .primary-button .button-icon {
+    font-size: 1.45rem;
+  }
+
+  .secondary-button,
+  .dock-camera-button {
+    width: 54px;
+    min-width: 54px;
+    height: 54px;
+    min-height: 54px;
+    justify-self: center;
+    padding: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.075);
+  }
+
+  #uploadButton {
+    grid-column: 1;
+  }
+
+  #retakeButton,
+  .dock-camera-button {
+    grid-column: 3;
+  }
+
+  #captureButton {
+    display: none !important;
+  }
+
+  .dock-camera-button {
+    position: static;
+    z-index: auto;
+    display: inline-grid;
+    place-items: center;
+    border: 1px solid rgba(255, 255, 255, 0.13);
+    color: #fff;
+    font-size: 1.2rem;
+    box-shadow: inset 0 1px rgba(255, 255, 255, 0.045);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+
+  .dock-camera-button:hover {
+    transform: none;
+  }
+
+  .dock-camera-button.dock-suppressed {
+    display: none !important;
+  }
+
+  footer {
+    display: none !important;
+  }
+
+  .ios-settings-backdrop {
+    position: fixed;
+    z-index: 1990;
+    inset: 0;
+    display: block;
+    border: 0;
+    background: rgba(2, 6, 23, 0.62);
+    opacity: 0;
+    pointer-events: none;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    transition: opacity 220ms ease;
+  }
+
+  .ios-settings-sheet {
+    position: fixed;
+    z-index: 2000;
+    right: 7px;
+    bottom: max(7px, env(safe-area-inset-bottom));
+    left: 7px;
+    display: block;
+    max-height: min(78dvh, 620px);
+    padding: 10px 14px max(16px, env(safe-area-inset-bottom));
+    overflow: auto;
+    border: 1px solid rgba(148, 210, 228, 0.2);
+    border-radius: 28px;
+    background:
+      radial-gradient(circle at 82% 0%, rgba(52, 211, 153, 0.12), transparent 32%),
+      linear-gradient(180deg, rgba(15, 23, 42, 0.985), rgba(2, 6, 23, 0.995));
+    box-shadow: 0 28px 80px rgba(2, 6, 23, 0.72), inset 0 1px rgba(255, 255, 255, 0.06);
+    transform: translateY(calc(100% + 24px));
+    visibility: hidden;
+    transition: transform 300ms cubic-bezier(0.22, 1, 0.36, 1), visibility 0s linear 300ms;
+  }
+
+  .ios-settings-sheet::before {
+    content: '';
+    display: block;
+    width: 42px;
+    height: 5px;
+    margin: 0 auto 12px;
+    border-radius: 99px;
+    background: rgba(203, 213, 225, 0.32);
+  }
+
+  body.settings-open .ios-settings-backdrop {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  body.settings-open .ios-settings-sheet {
+    transform: translateY(0);
+    visibility: visible;
+    transition-delay: 0s;
+  }
+
+  .ios-settings-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    margin-bottom: 12px;
+  }
+
+  .ios-settings-header > div {
+    display: grid;
+    gap: 3px;
+  }
+
+  .ios-settings-header strong {
+    font-size: 1.05rem;
+  }
+
+  .ios-settings-header small,
+  .ios-install-help {
+    color: rgba(203, 213, 225, 0.62);
+    font-size: 0.72rem;
+    line-height: 1.35;
+  }
+
+  .ios-settings-close {
+    width: 36px;
+    height: 36px;
+    display: grid;
+    place-items: center;
+    flex: 0 0 36px;
+    padding: 0;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.08);
+    color: #fff;
+    font-size: 1.2rem;
+  }
+
+  .ios-settings-content {
+    display: grid;
+    gap: 10px;
+  }
+
+  .ios-settings-content .local-settings {
+    margin: 0;
+  }
+
+  .ios-settings-content .privacy-note {
+    margin: 0;
+  }
+
+  .ios-settings-content .install-button {
+    width: 100%;
+  }
+
+  .ios-install-help {
+    padding: 10px 12px;
+    border: 1px solid rgba(148, 163, 184, 0.11);
+    border-radius: 14px;
+    background: rgba(8, 18, 32, 0.65);
+  }
+}
+
+@media (max-width: 640px) and (max-height: 740px) {
+  .container {
+    padding-top: 6px;
+    padding-bottom: calc(78px + env(safe-area-inset-bottom));
+  }
+
+  .topbar {
+    min-height: 30px;
+    margin-bottom: 3px;
+  }
+
+  .brand-mark {
+    width: 21px;
+    height: 21px;
+  }
+
+  .hero {
+    margin-bottom: 4px;
+  }
+
+  h1 {
+    font-size: 1.9rem;
+  }
+
+  .subtitle {
+    display: none;
+  }
+
+  .scan-hint {
+    min-height: 25px;
+    padding-top: 3px;
+    font-size: 0.63rem;
+  }
+
+  .button-group {
+    height: 68px;
+    grid-template-columns: 52px minmax(66px, 1fr) 52px;
+    border-radius: 21px;
+  }
+
+  .primary-button {
+    width: 62px;
+    min-width: 62px;
+    height: 62px;
+    min-height: 62px;
+  }
+
+  .secondary-button,
+  .dock-camera-button {
+    width: 48px;
+    min-width: 48px;
+    height: 48px;
+    min-height: 48px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ios-settings-backdrop,
+  .ios-settings-sheet {
+    transition: none !important;
+  }
+}
