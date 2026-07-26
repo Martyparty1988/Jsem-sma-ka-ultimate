@@ -1,4 +1,4 @@
-/* Pure geometric face deformation – original pixels only, no filters or replacement. */
+/* GPU face deformation – smooth local geometry, original pixels only. */
 (() => {
   'use strict';
 
@@ -11,34 +11,197 @@
 
   const tiers = {
     mild: [
-      { key: 'bulge', label: 'Lehce roztažený obličej', modes: ['bulge'] },
-      { key: 'pinch', label: 'Lehce zmáčknutý obličej', modes: ['pinch'] },
-      { key: 'tilt', label: 'Křivě posunutý obličej', modes: ['tilt', 'wave'] }
+      {
+        key: 'soft-drift',
+        label: 'Jemný posun proporcí',
+        shape: [0.025, 0.035, 0.02, 0.012],
+        flow: [0.025, 0.005, 0.018, 0.008],
+        twist: 0.008
+      },
+      {
+        key: 'late-night',
+        label: 'Únava obličeje',
+        shape: [-0.012, 0.025, 0.045, 0.024],
+        flow: [0.012, 0.008, 0.012, 0.018],
+        twist: -0.006
+      },
+      {
+        key: 'micro-asymmetry',
+        label: 'Mírná asymetrie',
+        shape: [0.018, 0.04, 0.018, 0.014],
+        flow: [0.018, 0.0, 0.038, 0.01],
+        twist: 0.014
+      }
     ],
     medium: [
-      { key: 'wave', label: 'Zvlněný obličej', modes: ['wave', 'bulge'] },
-      { key: 'squeeze', label: 'Gumově zmáčknutý obličej', modes: ['squeeze', 'pinch'] },
-      { key: 'rubber', label: 'Gumový obličej', modes: ['wave', 'squeeze', 'tilt'] },
-      { key: 'forehead', label: 'Přefouknuté čelo', modes: ['forehead', 'pinch'] },
-      { key: 'jaw', label: 'Roztažená čelist', modes: ['jaw', 'bulge'] }
+      {
+        key: 'facial-drift',
+        label: 'Posun obličejových proporcí',
+        shape: [0.045, 0.07, 0.055, 0.028],
+        flow: [0.045, 0.01, 0.064, 0.026],
+        twist: 0.026
+      },
+      {
+        key: 'cheek-pressure',
+        label: 'Tlak v oblasti tváří',
+        shape: [0.045, 0.115, -0.025, 0.02],
+        flow: [0.035, 0.015, 0.028, 0.018],
+        twist: -0.016
+      },
+      {
+        key: 'jaw-offset',
+        label: 'Nestabilní čelist',
+        shape: [0.018, 0.055, 0.135, 0.022],
+        flow: [0.028, 0.012, 0.068, 0.035],
+        twist: 0.032
+      },
+      {
+        key: 'lens-bloom',
+        label: 'Širokoúhlá deformace',
+        shape: [0.095, 0.07, 0.055, 0.018],
+        flow: [0.105, 0.028, 0.022, 0.016],
+        twist: 0.006
+      }
     ],
     high: [
-      { key: 'melt', label: 'Protažený obličej', modes: ['melt', 'wave'] },
-      { key: 'drip', label: 'Obličej tažený dolů', modes: ['melt', 'bulge', 'jaw'] },
-      { key: 'collapse', label: 'Silně deformovaný obličej', modes: ['melt', 'pinch', 'wave'] },
-      { key: 'wide', label: 'Obličej roztažený do stran', modes: ['wide', 'bulge', 'wave'] },
-      { key: 'accordion', label: 'Obličej jako harmonika', modes: ['accordion', 'squeeze', 'tilt'] },
-      { key: 'crooked', label: 'Totálně křivý obličej', modes: ['tilt', 'jaw', 'wave'] }
+      {
+        key: 'gravity-drop',
+        label: 'Gravitační pokles',
+        shape: [0.055, 0.085, 0.145, 0.04],
+        flow: [0.055, 0.015, 0.052, 0.095],
+        twist: 0.028
+      },
+      {
+        key: 'soft-collapse',
+        label: 'Měkký kolaps proporcí',
+        shape: [-0.04, -0.095, 0.105, 0.042],
+        flow: [-0.085, -0.025, 0.055, 0.07],
+        twist: -0.04
+      },
+      {
+        key: 'wide-lens',
+        label: 'Silná širokoúhlá deformace',
+        shape: [0.13, 0.105, 0.105, 0.028],
+        flow: [0.155, 0.04, 0.038, 0.042],
+        twist: 0.018
+      },
+      {
+        key: 'asymmetric-drag',
+        label: 'Asymetrický tah',
+        shape: [0.055, 0.095, 0.085, 0.038],
+        flow: [0.055, 0.012, 0.135, 0.072],
+        twist: 0.072
+      }
     ],
     critical: [
-      { key: 'critical', label: 'Extrémně roztažený obličej', modes: ['wide', 'melt', 'wave', 'bulge'] },
-      { key: 'implosion', label: 'Extrémně zmáčknutý obličej', modes: ['melt', 'pinch', 'squeeze', 'accordion'] },
-      { key: 'liquid', label: 'Tekutě protažený obličej', modes: ['melt', 'wave', 'squeeze', 'jaw'] },
-      { key: 'megahead', label: 'Hlava nafouknutá na maximum', modes: ['forehead', 'wide', 'bulge'] },
-      { key: 'facequake', label: 'Obličej po zemětřesení', modes: ['wave', 'tilt', 'accordion', 'melt'] },
-      { key: 'junkymelt', label: 'Totální junky rozpad', modes: ['melt', 'wide', 'jaw', 'wave'] }
+      {
+        key: 'liquid-gravity',
+        label: 'Tekutá gravitace',
+        shape: [0.085, 0.12, 0.18, 0.05],
+        flow: [0.075, 0.02, 0.085, 0.155],
+        twist: 0.052
+      },
+      {
+        key: 'cranial-bloom',
+        label: 'Kraniální přetlak',
+        shape: [0.205, 0.13, -0.035, 0.035],
+        flow: [0.145, 0.055, 0.055, 0.065],
+        twist: -0.032
+      },
+      {
+        key: 'deep-collapse',
+        label: 'Hluboký kolaps',
+        shape: [-0.085, -0.145, 0.155, 0.055],
+        flow: [-0.165, -0.045, 0.09, 0.125],
+        twist: -0.065
+      },
+      {
+        key: 'total-drift',
+        label: 'Totální prostorový drift',
+        shape: [0.075, 0.13, 0.135, 0.045],
+        flow: [0.095, 0.025, 0.175, 0.12],
+        twist: 0.095
+      }
     ]
   };
+
+  const VERTEX_SHADER = `
+    attribute vec2 a_position;
+    varying vec2 v_uv;
+
+    void main() {
+      v_uv = a_position * 0.5 + 0.5;
+      gl_Position = vec4(a_position, 0.0, 1.0);
+    }
+  `;
+
+  const FRAGMENT_SHADER = `
+    precision highp float;
+
+    uniform sampler2D u_texture;
+    uniform float u_progress;
+    uniform float u_severity;
+    uniform float u_seed;
+    uniform vec4 u_shape;
+    uniform vec4 u_flow;
+    uniform float u_twist;
+
+    varying vec2 v_uv;
+
+    float ellipseMask(vec2 point, vec2 center, vec2 radius) {
+      vec2 p = (point - center) / radius;
+      float distanceSquared = dot(p, p);
+      return pow(max(0.0, 1.0 - distanceSquared), 2.15);
+    }
+
+    vec2 radialWarp(vec2 point, vec2 center, vec2 radius, float amount) {
+      vec2 normalized = (point - center) / radius;
+      float falloff = pow(max(0.0, 1.0 - dot(normalized, normalized)), 2.25);
+      return point - normalized * radius * amount * falloff;
+    }
+
+    vec2 rotateAround(vec2 point, vec2 center, float angle) {
+      float sine = sin(angle);
+      float cosine = cos(angle);
+      vec2 local = point - center;
+      return center + mat2(cosine, -sine, sine, cosine) * local;
+    }
+
+    void main() {
+      float eased = u_progress * u_progress * (3.0 - 2.0 * u_progress);
+      float strength = (0.34 + u_severity * 0.78) * eased;
+      float seedWave = fract(sin(u_seed * 12.9898) * 43758.5453);
+      float sideBias = (seedWave - 0.5) * 0.032;
+      vec2 center = vec2(0.5 + sideBias, 0.475);
+      vec2 point = v_uv;
+
+      float face = ellipseMask(v_uv, center, vec2(0.355, 0.39));
+      float lowerFace = ellipseMask(v_uv, vec2(center.x, 0.62), vec2(0.32, 0.27));
+      float eyes = ellipseMask(v_uv, vec2(center.x, 0.405), vec2(0.275, 0.105));
+
+      point.x -= (v_uv.x - center.x) * u_flow.x * strength * face;
+      point.y -= (v_uv.y - center.y) * u_flow.y * strength * face;
+
+      point = radialWarp(point, vec2(center.x, 0.285), vec2(0.235, 0.17), u_shape.x * strength);
+
+      float cheekDifference = 1.0 + (seedWave - 0.5) * 0.34;
+      point = radialWarp(point, vec2(center.x - 0.135, 0.49), vec2(0.19, 0.19), u_shape.y * strength * cheekDifference);
+      point = radialWarp(point, vec2(center.x + 0.135, 0.49), vec2(0.19, 0.19), u_shape.y * strength / cheekDifference);
+      point = radialWarp(point, vec2(center.x, 0.675), vec2(0.265, 0.185), u_shape.z * strength);
+
+      point.y -= u_shape.w * strength * eyes * (0.78 + 0.22 * smoothstep(0.3, 0.55, v_uv.x));
+
+      float organic = 0.88 + 0.12 * sin((v_uv.x + u_seed * 0.00013) * 12.56637);
+      point.y -= u_flow.w * strength * lowerFace * smoothstep(0.39, 0.82, v_uv.y) * organic;
+      point.x -= u_flow.z * strength * face * (v_uv.y - center.y) * (0.75 + 0.25 * seedWave);
+
+      float rotationMask = face * (0.6 + 0.4 * lowerFace);
+      point = rotateAround(point, center, -u_twist * strength * rotationMask);
+
+      point = clamp(point, vec2(0.0015), vec2(0.9985));
+      gl_FragColor = texture2D(u_texture, point);
+    }
+  `;
 
   function cryptoRandom(max) {
     if (!window.crypto?.getRandomValues) return Math.floor(Math.random() * max);
@@ -50,15 +213,6 @@
   function chooseProfile(severity, seed) {
     const tier = severity < 30 ? tiers.mild : severity < 58 ? tiers.medium : severity < 82 ? tiers.high : tiers.critical;
     return tier[Math.abs(seed) % tier.length];
-  }
-
-  function noise(seed) {
-    const value = Math.sin(seed * 12.9898) * 43758.5453;
-    return value - Math.floor(value);
-  }
-
-  function easeOut(value) {
-    return 1 - Math.pow(1 - value, 3);
   }
 
   function loadImage(source) {
@@ -77,6 +231,7 @@
     let sy = 0;
     let sw = image.width;
     let sh = image.height;
+
     if (imageRatio > targetRatio) {
       sw = image.height * targetRatio;
       sx = (image.width - sw) / 2;
@@ -84,6 +239,7 @@
       sh = image.width / targetRatio;
       sy = (image.height - sh) / 2;
     }
+
     context.drawImage(image, sx, sy, sw, sh, x, y, width, height);
   }
 
@@ -91,135 +247,196 @@
     const canvas = document.createElement('canvas');
     canvas.width = width;
     canvas.height = height;
-    drawCover(canvas.getContext('2d'), image, 0, 0, width, height);
+    const context = canvas.getContext('2d', { alpha: false });
+    context.imageSmoothingEnabled = true;
+    context.imageSmoothingQuality = 'high';
+    drawCover(context, image, 0, 0, width, height);
     return canvas;
   }
 
-  function renderFrame(source, output, profile, severity, progress, seed) {
-    const width = output.width;
-    const height = output.height;
-    const strength = Math.min(1.08, 0.2 + (severity / 100) * 0.98) * easeOut(progress);
-    const has = (mode) => profile.modes.includes(mode);
-    const strip = width >= 700 ? 5 : 4;
-    const horizontal = document.createElement('canvas');
-    horizontal.width = width;
-    horizontal.height = height;
-    const hctx = horizontal.getContext('2d');
-    const context = output.getContext('2d');
+  function compileShader(gl, type, source) {
+    const shader = gl.createShader(type);
+    gl.shaderSource(shader, source);
+    gl.compileShader(shader);
+    if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+      const message = gl.getShaderInfoLog(shader) || 'Shader se nepovedlo zkompilovat';
+      gl.deleteShader(shader);
+      throw new Error(message);
+    }
+    return shader;
+  }
 
-    for (let y = 0; y < height; y += strip) {
-      const vertical = y / height;
-      const faceY = (vertical - 0.45) / 0.35;
-      const faceMask = Math.exp(-faceY * faceY * 1.55);
-      const foreheadMask = Math.exp(-Math.pow((vertical - 0.29) / 0.18, 2));
-      const jawMask = Math.exp(-Math.pow((vertical - 0.64) / 0.18, 2));
-      const featureProtection = Math.exp(-Math.pow((vertical - 0.43) / 0.12, 2));
-      const mask = faceMask * (1 - featureProtection * 0.24);
+  function createProgram(gl) {
+    const vertex = compileShader(gl, gl.VERTEX_SHADER, VERTEX_SHADER);
+    const fragment = compileShader(gl, gl.FRAGMENT_SHADER, FRAGMENT_SHADER);
+    const program = gl.createProgram();
+    gl.attachShader(program, vertex);
+    gl.attachShader(program, fragment);
+    gl.linkProgram(program);
+    gl.deleteShader(vertex);
+    gl.deleteShader(fragment);
 
-      let scale = 1;
-      if (has('bulge')) scale += 0.34 * strength * mask;
-      if (has('wide')) scale += 0.48 * strength * mask;
-      if (has('pinch')) scale -= 0.24 * strength * mask;
-      if (has('squeeze')) scale -= 0.18 * strength * mask * (0.58 + 0.42 * Math.sin(y * 0.034 + seed));
-      if (has('forehead')) scale += 0.52 * strength * foreheadMask;
-      if (has('jaw')) scale += 0.46 * strength * jawMask;
-      if (has('accordion')) scale += Math.sin(y * 0.075 + seed) * 0.22 * strength * mask;
-
-      const wave = has('wave')
-        ? Math.sin(y * 0.042 + seed * 0.13) * width * 0.055 * strength * mask
-        : 0;
-      const tilt = has('tilt')
-        ? (vertical - 0.5) * width * 0.17 * strength * mask
-        : 0;
-
-      const drawWidth = width * Math.max(0.54, scale);
-      const dx = (width - drawWidth) / 2 + wave + tilt;
-      hctx.drawImage(
-        source,
-        0,
-        y,
-        width,
-        Math.min(strip + 1, height - y),
-        dx,
-        y,
-        drawWidth,
-        Math.min(strip + 1, height - y)
-      );
+    if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+      const message = gl.getProgramInfoLog(program) || 'GPU program se nepovedlo spojit';
+      gl.deleteProgram(program);
+      throw new Error(message);
     }
 
-    context.clearRect(0, 0, width, height);
-    context.drawImage(horizontal, 0, 0);
+    return program;
+  }
 
-    if (has('melt')) {
-      const meltTop = Math.round(height * 0.43);
-      const meltHeight = Math.round(height * 0.43);
-      const center = width / 2;
-      const radius = width * 0.4;
+  function createGpuRenderer(canvas, source, profile, severity, seed) {
+    const gl = canvas.getContext('webgl', {
+      alpha: false,
+      antialias: true,
+      depth: false,
+      stencil: false,
+      premultipliedAlpha: false,
+      preserveDrawingBuffer: true,
+      powerPreference: 'high-performance'
+    });
 
-      for (let x = Math.round(width * 0.11); x < width * 0.89; x += strip) {
-        const normalized = (x - center) / radius;
-        const mask = Math.pow(Math.max(0, 1 - normalized * normalized), 1.35);
-        const random = noise(x * 0.41 + seed * 8.7);
-        const pull = Math.round(
-          height * (0.012 + 0.16 * strength * strength) * mask * (0.32 + random * 0.68)
-        );
-        const sway = Math.round(Math.sin(x * 0.043 + seed) * width * 0.018 * strength * mask);
+    if (!gl) return null;
 
-        if (pull > 1) {
-          context.drawImage(
-            horizontal,
-            x,
-            meltTop,
-            strip + 1,
-            meltHeight,
-            x + sway,
-            meltTop,
-            strip + 1,
-            meltHeight + pull
-          );
-        }
+    const program = createProgram(gl);
+    const buffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+    gl.bufferData(
+      gl.ARRAY_BUFFER,
+      new Float32Array([
+        -1, -1,
+        1, -1,
+        -1, 1,
+        -1, 1,
+        1, -1,
+        1, 1
+      ]),
+      gl.STATIC_DRAW
+    );
+
+    const position = gl.getAttribLocation(program, 'a_position');
+    const texture = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, texture);
+    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, source);
+
+    gl.useProgram(program);
+    gl.enableVertexAttribArray(position);
+    gl.vertexAttribPointer(position, 2, gl.FLOAT, false, 0, 0);
+    gl.uniform1i(gl.getUniformLocation(program, 'u_texture'), 0);
+    gl.uniform1f(gl.getUniformLocation(program, 'u_severity'), severity / 100);
+    gl.uniform1f(gl.getUniformLocation(program, 'u_seed'), seed);
+    gl.uniform4fv(gl.getUniformLocation(program, 'u_shape'), new Float32Array(profile.shape));
+    gl.uniform4fv(gl.getUniformLocation(program, 'u_flow'), new Float32Array(profile.flow));
+    gl.uniform1f(gl.getUniformLocation(program, 'u_twist'), profile.twist);
+    const progressLocation = gl.getUniformLocation(program, 'u_progress');
+
+    gl.viewport(0, 0, canvas.width, canvas.height);
+    gl.clearColor(0.01, 0.03, 0.08, 1);
+
+    return {
+      render(progress) {
+        gl.useProgram(program);
+        gl.uniform1f(progressLocation, Math.max(0, Math.min(1, progress)));
+        gl.clear(gl.COLOR_BUFFER_BIT);
+        gl.drawArrays(gl.TRIANGLES, 0, 6);
+      },
+      finish() {
+        gl.finish();
       }
-    }
+    };
+  }
+
+  function renderFallback(canvas, source, profile, severity, progress) {
+    const context = canvas.getContext('2d', { alpha: false });
+    if (!context) return;
+    const eased = progress * progress * (3 - 2 * progress);
+    const strength = (0.3 + severity / 100 * 0.55) * eased;
+    const scaleX = 1 + profile.flow[0] * strength;
+    const scaleY = 1 + profile.flow[1] * strength;
+    const shear = profile.flow[2] * strength * 0.22;
+    const drop = profile.flow[3] * strength * canvas.height * 0.28;
+
+    context.save();
+    context.clearRect(0, 0, canvas.width, canvas.height);
+    context.translate(canvas.width / 2, canvas.height / 2 + drop);
+    context.transform(scaleX, shear, -profile.twist * strength * 0.1, scaleY, 0, 0);
+    context.drawImage(source, -canvas.width / 2, -canvas.height / 2, canvas.width, canvas.height);
+    context.restore();
   }
 
   async function animateCanvas(canvas, imageData, profile, severity, seed, runId) {
     const image = await loadImage(imageData);
     if (runId !== activeRun) return;
+
     canvas.width = 480;
     canvas.height = 640;
     const source = createSource(image, canvas.width, canvas.height);
-    renderFrame(source, canvas, profile, severity, 0, seed);
+    let renderer = null;
 
+    try {
+      renderer = createGpuRenderer(canvas, source, profile, severity, seed);
+    } catch (error) {
+      console.warn('GPU deformace není dostupná:', error);
+    }
+
+    const render = (progress) => {
+      if (renderer) renderer.render(progress);
+      else renderFallback(canvas, source, profile, severity, progress);
+    };
+
+    render(0);
     if (reducedMotion()) {
-      renderFrame(source, canvas, profile, severity, 1, seed);
+      render(1);
+      renderer?.finish();
       return;
     }
 
     const started = performance.now();
-    const duration = 1080;
+    const duration = 1220;
     elements.result.classList.add('warp-progress');
 
     await new Promise((resolve) => {
       const frame = (now) => {
         if (runId !== activeRun) return resolve();
-        const progress = Math.min(1, (now - started) / duration);
-        renderFrame(source, canvas, profile, severity, progress, seed);
-        if (progress < 1) requestAnimationFrame(frame);
+        const linear = Math.min(1, (now - started) / duration);
+        const cinematic = 1 - Math.pow(1 - linear, 3.2);
+        render(cinematic);
+        if (linear < 1) requestAnimationFrame(frame);
         else resolve();
       };
       requestAnimationFrame(frame);
     });
 
+    renderer?.finish();
     elements.result.classList.remove('warp-progress');
   }
 
   async function createFinalImage(imageData, profile, severity, seed) {
     const image = await loadImage(imageData);
-    const source = createSource(image, 720, 960);
     const output = document.createElement('canvas');
     output.width = 720;
     output.height = 960;
-    renderFrame(source, output, profile, severity, 1, seed);
+    const source = createSource(image, output.width, output.height);
+
+    let renderer = null;
+    try {
+      renderer = createGpuRenderer(output, source, profile, severity, seed);
+    } catch (error) {
+      console.warn('GPU export není dostupný:', error);
+    }
+
+    if (renderer) {
+      renderer.render(1);
+      renderer.finish();
+    } else {
+      renderFallback(output, source, profile, severity, 1);
+    }
+
     return output.toDataURL('image/png');
   }
 
@@ -227,16 +444,22 @@
     const words = String(text).split(' ');
     const lines = [];
     let line = '';
+
     words.forEach((word) => {
       const test = line ? `${line} ${word}` : word;
       if (context.measureText(test).width > maxWidth && line) {
         lines.push(line);
         line = word;
-      } else line = test;
+      } else {
+        line = test;
+      }
     });
+
     if (line) lines.push(line);
     const visible = lines.slice(0, maxLines);
-    if (lines.length > maxLines) visible[maxLines - 1] = `${visible[maxLines - 1].replace(/[.,!?…]*$/, '')}…`;
+    if (lines.length > maxLines) {
+      visible[maxLines - 1] = `${visible[maxLines - 1].replace(/[.,!?…]*$/, '')}…`;
+    }
     visible.forEach((item, index) => context.fillText(item, x, y + index * lineHeight));
   }
 
@@ -258,8 +481,14 @@
     context.fillRect(0, 0, width, canvas.height);
     drawCover(context, image, 0, 0, width, imageHeight);
 
+    const vignette = context.createRadialGradient(width / 2, imageHeight * 0.44, 120, width / 2, imageHeight * 0.46, 680);
+    vignette.addColorStop(0, 'rgba(2, 6, 23, 0)');
+    vignette.addColorStop(1, 'rgba(2, 6, 23, 0.42)');
+    context.fillStyle = vignette;
+    context.fillRect(0, 0, width, imageHeight);
+
     context.fillStyle = 'rgba(2,6,23,0.76)';
-    context.fillRect(42, 42, 540, 62);
+    context.fillRect(42, 42, 580, 62);
     context.fillStyle = '#67e8f9';
     context.font = '800 24px ui-monospace, monospace';
     context.textAlign = 'left';
@@ -276,7 +505,8 @@
     context.textAlign = 'center';
     context.fillStyle = '#67e8f9';
     context.font = '700 28px ui-sans-serif, sans-serif';
-    context.fillText(`LOKÁLNÍ AI DETEKCE DEVASTACE • ${severity}%`, width / 2, imageHeight + 58);
+    context.fillText('LOKÁLNÍ AI DETEKCE DEVASTACE', width / 2, imageHeight + 58);
+
     context.fillStyle = '#fff';
     let titleSize = 66;
     context.font = `800 ${titleSize}px ui-sans-serif, sans-serif`;
@@ -285,9 +515,11 @@
       context.font = `800 ${titleSize}px ui-sans-serif, sans-serif`;
     }
     context.fillText(title, width / 2, imageHeight + 145);
+
     context.fillStyle = '#d9e1df';
     context.font = 'italic 38px ui-sans-serif, sans-serif';
     wrapText(context, description, width / 2, imageHeight + 220, width - 130, 48, 3);
+
     context.fillStyle = 'rgba(217,225,223,0.5)';
     context.font = '28px ui-sans-serif, sans-serif';
     context.fillText('jsemsmazka.cz • jen pro srandu, ne diagnóza', width / 2, imageHeight + panelHeight - 52);
@@ -320,7 +552,7 @@
     const canvas = document.createElement('canvas');
     canvas.className = 'warp-result-canvas';
     canvas.setAttribute('role', 'img');
-    canvas.setAttribute('aria-label', `Geometricky deformovaný původní obličej. Intenzita efektu ${severity} procent.`);
+    canvas.setAttribute('aria-label', `Plynule deformovaný původní obličej. Intenzita efektu ${severity} procent.`);
     oldMedia?.replaceWith(canvas);
 
     const label = visual.querySelector('.effect-label');
@@ -352,7 +584,13 @@
   }
 
   const observer = new MutationObserver(() => requestAnimationFrame(upgradeResult));
-  observer.observe(elements.result, { childList: true, subtree: true, attributes: true, attributeFilter: ['class'] });
+  observer.observe(elements.result, {
+    childList: true,
+    subtree: true,
+    attributes: true,
+    attributeFilter: ['class']
+  });
+
   window.addEventListener('pagehide', () => observer.disconnect(), { once: true });
   upgradeResult();
 })();
