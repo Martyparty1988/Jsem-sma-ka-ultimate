@@ -15,11 +15,20 @@
 
   function syncFrame() {
     if (!resultVisible()) return;
+
     const rect = cameraStage.getBoundingClientRect();
-    result.style.setProperty('--result-frame-top', `${Math.round(rect.top)}px`);
-    result.style.setProperty('--result-frame-left', `${Math.round(rect.left)}px`);
-    result.style.setProperty('--result-frame-width', `${Math.round(rect.width)}px`);
-    result.style.setProperty('--result-frame-height', `${Math.round(rect.height)}px`);
+    const viewportHeight = window.visualViewport?.height || window.innerHeight;
+    const viewportWidth = window.visualViewport?.width || window.innerWidth;
+    const safeGap = 8;
+    const top = Math.max(safeGap, rect.top);
+    const left = Math.max(safeGap, rect.left);
+    const width = Math.min(rect.width, viewportWidth - left - safeGap);
+    const availableHeight = Math.max(420, viewportHeight - top - safeGap);
+
+    result.style.setProperty('--result-frame-top', `${Math.round(top)}px`);
+    result.style.setProperty('--result-frame-left', `${Math.round(left)}px`);
+    result.style.setProperty('--result-frame-width', `${Math.round(width)}px`);
+    result.style.setProperty('--result-frame-height', `${Math.round(availableHeight)}px`);
   }
 
   function setDetailsOpen(open) {
@@ -86,8 +95,8 @@
     ensureDetailsButton();
     syncFrame();
     window.requestAnimationFrame(syncFrame);
-    window.setTimeout(syncFrame, 90);
-    window.setTimeout(syncFrame, 420);
+    window.setTimeout(syncFrame, 100);
+    window.setTimeout(syncFrame, 480);
   }
 
   const observer = new MutationObserver(() => window.requestAnimationFrame(decorateResult));
