@@ -1,0 +1,364 @@
+/* Professional face-lock layer: live target, landmark mesh and compact scan HUD. */
+#scanOverlay {
+  position: absolute;
+  z-index: 12;
+  inset: 0;
+  overflow: hidden;
+  border-radius: inherit;
+  pointer-events: none;
+  background: transparent !important;
+}
+
+.face-tracker {
+  position: absolute;
+  inset: 0;
+}
+
+.face-lock-frame {
+  position: absolute;
+  left: 20%;
+  top: 10%;
+  width: 60%;
+  height: 68%;
+  opacity: 0.64;
+  border-radius: 38% 38% 44% 44% / 29% 29% 46% 46%;
+  background:
+    linear-gradient(90deg, #67e8f9, #67e8f9) left 3px top 3px / 28px 2px no-repeat,
+    linear-gradient(#67e8f9, #67e8f9) left 3px top 3px / 2px 28px no-repeat,
+    linear-gradient(90deg, #67e8f9, #67e8f9) right 3px top 3px / 28px 2px no-repeat,
+    linear-gradient(#67e8f9, #67e8f9) right 3px top 3px / 2px 28px no-repeat,
+    linear-gradient(90deg, #34d399, #34d399) left 3px bottom 3px / 28px 2px no-repeat,
+    linear-gradient(#34d399, #34d399) left 3px bottom 3px / 2px 28px no-repeat,
+    linear-gradient(90deg, #34d399, #34d399) right 3px bottom 3px / 28px 2px no-repeat,
+    linear-gradient(#34d399, #34d399) right 3px bottom 3px / 2px 28px no-repeat;
+  filter: drop-shadow(0 0 10px rgba(34, 211, 238, 0.22));
+  transition:
+    left 180ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    top 180ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    width 180ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    height 180ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    opacity 180ms ease,
+    filter 180ms ease;
+}
+
+.face-lock-frame::before {
+  content: '';
+  position: absolute;
+  inset: 7px;
+  border: 1px solid rgba(103, 232, 249, 0.15);
+  border-radius: inherit;
+  box-shadow: inset 0 0 28px rgba(34, 211, 238, 0.04);
+}
+
+.face-lock-frame[data-mode='native'] .face-lock-label::after {
+  content: ' · LIVE';
+  color: #86efac;
+}
+
+.face-landmark-mesh {
+  position: absolute;
+  inset: 7% 8% 5%;
+  width: 84%;
+  height: 88%;
+  overflow: visible;
+}
+
+.face-contour,
+.mesh-line {
+  fill: none;
+  stroke: rgba(103, 232, 249, 0.42);
+  stroke-width: 0.62;
+  vector-effect: non-scaling-stroke;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.face-contour {
+  stroke-width: 0.8;
+  stroke-dasharray: 4 4;
+  opacity: 0.66;
+}
+
+.mesh-line {
+  opacity: 0.28;
+  stroke-dasharray: 1.8 3.3;
+}
+
+.landmark {
+  fill: #a5f3fc;
+  stroke: rgba(2, 6, 23, 0.85);
+  stroke-width: 0.45;
+  vector-effect: non-scaling-stroke;
+  opacity: 0.42;
+  filter: drop-shadow(0 0 2px rgba(103, 232, 249, 0.78));
+}
+
+.face-lock-label {
+  position: absolute;
+  top: -12px;
+  left: 14px;
+  padding: 4px 7px;
+  border: 1px solid rgba(103, 232, 249, 0.18);
+  border-radius: 999px;
+  background: rgba(2, 8, 20, 0.66);
+  color: rgba(207, 250, 254, 0.84);
+  font: 800 0.48rem/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+  letter-spacing: 0.1em;
+  box-shadow: 0 6px 18px rgba(2, 6, 23, 0.24);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.feature-label {
+  position: absolute;
+  opacity: 0;
+  color: rgba(207, 250, 254, 0.74);
+  font: 750 0.42rem/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+  letter-spacing: 0.08em;
+  text-shadow: 0 0 8px rgba(34, 211, 238, 0.65);
+  transition: opacity 160ms ease;
+}
+
+.feature-eye-left { top: 38%; left: 11%; }
+.feature-eye-right { top: 38%; right: 11%; }
+.feature-mouth { left: 50%; bottom: 21%; transform: translateX(-50%); }
+
+#scanOverlay.face-detected .face-lock-frame,
+#scanOverlay.is-scanning .face-lock-frame {
+  opacity: 1;
+  filter:
+    drop-shadow(0 0 11px rgba(34, 211, 238, 0.42))
+    drop-shadow(0 0 24px rgba(52, 211, 153, 0.12));
+}
+
+#scanOverlay.face-detected .face-contour,
+#scanOverlay.is-scanning .face-contour {
+  stroke: rgba(110, 231, 183, 0.78);
+  stroke-dasharray: 0;
+}
+
+#scanOverlay.face-detected .mesh-line,
+#scanOverlay.face-detected .landmark,
+#scanOverlay.is-scanning .mesh-line,
+#scanOverlay.is-scanning .landmark {
+  opacity: 0.76;
+}
+
+#scanOverlay.face-detected .feature-label,
+#scanOverlay.is-scanning .feature-label {
+  opacity: 0.68;
+}
+
+#scanOverlay[data-stage='eyes'] .landmark-eye,
+#scanOverlay[data-stage='eyes'] .mesh-eye,
+#scanOverlay[data-stage='features'] .landmark-eye,
+#scanOverlay[data-stage='features'] .landmark-nose,
+#scanOverlay[data-stage='features'] .landmark-mouth,
+#scanOverlay[data-stage='features'] .mesh-eye,
+#scanOverlay[data-stage='features'] .mesh-nose,
+#scanOverlay[data-stage='features'] .mesh-mouth,
+#scanOverlay[data-stage='jaw'] .landmark,
+#scanOverlay[data-stage='jaw'] .mesh-line,
+#scanOverlay[data-stage='analysis'] .landmark,
+#scanOverlay[data-stage='analysis'] .mesh-line,
+#scanOverlay[data-stage='complete'] .landmark,
+#scanOverlay[data-stage='complete'] .mesh-line {
+  opacity: 1;
+  stroke: #a7f3d0;
+}
+
+#scanOverlay[data-stage='eyes'] .landmark-eye,
+#scanOverlay[data-stage='features'] .landmark-eye,
+#scanOverlay[data-stage='features'] .landmark-nose,
+#scanOverlay[data-stage='features'] .landmark-mouth,
+#scanOverlay[data-stage='jaw'] .landmark,
+#scanOverlay[data-stage='analysis'] .landmark,
+#scanOverlay[data-stage='complete'] .landmark {
+  fill: #6ee7b7;
+}
+
+#scanLine {
+  position: absolute;
+  z-index: 5;
+  right: 8%;
+  left: 8%;
+  top: 16%;
+  height: 1px;
+  opacity: 0;
+  background: linear-gradient(90deg, transparent, rgba(103, 232, 249, 0.88) 16%, #fff 50%, rgba(52, 211, 153, 0.86) 84%, transparent);
+  box-shadow: 0 0 10px rgba(34, 211, 238, 0.72), 0 0 24px rgba(34, 211, 238, 0.2);
+}
+
+#scanLine.active {
+  opacity: 0.95;
+  animation: landmarkScanSweep 1.42s cubic-bezier(0.45, 0, 0.55, 1) infinite alternate;
+}
+
+#scanStatus {
+  position: absolute;
+  z-index: 20;
+  right: 12px;
+  bottom: 18px;
+  left: 12px;
+  width: auto;
+  min-height: 46px;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 9px;
+  padding: 10px 12px 12px;
+  border: 1px solid rgba(148, 210, 228, 0.14);
+  border-radius: 14px;
+  background: rgba(2, 8, 20, 0.7);
+  color: #e0f2fe;
+  box-shadow: 0 12px 30px rgba(2, 6, 23, 0.3), inset 0 1px rgba(255, 255, 255, 0.035);
+  backdrop-filter: blur(16px) saturate(120%);
+  -webkit-backdrop-filter: blur(16px) saturate(120%);
+  transform: none;
+}
+
+#scanStatus::after {
+  content: none !important;
+  display: none !important;
+}
+
+.scan-state-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #67e8f9;
+  box-shadow: 0 0 0 4px rgba(34, 211, 238, 0.08), 0 0 12px rgba(34, 211, 238, 0.58);
+}
+
+.scan-state-copy {
+  overflow: hidden;
+  font-size: 0.66rem;
+  font-weight: 780;
+  letter-spacing: 0.055em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-transform: uppercase;
+}
+
+.scan-state-progress {
+  color: #6ee7b7;
+  font: 800 0.72rem/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+#scanOverlay:not(.is-scanning) .scan-state-progress {
+  opacity: 0.45;
+}
+
+#scanOverlay.face-detected .scan-state-dot,
+#scanOverlay.is-scanning .scan-state-dot,
+#scanOverlay.is-complete .scan-state-dot {
+  background: #34d399;
+  box-shadow: 0 0 0 4px rgba(52, 211, 153, 0.09), 0 0 13px rgba(52, 211, 153, 0.72);
+}
+
+#scanBar {
+  position: absolute;
+  z-index: 21;
+  right: 24px;
+  bottom: 24px;
+  left: 24px;
+  width: auto;
+  height: 2px;
+  overflow: hidden;
+  opacity: 0;
+  border-radius: 999px;
+  background: rgba(226, 232, 240, 0.11);
+  box-shadow: none;
+  transform: none;
+}
+
+#scanBar.show {
+  opacity: 1;
+}
+
+#scanBar::after {
+  content: none !important;
+  display: none !important;
+}
+
+.scan-bar-fill {
+  width: 0;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #22d3ee, #34d399);
+  box-shadow: 0 0 10px rgba(34, 211, 238, 0.48);
+}
+
+body.face-scan-active .button-group {
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+  transform: translateY(16px) scale(0.98) !important;
+}
+
+body.face-scan-active .scan-hint {
+  opacity: 0;
+}
+
+body.face-scan-active .video-container {
+  border-color: rgba(103, 232, 249, 0.34) !important;
+  box-shadow:
+    0 18px 54px rgba(2, 6, 23, 0.58),
+    0 0 0 1px rgba(34, 211, 238, 0.09),
+    inset 0 0 52px rgba(2, 6, 23, 0.22) !important;
+}
+
+#scanOverlay.is-complete .face-lock-frame {
+  opacity: 1;
+  filter: drop-shadow(0 0 14px rgba(52, 211, 153, 0.58));
+  animation: faceLockComplete 320ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes landmarkScanSweep {
+  from { top: 15%; }
+  to { top: 84%; }
+}
+
+@keyframes faceLockComplete {
+  0% { transform: scale(1); }
+  55% { transform: scale(1.018); }
+  100% { transform: scale(1); }
+}
+
+@media (max-width: 640px) {
+  #scanStatus {
+    right: 10px;
+    bottom: 14px;
+    left: 10px;
+    min-height: 44px;
+    padding: 9px 11px 11px;
+  }
+
+  #scanBar {
+    right: 22px;
+    bottom: 20px;
+    left: 22px;
+  }
+
+  .scan-state-copy {
+    font-size: 0.61rem;
+  }
+
+  .face-lock-label {
+    font-size: 0.44rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .face-lock-frame,
+  #scanLine.active,
+  #scanOverlay.is-complete .face-lock-frame {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  #scanLine.active {
+    top: 50%;
+  }
+}
