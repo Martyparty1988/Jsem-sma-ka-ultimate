@@ -1,9 +1,18 @@
-const CACHE_NAME = 'jsem-smazka-v26';
-const APP_SHELL = [
+const CACHE_VERSION = 'v27';
+const CACHE_NAME = `jsem-smazka-${CACHE_VERSION}`;
+
+const CORE_ASSETS = [
   './',
   './index.html',
+  './manifest.json',
+  './icon-192.png',
+  './icon-512.png',
+  './icon.svg'
+];
+
+const STYLE_ASSETS = [
   './styles.css',
-  './face-warp.css?v=22',
+  './face-warp.css?v=27',
   './face-warp-pro.css?v=22',
   './result-fullscreen.css',
   './iphone-responsive.css',
@@ -11,25 +20,34 @@ const APP_SHELL = [
   './professional-polish.css?v=18',
   './camera-cleanup.css?v=18',
   './diagnostic-upgrades.css',
-  './ios-one-screen.css?v=21',
+  './ios-one-screen.css?v=27',
   './in-frame-result.css?v=24',
   './face-landmarks.css?v=25',
-  './mobile-viewport-fill.css?v=26',
-  './app.js',
+  './mobile-viewport-fill.css?v=26'
+];
+
+const SCRIPT_ASSETS = [
+  './app.js?v=27',
   './face-scan.js?v=25',
-  './face-warp.js?v=22',
+  './face-warp.js?v=27',
   './hard-responses.js',
   './experience-upgrades.js',
   './diagnostic-upgrades.js',
   './privacy-hardening.js?v=20',
   './ios-one-screen.js?v=26',
-  './in-frame-result.js?v=24',
+  './in-frame-result.js?v=24'
+];
+
+const DATA_ASSETS = [
   './responses.json',
-  './responses-hard.json',
-  './manifest.json',
-  './icon-192.png',
-  './icon-512.png',
-  './icon.svg'
+  './responses-hard.json'
+];
+
+const APP_SHELL = [
+  ...CORE_ASSETS,
+  ...STYLE_ASSETS,
+  ...SCRIPT_ASSETS,
+  ...DATA_ASSETS
 ];
 
 self.addEventListener('install', (event) => {
