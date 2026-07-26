@@ -254,7 +254,7 @@
     const button = document.createElement('button');
     button.className = 'destroy-more-button';
     button.type = 'button';
-    button.innerHTML = '<span aria-hidden="true">☠️</span><span>Ještě víc mě znič</span>';
+    button.innerHTML = '<svg class="ui-icon" aria-hidden="true"><use href="#icon-zap"></use></svg><span>Ještě víc mě znič</span>';
     button.addEventListener('click', () => destroyMore(button));
     const newScan = actions.querySelector('.new-scan-button');
     actions.insertBefore(button, newScan || null);

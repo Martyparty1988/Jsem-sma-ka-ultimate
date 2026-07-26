@@ -38,7 +38,7 @@
   settingsButton.setAttribute('aria-label', 'Otevřít nastavení');
   settingsButton.setAttribute('aria-haspopup', 'dialog');
   settingsButton.setAttribute('aria-expanded', 'false');
-  settingsButton.innerHTML = '<span aria-hidden="true">⚙︎</span>';
+  settingsButton.innerHTML = '<svg class="ui-icon" aria-hidden="true"><use href="#icon-settings"></use></svg>';
 
   const topbarTools = document.createElement('div');
   topbarTools.className = 'topbar-tools';

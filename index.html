@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="description" content="Jsem smažka? Lokální srandovní sken stavu po večírku. Fotka zůstává v prohlížeči.">
-  <meta name="theme-color" content="#07111f">
+  <meta name="theme-color" content="#020305">
   <meta name="color-scheme" content="dark">
   <meta name="format-detection" content="telephone=no">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -20,18 +20,58 @@
   <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="face-warp.css?v=27">
   <link rel="stylesheet" href="face-warp-pro.css?v=22">
-  <link rel="stylesheet" href="result-fullscreen.css">
-  <link rel="stylesheet" href="iphone-responsive.css">
   <link rel="stylesheet" href="experience-upgrades.css">
-  <link rel="stylesheet" href="professional-polish.css?v=18">
-  <link rel="stylesheet" href="camera-cleanup.css?v=18">
   <link rel="stylesheet" href="diagnostic-upgrades.css">
   <link rel="stylesheet" href="ios-one-screen.css?v=27">
   <link rel="stylesheet" href="in-frame-result.css?v=24">
   <link rel="stylesheet" href="face-landmarks.css?v=25">
-  <link rel="stylesheet" href="mobile-viewport-fill.css?v=26">
+  <link rel="stylesheet" href="visual-system.css?v=28">
 </head>
 <body>
+  <svg class="icon-sprite" aria-hidden="true">
+    <symbol id="icon-camera" viewBox="0 0 24 24">
+      <path d="M4 8.5h3l1.5-2h7l1.5 2h3v10H4z"></path>
+      <circle cx="12" cy="13.5" r="3.25"></circle>
+    </symbol>
+    <symbol id="icon-photo" viewBox="0 0 24 24">
+      <rect x="3.5" y="4.5" width="17" height="15" rx="3"></rect>
+      <circle cx="9" cy="10" r="1.4"></circle>
+      <path d="m5.5 17 4-4 3 2.7 2.5-2.2 3.5 3.5"></path>
+    </symbol>
+    <symbol id="icon-retry" viewBox="0 0 24 24">
+      <path d="M19 8a7.5 7.5 0 1 0 .35 7"></path>
+      <path d="M19 4v4h-4"></path>
+    </symbol>
+    <symbol id="icon-switch" viewBox="0 0 24 24">
+      <path d="M7 7h10l-2.5-2.5"></path>
+      <path d="m17 17H7l2.5 2.5"></path>
+      <path d="M17 7v3M7 17v-3"></path>
+    </symbol>
+    <symbol id="icon-scan" viewBox="0 0 24 24">
+      <path d="M8 4H4v4M16 4h4v4M20 16v4h-4M8 20H4v-4"></path>
+      <circle cx="12" cy="12" r="3.25"></circle>
+    </symbol>
+    <symbol id="icon-share" viewBox="0 0 24 24">
+      <path d="M12 15V3"></path>
+      <path d="m8.5 6.5 3.5-3.5 3.5 3.5"></path>
+      <path d="M7 10H5.5A2.5 2.5 0 0 0 3 12.5v6A2.5 2.5 0 0 0 5.5 21h13a2.5 2.5 0 0 0 2.5-2.5v-6a2.5 2.5 0 0 0-2.5-2.5H17"></path>
+    </symbol>
+    <symbol id="icon-settings" viewBox="0 0 24 24">
+      <path d="M4 7h10M18 7h2M4 17h2M10 17h10M8 4v6M16 14v6"></path>
+    </symbol>
+    <symbol id="icon-download" viewBox="0 0 24 24">
+      <path d="M12 4v11"></path>
+      <path d="m8.5 11.5 3.5 3.5 3.5-3.5"></path>
+      <path d="M5 19h14"></path>
+    </symbol>
+    <symbol id="icon-zap" viewBox="0 0 24 24">
+      <path d="m13.5 2-8 12h6l-1 8 8-12h-6z"></path>
+    </symbol>
+    <symbol id="icon-lock" viewBox="0 0 24 24">
+      <rect x="5" y="10" width="14" height="10" rx="3"></rect>
+      <path d="M8 10V7a4 4 0 0 1 8 0v3"></path>
+    </symbol>
+  </svg>
   <div class="ambient ambient-one" aria-hidden="true"></div>
   <div class="ambient ambient-two" aria-hidden="true"></div>
 
@@ -64,7 +104,7 @@
           <span>Čekám na obraz</span>
         </div>
         <button id="switchCameraButton" class="stage-control hidden" type="button" aria-label="Přepnout kameru" title="Přepnout kameru">
-          <span aria-hidden="true">↻</span>
+          <svg class="ui-icon" aria-hidden="true"><use href="#icon-switch"></use></svg>
         </button>
         <div id="cameraError" class="error-message hidden" role="alert"></div>
         <div class="stage-vignette" aria-hidden="true"></div>
@@ -76,19 +116,19 @@
 
       <div class="button-group">
         <button id="captureButton" class="secondary-button hidden" type="button" aria-label="Vyfotit ručně">
-          <span class="button-icon" aria-hidden="true">📸</span>
+          <span class="button-icon" aria-hidden="true"><svg class="ui-icon"><use href="#icon-camera"></use></svg></span>
           <span class="button-text">Vyfotit ručně</span>
         </button>
         <button id="uploadButton" class="secondary-button" type="button" aria-label="Nahrát fotku">
-          <span class="button-icon" aria-hidden="true">📁</span>
+          <span class="button-icon" aria-hidden="true"><svg class="ui-icon"><use href="#icon-photo"></use></svg></span>
           <span class="button-text">Nahrát fotku</span>
         </button>
         <button id="retakeButton" class="secondary-button hidden" type="button" aria-label="Nový sken">
-          <span class="button-icon" aria-hidden="true">🔄</span>
+          <span class="button-icon" aria-hidden="true"><svg class="ui-icon"><use href="#icon-retry"></use></svg></span>
           <span class="button-text">Znovu</span>
         </button>
         <button id="analyzeButton" class="primary-button" type="button">
-          <span class="button-icon" aria-hidden="true">🔎</span>
+          <span class="button-icon" aria-hidden="true"><svg class="ui-icon"><use href="#icon-scan"></use></svg></span>
           <span class="button-text">Spustit sken</span>
         </button>
       </div>
@@ -104,7 +144,7 @@
 
     <footer>
       <div class="privacy-note">
-        <span class="privacy-icon" aria-hidden="true">⌁</span>
+        <span class="privacy-icon" aria-hidden="true"><svg class="ui-icon"><use href="#icon-lock"></use></svg></span>
         <p>Fotka se nikam neposílá. Všechno běží jen v prohlížeči, výsledek je čistě meme a ne diagnóza.</p>
       </div>
       <button id="installButton" class="install-button hidden" type="button">Přidat jako aplikaci</button>
@@ -118,14 +158,14 @@
   <div id="resultBackdrop" class="result-backdrop hidden" aria-hidden="true"></div>
   <section id="result" class="result hidden" role="dialog" aria-modal="true" aria-live="polite" tabindex="-1"></section>
 
-  <script defer src="app.js?v=27"></script>
+  <script defer src="app.js?v=28"></script>
   <script defer src="face-scan.js?v=25"></script>
   <script defer src="face-warp.js?v=27"></script>
   <script defer src="hard-responses.js"></script>
-  <script defer src="experience-upgrades.js"></script>
-  <script defer src="diagnostic-upgrades.js"></script>
+  <script defer src="experience-upgrades.js?v=28"></script>
+  <script defer src="diagnostic-upgrades.js?v=28"></script>
   <script defer src="privacy-hardening.js?v=20"></script>
-  <script defer src="ios-one-screen.js?v=26"></script>
+  <script defer src="ios-one-screen.js?v=28"></script>
   <script defer src="in-frame-result.js?v=24"></script>
 </body>
 </html>

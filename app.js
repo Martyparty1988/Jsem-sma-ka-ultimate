@@ -483,13 +483,13 @@
     shareButton.id = 'shareResultButton';
     shareButton.className = 'share-button';
     shareButton.type = 'button';
-    shareButton.innerHTML = '<span class="button-icon" aria-hidden="true">🚀</span><span>Sdílet / stáhnout</span>';
+    shareButton.innerHTML = '<span class="button-icon" aria-hidden="true"><svg class="ui-icon"><use href="#icon-share"></use></svg></span><span>Sdílet / stáhnout</span>';
     shareButton.addEventListener('click', shareResult);
 
     const newScanButton = document.createElement('button');
     newScanButton.className = 'new-scan-button';
     newScanButton.type = 'button';
-    newScanButton.innerHTML = '<span class="button-icon" aria-hidden="true">↻</span><span>Nový sken</span>';
+    newScanButton.innerHTML = '<span class="button-icon" aria-hidden="true"><svg class="ui-icon"><use href="#icon-retry"></use></svg></span><span>Nový sken</span>';
     newScanButton.addEventListener('click', startNewScan);
 
     const actions = document.createElement('div');

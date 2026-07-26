@@ -306,19 +306,19 @@
     const reroll = document.createElement('button');
     reroll.type = 'button';
     reroll.className = 'result-tool-button result-tool-primary';
-    reroll.innerHTML = '<span aria-hidden="true">🎲</span><span>Jiná deformace</span>';
+    reroll.innerHTML = '<svg class="ui-icon" aria-hidden="true"><use href="#icon-switch"></use></svg><span>Jiná deformace</span>';
     reroll.addEventListener('click', () => rerollDeformation(reroll));
 
     const saveOriginalButton = document.createElement('button');
     saveOriginalButton.type = 'button';
     saveOriginalButton.className = 'result-tool-button';
-    saveOriginalButton.innerHTML = '<span aria-hidden="true">📷</span><span>Uložit originál</span>';
+    saveOriginalButton.innerHTML = '<svg class="ui-icon" aria-hidden="true"><use href="#icon-photo"></use></svg><span>Uložit originál</span>';
     saveOriginalButton.addEventListener('click', () => saveOriginal(saveOriginalButton));
 
     const saveWarpButton = document.createElement('button');
     saveWarpButton.type = 'button';
     saveWarpButton.className = 'result-tool-button';
-    saveWarpButton.innerHTML = '<span aria-hidden="true">🤯</span><span>Uložit deformaci</span>';
+    saveWarpButton.innerHTML = '<svg class="ui-icon" aria-hidden="true"><use href="#icon-download"></use></svg><span>Uložit deformaci</span>';
     saveWarpButton.addEventListener('click', () => saveDeformed(saveWarpButton));
 
     grid.append(reroll, saveOriginalButton, saveWarpButton);

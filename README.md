@@ -17,7 +17,8 @@ Srandovní webová appka, která simuluje lokální AI sken obličeje a vygeneru
 ## Soubory
 
 - `index.html` – základ stránky, metadata a struktura UI.
-- `styles.css` – responzivní dark/neon design.
+- `styles.css` – základní komponenty a desktopový fallback.
+- `visual-system.css` – finální toxic/iOS vizuální systém, mobilní kamera, reveal a výsledkový layout.
 - `face-warp.css` – vizuální efekty deformace, skenu a výsledku.
 - `app.js` – kamera, stav aplikace, výsledky, sdílení a PWA registrace.
 - `face-scan.js` – animace skenu a zachycení aktuálního snímku.
