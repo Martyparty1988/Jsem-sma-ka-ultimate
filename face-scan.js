@@ -86,19 +86,19 @@
 
   const lockLabel = document.createElement('span');
   lockLabel.className = 'face-lock-label';
-  lockLabel.textContent = 'FACE TARGET';
+  lockLabel.textContent = 'SUBJECT TARGET';
 
   const eyeLeftLabel = document.createElement('span');
   eyeLeftLabel.className = 'feature-label feature-eye-left';
-  eyeLeftLabel.textContent = 'EYE L';
+  eyeLeftLabel.textContent = 'EYE // L';
 
   const eyeRightLabel = document.createElement('span');
   eyeRightLabel.className = 'feature-label feature-eye-right';
-  eyeRightLabel.textContent = 'EYE R';
+  eyeRightLabel.textContent = 'EYE // R';
 
   const mouthLabel = document.createElement('span');
   mouthLabel.className = 'feature-label feature-mouth';
-  mouthLabel.textContent = 'MOUTH';
+  mouthLabel.textContent = 'MOUTH // TRACE';
 
   const scanLine = document.createElement('div');
   scanLine.id = 'scanLine';
@@ -113,7 +113,7 @@
   status.setAttribute('aria-live', 'polite');
   status.innerHTML = `
     <span class="scan-state-dot" aria-hidden="true"></span>
-    <span class="scan-state-copy">Načítám mapu obličeje</span>
+    <span class="scan-state-copy">Probouzím VOID engine</span>
     <strong class="scan-state-progress">0%</strong>
   `;
 
@@ -151,12 +151,12 @@
   let lastRawLandmarks = null;
 
   const scanStages = [
-    [13, 'Zamykám obličej', 'lock'],
-    [31, 'Oči přesně zamčeny', 'eyes'],
-    [48, 'Nos a ústa zamčeny', 'features'],
-    [68, 'Kontura obličeje hotová', 'jaw'],
-    [89, 'Vyhodnocuju damage', 'analysis'],
-    [100, 'Sken dokončen', 'complete']
+    [13, 'Zamykám subjekt', 'lock'],
+    [31, 'Oči nalezeny • soudnost ne', 'eyes'],
+    [48, 'Nos a ústa pod dohledem', 'features'],
+    [68, 'Kontura trosek hotová', 'jaw'],
+    [89, 'Vážím zbytky důstojnosti', 'analysis'],
+    [100, 'Rozpad potvrzen', 'complete']
   ];
 
   function setStatus(message) {
@@ -186,21 +186,21 @@
     if (!isScanning) {
       setStatus(
         faceDetected
-          ? `${landmarkCount} bodů obličeje zamčeno`
+          ? `${landmarkCount} bodů subjektu zamčeno`
           : modelState === 'loading' || modelState === 'warming'
-            ? 'Načítám mapu obličeje'
+            ? 'Probouzím VOID engine'
             : modelState === 'failed'
-              ? 'Přesná detekce není dostupná'
-              : 'Hledám oči, nos a ústa'
+              ? 'Přesná detekce odmítla svědčit'
+              : 'Hledám oči, nos a zbytky tváře'
       );
-      lockLabel.textContent = faceDetected ? `${landmarkCount}-POINT LOCK` : 'FACE TARGET';
+      lockLabel.textContent = faceDetected ? `${landmarkCount}-POINT VOID LOCK` : 'SUBJECT TARGET';
     }
 
     if (!changed) return;
     if (faceDetected) {
-      app.setHint('Obličej přesně zamčen. Můžeš spustit sken.');
+      app.setHint('Subjekt zamčen. Rozsudek může začít.');
     } else if (modelState === 'ready') {
-      app.setHint('Podívej se do kamery a nech v záběru celý obličej.');
+      app.setHint('Podívej se do portálu a nech v něm celý ksicht.');
     }
   }
 
@@ -406,7 +406,7 @@
       });
       faceMesh.onResults(handleFaceMeshResults);
       modelState = 'warming';
-      app.setHint('Načítám přesnou mapu očí, nosu, úst a kontury…');
+      app.setHint('VOID engine mapuje skutečné oči, nos, ústa a konturu…');
       scheduleDetection(40);
     } catch (error) {
       console.error('MediaPipe Face Mesh nejde inicializovat:', error);
@@ -519,13 +519,13 @@
     document.body.classList.remove('face-scan-active');
     app.setBusy(false);
     loading.classList.add('hidden');
-    lockLabel.textContent = hasFreshLandmarks() ? `${landmarkCount}-POINT LOCK` : 'FACE TARGET';
+    lockLabel.textContent = hasFreshLandmarks() ? `${landmarkCount}-POINT VOID LOCK` : 'SUBJECT TARGET';
     setStatus(
       hasFreshLandmarks()
-        ? `${landmarkCount} bodů obličeje zamčeno`
+        ? `${landmarkCount} bodů subjektu zamčeno`
         : modelState === 'failed'
-          ? 'Přesná detekce není dostupná'
-          : 'Hledám oči, nos a ústa'
+          ? 'Přesná detekce odmítla svědčit'
+          : 'Hledám oči, nos a zbytky tváře'
     );
     scheduleDetection(60);
   }
@@ -533,7 +533,7 @@
   function cancelScan(message) {
     reset();
     app.showError(message);
-    app.setHint('Nech v záběru celý obličej a spusť sken znovu.');
+    app.setHint('Vrať celý ksicht do portálu a spusť rozsudek znovu.');
   }
 
   function captureAndAnalyze() {
@@ -567,7 +567,7 @@
     scanLine.classList.remove('active');
     overlay.classList.remove('is-scanning');
     overlay.classList.add('is-complete');
-    lockLabel.textContent = 'FACE CAPTURED';
+    lockLabel.textContent = 'SUBJECT CAPTURED';
 
     finishTimer = window.setTimeout(() => {
       finishTimer = null;
@@ -599,7 +599,7 @@
     } else {
       if (!lostFaceAt) lostFaceAt = now;
       currentStage = '';
-      setStatus('Obličej mimo záběr — sken čeká');
+      setStatus('Subjekt uniká — sken čeká');
       if (now - lostFaceAt > 1500) {
         cancelScan('Obličej zmizel ze záběru. Sken jsem zastavil, místo abych si body vymyslel.');
         return;
@@ -618,8 +618,8 @@
     }
 
     if (modelState === 'loading' || modelState === 'warming') {
-      app.setHint('Ještě chvíli — načítám přesnou mapu bodů obličeje.');
-      setStatus('Načítám mapu obličeje');
+      app.setHint('Ještě chvíli — VOID engine načítá skutečné body obličeje.');
+      setStatus('Probouzím VOID engine');
       scheduleDetection(0);
       return;
     }
@@ -631,7 +631,7 @@
 
     if (!hasFreshLandmarks()) {
       app.showError('Nejdřív potřebuju skutečně zamknout oči, nos, ústa a konturu. Podívej se do kamery.');
-      app.setHint('Nech v záběru celý obličej, dokud se obrys nepřichytí k rysům.');
+      app.setHint('Nech celý ksicht v portálu, dokud se obrys nepřichytí ke skutečným rysům.');
       scheduleDetection(0);
       return;
     }
@@ -643,14 +643,14 @@
     app.hideResult?.();
     previewContainer.classList.add('hidden');
     app.clearErrors();
-    app.setHint('Drž pozici. Obrys teď sleduje skutečné oči, nos, ústa a čelist.');
+    app.setHint('Ani hnout. VOID sleduje skutečné oči, nos, ústa a čelist.');
     app.setBusy(true);
 
     loading.classList.add('hidden');
     document.body.classList.add('face-scan-active');
     overlay.classList.remove('is-tracking', 'is-complete');
     overlay.classList.add('is-scanning');
-    lockLabel.textContent = `${landmarkCount}-POINT LOCK`;
+    lockLabel.textContent = `${landmarkCount}-POINT VOID LOCK`;
     scanLine.classList.add('active');
     barWrap.classList.add('show');
     setProgress(0);
@@ -677,8 +677,8 @@
       }
       app.setHint(
         modelState === 'ready'
-          ? 'Podívej se do kamery. Obrys se přichytí ke skutečným rysům.'
-          : 'Načítám přesnou mapu očí, nosu, úst a kontury…'
+          ? 'Podívej se do portálu. Obrys se přichytí ke skutečným rysům.'
+          : 'VOID engine mapuje skutečné oči, nos, ústa a konturu…'
       );
       scheduleDetection(40);
     }

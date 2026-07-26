@@ -78,5 +78,117 @@
   {
     "category": "Přepálenej mutant",
     "description": "Obličej se ti snaží opustit lebku. Upřímně se mu nedivíme."
+  },
+  {
+    "category": "Kontejner s pulsem",
+    "description": "Technicky žiješ. Esteticky už proběhl svoz a popeláři odmítli podepsat předávací protokol."
+  },
+  {
+    "category": "Biologická reklamace",
+    "description": "Výrobní vada potvrzena. Záruka padla někdy mezi druhou nocí bez spánku a hádkou s lampou."
+  },
+  {
+    "category": "Obličejovej trestnej čin",
+    "description": "Tenhle ksicht by měl být za páskou. Ne kvůli důkazům — aby se k němu nikdo omylem nepřiblížil."
+  },
+  {
+    "category": "Přenosná ostuda",
+    "description": "Důstojnost ti utekla oknem a zablokovala si tě. Teď ji zastupuje mastný čelo a cizí mikina."
+  },
+  {
+    "category": "Nouzovej režim masa",
+    "description": "Mozek nenalezen, koordinace vypršela a obličej běží na záložní zdroj. Ten zdroj je čistá drzost."
+  },
+  {
+    "category": "Ranní důkazní materiál",
+    "description": "Vypadáš jako poslední fotka v telefonu před zahájením vyšetřování. Čas pořízení: velká chyba."
+  },
+  {
+    "category": "Člověk po expiraci",
+    "description": "Spotřebujte do včerejška. Skladováno špatně, otevřeno příliš dlouho a obsah teď komunikuje s radiátorem."
+  },
+  {
+    "category": "Toxickej screensaver",
+    "description": "Tělo zamrzlo, oči blikají a v hlavě se odráží logo nonstopu. Pro restart podrž vlastní důstojnost — nenalezena."
+  },
+  {
+    "category": "Mentální skládka",
+    "description": "Každá myšlenka je nelegální odpad a všechny se ti vysypaly za očima. Třídění už nemá smysl."
+  },
+  {
+    "category": "Pytel škody s Wi-Fi",
+    "description": "Vysíláš nouzový signál. Bohužel jen na frekvenci, kterou chytá popelnice a jedna paranoidní mikrovlnka."
+  },
+  {
+    "category": "Pohřeb soudnosti",
+    "description": "Obřad proběhl bez rodiny. Věnec poslala benzínka, smuteční řeč přednesl automat na cigára."
+  },
+  {
+    "category": "Lidskej pop-up",
+    "description": "Nikdo tě nechtěl otevřít, nejde tě zavřít a pořád vydáváš divný zvuky. Tlačítko přeskočit chybí."
+  },
+  {
+    "category": "Ksicht po výbuchu nonstopu",
+    "description": "Vypadáš, jako kdyby zavíračka dostala vztek a bouchla ti přímo do obličeje. Nonstop se distancuje."
+  },
+  {
+    "category": "Společenskej malware",
+    "description": "Přišel jsi bez pozvání, vypnul ostatním náladu a teď se nedáš odstranit běžným způsobem."
+  },
+  {
+    "category": "Troska s aktualizací",
+    "description": "Nainstaloval sis novou verzi pekla. Opravy chyb žádný, zato přibylo třesení a reklamy na vlastní selhání."
+  },
+  {
+    "category": "Ksicht v likvidaci",
+    "description": "Firma zkrachovala, zaměstnanci utekli a na recepci sedí jen zornička velikosti talíře."
+  },
+  {
+    "category": "Výpověď z lidskosti",
+    "description": "Obličej ti vrátil služební průkaz. V tomhle stavu tě nechce reprezentovat ani vlastní ksicht."
+  },
+  {
+    "category": "Chodící závada",
+    "description": "Všechno na tobě svítí červeně, ale ty pořád mačkáš pokračovat. Servis tě viděl a zhasnul."
+  },
+  {
+    "category": "Noční fauna",
+    "description": "Přes den se schováváš, v noci syčíš na světlo a živíš se rozhodnutími, za která se ráno stydí i internet."
+  },
+  {
+    "category": "Zbytkovej člověk",
+    "description": "Analýza našla sedm procent osobnosti, dvě cizí vzpomínky a účtenku, která odmítá vypovídat."
+  },
+  {
+    "category": "Důstojnost 404",
+    "description": "Požadovaná vlastnost nebyla nalezena. Server vrací jen pot, tik a nevyžádanou životní moudrost."
+  },
+  {
+    "category": "Kyselinovej sirotek",
+    "description": "Realita tě odložila u dveří nonstopu s cedulkou nevracet. Nonstop ji poslechl."
+  },
+  {
+    "category": "Městskej strašák",
+    "description": "Holubi změnili chodník, taxikář zamknul dveře a noční tramvaj předstírá poruchu. Ty jdeš dál."
+  },
+  {
+    "category": "Poslední fáze večírku",
+    "description": "Hudba skončila, světla svítí a personál vytírá kolem tebe. Ty pořád čekáš na drop i základní sebereflexi."
+  },
+  {
+    "category": "Rozsudek z podsvětí",
+    "description": "Vinen z vraždy vlastního rána. Trest: potkat zrcadlo bez filtru a přečíst si odeslané zprávy."
+  },
+  {
+    "category": "Odpadní aristokrat",
+    "description": "Koruna z víčka, plášť z cizí bundy a království mezi popelníkem a záchodem. Poddaní odešli domů."
+  },
+  {
+    "category": "Mozek na útěku",
+    "description": "Naposledy byl viděn, jak bosý nasedá do nočního autobusu. Prosí veřejnost, aby ho s tebou nespojovala."
+  },
+  {
+    "category": "Finální boss ostudy",
+    "description": "Porazil jsi spánek, vkus i pud sebezáchovy. Odměna: fotka, kterou bude algoritmus schovávat před lidmi."
   }
 ]

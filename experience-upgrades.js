@@ -26,7 +26,15 @@
     'Krevní skupina nezjištěna. Vzorek odpovídá energetáku s popelem.',
     'Mimika se odpojila od serveru. Obličej pokračuje v offline režimu.',
     'Čelo dorazilo první, zbytek obličeje nabral zpoždění dvě zastávky.',
-    'Diagnostika dokončena: hardware přežil, software se odstěhoval.'
+    'Diagnostika dokončena: hardware přežil, software se odstěhoval.',
+    'Soudnost nalezena mrtvá. Hlavní podezřelý se právě fotí přední kamerou.',
+    'Ksicht byl označen za černou stavbu. Demolice už zřejmě začala zevnitř.',
+    'Zornice odmítají test na drogy i základní geometrii. Každá tvrdí jiný průměr.',
+    'Mozek odeslal automatickou odpověď: dnes nejsem v kanceláři, zkuste jiného člověka.',
+    'Důstojnost dosáhla záporných hodnot. Měřák se omluvil a odešel z profese.',
+    'Na obličeji probíhá neohlášená technická odstávka. Náhradní člověk není k dispozici.',
+    'Detekována cizí mikina, tři špatná rozhodnutí a sebevědomí bez jakéhokoli právního základu.',
+    'Výraz odpovídá člověku, který našel smysl života a okamžitě ho ztratil u šatny.'
   ];
 
   const extraProfiles = [

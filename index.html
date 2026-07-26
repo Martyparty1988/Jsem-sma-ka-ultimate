@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="description" content="Jsem smažka? Lokální srandovní sken stavu po večírku. Fotka zůstává v prohlížeči.">
-  <meta name="theme-color" content="#04070c">
+  <meta name="description" content="Jsem smažka? Lokální satirický sken zbytků důstojnosti po večírku. Fotka zůstává v prohlížeči.">
+  <meta name="theme-color" content="#08030d">
   <meta name="color-scheme" content="dark">
   <meta name="format-detection" content="telephone=no">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-title" content="Smažka Scan">
   <meta property="og:type" content="website">
   <meta property="og:title" content="Jsem smažka?">
-  <meta property="og:description" content="Lokální pseudo AI sken devastace po večírku. Fotka zůstává v zařízení.">
+  <meta property="og:description" content="Lokální pseudo AI terminál z podsvětí. Skenuje devastaci, fotku nikam neposílá.">
   <title>Jsem smažka?</title>
   <link rel="manifest" href="manifest.json">
   <link rel="icon" href="icon.svg" type="image/svg+xml">
@@ -26,7 +26,7 @@
   <link rel="stylesheet" href="in-frame-result.css?v=24">
   <link rel="stylesheet" href="face-landmarks.css?v=29">
   <link rel="stylesheet" href="visual-system.css?v=29">
-  <link rel="stylesheet" href="pro-app-polish.css?v=30">
+  <link rel="stylesheet" href="pro-app-polish.css?v=31">
 </head>
 <body>
   <svg class="icon-sprite" aria-hidden="true">
@@ -78,31 +78,38 @@
 
   <main class="container" id="app" aria-labelledby="appTitle">
     <nav class="topbar" aria-label="Stav aplikace">
-      <div class="brand-lockup" aria-label="Smažka Scan">
+      <div class="brand-lockup">
         <span class="brand-mark" aria-hidden="true"></span>
-        <span>Smažka Scan</span>
+        <span class="brand-copy"><strong>SMAŽKA</strong><small>VOID SCAN // 31</small></span>
       </div>
       <div class="local-status" title="Fotka zůstává v tomto zařízení">
         <span class="status-dot" aria-hidden="true"></span>
-        <span>Lokálně</span>
+        <span>OFF-GRID</span>
       </div>
     </nav>
 
     <header class="hero">
-      <p class="eyebrow">totálně lokální pseudo AI</p>
-      <h1 id="appTitle">Jsem smažka?</h1>
-      <p class="subtitle">Sken devastace po večírku. Přísně nevědecké, zato dramatické.</p>
+      <p class="eyebrow">podzemní lokální pseudo AI</p>
+      <h1 id="appTitle" data-text="Jsem smažka?">Jsem smažka?</h1>
+      <p class="subtitle">Otevři portál ke stavu, který měl zůstat zavřený. Nevědecké. Nemilosrdné. Lokální.</p>
     </header>
 
     <section class="camera-section" id="scanner" aria-label="Kamera a sken">
       <div class="video-container" id="cameraStage">
         <video id="video" autoplay muted playsinline></video>
         <div class="preview-container hidden" id="previewContainer">
-          <img id="preview" alt="Náhled fotky pro sdílení výsledku">
+          <img id="preview" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==" alt="Náhled fotky pro sdílení výsledku">
         </div>
         <div class="camera-idle" id="cameraIdle" aria-hidden="true">
           <span class="idle-eye"></span>
-          <span>Čekám na obraz</span>
+          <span>Čekám na subjekt</span>
+        </div>
+        <div class="world-hud" aria-hidden="true">
+          <span>REALITY LINK // UNSTABLE</span>
+          <span>SUBJECT // LOCAL</span>
+        </div>
+        <div class="world-signal" aria-hidden="true">
+          <i></i><span>VOID FEED</span>
         </div>
         <button id="switchCameraButton" class="stage-control hidden" type="button" aria-label="Přepnout kameru" title="Přepnout kameru">
           <svg class="ui-icon" aria-hidden="true"><use href="#icon-switch"></use></svg>
@@ -111,7 +118,7 @@
         <div class="stage-vignette" aria-hidden="true"></div>
       </div>
 
-      <p id="scanHint" class="scan-hint" aria-live="polite">Povol kameru, srovnej obličej doprostřed a spusť sken.</p>
+      <p id="scanHint" class="scan-hint" aria-live="polite">Povol vstup do kamery. Ksicht doprostřed. Důstojnost stranou.</p>
 
       <div id="generalError" class="error-message hidden" role="alert"></div>
 
@@ -137,7 +144,7 @@
       <input type="file" id="uploadInput" accept="image/*" class="hidden">
 
       <div id="loading" class="loading hidden" role="status" aria-live="polite">
-        <p>Vyhodnocuju damage level…</p>
+        <p>Vážím zbytky důstojnosti…</p>
       </div>
     </section>
 
@@ -159,12 +166,12 @@
   <div id="resultBackdrop" class="result-backdrop hidden" aria-hidden="true"></div>
   <section id="result" class="result hidden" role="dialog" aria-modal="true" aria-live="polite" tabindex="-1"></section>
 
-  <script defer src="app.js?v=28"></script>
+  <script defer src="app.js?v=31"></script>
   <script defer src="vendor/mediapipe-face-mesh/face_mesh.js?v=0.4.1633559619"></script>
-  <script defer src="face-scan.js?v=29"></script>
+  <script defer src="face-scan.js?v=31"></script>
   <script defer src="face-warp.js?v=27"></script>
-  <script defer src="hard-responses.js"></script>
-  <script defer src="experience-upgrades.js?v=28"></script>
+  <script defer src="hard-responses.js?v=31"></script>
+  <script defer src="experience-upgrades.js?v=31"></script>
   <script defer src="diagnostic-upgrades.js?v=28"></script>
   <script defer src="privacy-hardening.js?v=20"></script>
   <script defer src="ios-one-screen.js?v=28"></script>

@@ -28,16 +28,16 @@
 
   const fallbackResponses = [
     {
-      category: 'Svěží podezřele moc',
-      description: 'AI kouká, mžourá a hlásí: dneska to ještě držíš pohromadě. Skoro až podezřelé.'
+      category: 'Podezřele funkční exemplář',
+      description: 'Ksicht drží, oči komunikují a důstojnost ještě nebyla prohlášena za nezvěstnou. Tohle smrdí podvodem.'
     },
     {
-      category: 'Lehce rozhozený kompas',
-      description: 'Směr domů znáš, jen ho mozek kreslí trochu klikatě. Hydratace by nebyla špatná zápletka.'
+      category: 'Člověk v nouzovým režimu',
+      description: 'Hardware zatím stojí. Software ale otevřel dveře, odešel do nonstopu a nevrátil klíče.'
     },
     {
-      category: 'Afterparty archeolog',
-      description: 'V obličeji máš příběh, který by radši neměl mít pokračování. Meme potenciál slušný.'
+      category: 'Ranní důkazní materiál',
+      description: 'V obličeji máš tolik stop, že by ho kriminálka zabalila do sáčku. Ty tomu pořád říkáš povedenej večer.'
     }
   ];
 
@@ -224,14 +224,14 @@
       clearErrors();
       show(elements.uploadButton);
       await updateCameraSwitcher();
-      setHint('Kamera běží. Dej obličej do středu a spusť sken.');
+      setHint('Portál běží. Ksicht doprostřed a spusť rozsudek.');
     } catch (error) {
       if (requestId !== state.cameraRequestId) return;
       console.error('Kamera nejde spustit:', error);
       elements.cameraStage?.classList.remove('is-live');
       showError('Kamera nechce spolupracovat. Povol oprávnění, nebo nahraj fotku ručně.', elements.cameraError);
       show(elements.uploadButton);
-      setHint('Bez kamery můžeš použít nahrání fotky.');
+      setHint('Kamera odmítla svědčit. Nahraj důkazní fotku.');
     }
   }
 
@@ -373,8 +373,8 @@
     overlay.className = 'result-reveal-overlay';
     overlay.setAttribute('aria-hidden', 'true');
     overlay.innerHTML = `
-      <span class="result-reveal-kicker">damage lock</span>
-      <strong class="result-reveal-title">Obličej se rozpadá</strong>
+      <span class="result-reveal-kicker">VOID VERDICT // LOCKED</span>
+      <strong class="result-reveal-title">Rozpad byl potvrzen</strong>
       <span class="result-reveal-meter"></span>
     `;
     elements.cameraStage?.appendChild(overlay);
@@ -389,13 +389,13 @@
       const title = overlay.querySelector('.result-reveal-title');
       const meter = overlay.querySelector('.result-reveal-meter');
 
-      if (title) title.textContent = effectProfile?.label || 'Obličej se rozpadá';
+      if (title) title.textContent = effectProfile?.label || 'Rozpad byl potvrzen';
       if (meter) meter.textContent = `${severity}%`;
       elements.cameraStage.style.setProperty('--reveal-strength', String(severity / 100));
       elements.preview.src = effectImageData;
       show(elements.previewContainer);
       elements.cameraStage.classList.add('is-revealing-result', `reveal-${effectProfile?.tone || 'melt'}`);
-      setHint('Výsledek se skládá přímo v rámečku…');
+      setHint('Podsvětí tiskne rozsudek přímo do ksichtu…');
 
       window.setTimeout(() => {
         elements.cameraStage.classList.remove(
@@ -414,24 +414,9 @@
     });
   }
 
-  function iconForCategory(category = '') {
-    const lowered = category.toLowerCase();
-    if (lowered.includes('detox') || lowered.includes('hydrat')) return '💧';
-    if (lowered.includes('boss') || lowered.includes('legenda')) return '👑';
-    if (lowered.includes('404') || lowered.includes('glitch')) return '⁉️';
-    if (lowered.includes('zombie') || lowered.includes('duch')) return '🧟';
-    if (lowered.includes('vesmír') || lowered.includes('trip') || lowered.includes('astrál')) return '🌌';
-    if (lowered.includes('kebab')) return '🥙';
-    if (lowered.includes('třes') || lowered.includes('rozklep')) return '🥶';
-    if (lowered.includes('anděl')) return '👼';
-    if (lowered.includes('orloj') || lowered.includes('čas')) return '🕰️';
-    return '🔎';
-  }
-
   function displayResult(result, severity, effectImageData) {
     const category = syncWeekdayText(result.category || 'Neznámý stav');
     const description = syncWeekdayText(result.description || 'AI se tváří tajemně a odmítá vypovídat.');
-    const emoji = iconForCategory(category);
     const todayLabel = capitalizeFirst(getTodayForms().nominative);
     const effectProfile = getEffectProfile(severity, result);
 
@@ -451,7 +436,7 @@
 
     const badge = document.createElement('div');
     badge.className = 'result-badge';
-    badge.textContent = `Scan • ${todayLabel}`;
+    badge.textContent = `VOID VERDIKT // ${todayLabel}`;
 
     const resultVisual = document.createElement('figure');
     resultVisual.className = `result-visual effect-${effectProfile.key}`;
@@ -473,7 +458,7 @@
 
     const title = document.createElement('h2');
     title.id = 'resultTitle';
-    title.textContent = `${emoji} ${category}`;
+    title.textContent = category;
 
     const text = document.createElement('p');
     text.className = 'description';
@@ -520,7 +505,7 @@
     hide(elements.analyzeButton);
     show(elements.loading);
     setBusy(true);
-    setHint('AI simuluje brutálně seriózní analýzu…');
+    setHint('VOID engine pitvá obraz a hledá zbytky člověka…');
 
     const delay = 950 + Math.round(Math.random() * 650);
     window.setTimeout(async () => {
@@ -542,7 +527,7 @@
       await playResultReveal(effectImageData, severity, effectProfile);
       displayResult(result, severity, effectImageData);
       setBusy(false);
-      setHint('Hotovo. Můžeš dát další sken nebo rovnou sdílet výsledek.');
+      setHint('Rozsudek je venku. Sdílej ostudu, nebo přiveď další subjekt.');
     }, delay);
   }
 

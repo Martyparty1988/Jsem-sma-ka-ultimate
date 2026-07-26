@@ -7,7 +7,8 @@ Srandovní webová appka, která simuluje lokální AI sken obličeje a vygeneru
 - Spustí kameru přímo v prohlížeči.
 - Umí přepnout přední/zadní kameru a použít vlastní fotku.
 - Zobrazí animovaný pseudo scan nad skutečnými lokálně detekovanými body obličeje.
-- Náhodně vybere hlášku z `responses.json`.
+- Náhodně vybere hlášku z hlavní a tvrdší knihovny verdiktů.
+- Používá jednotný VOID vizuální svět s výrazným, ale čitelným mobilním HUDem.
 - Podle damage levelu lokálně a animovaně deformuje obličej (nafouknutí, stažení, vlnění a stékání).
 - Vygeneruje sdílitelný PNG obrázek s deformovaným obličejem a hláškou.
 - Funguje jako instalovatelná PWA i offline díky `manifest.json` a `service-worker.js`.
@@ -18,13 +19,14 @@ Srandovní webová appka, která simuluje lokální AI sken obličeje a vygeneru
 
 - `index.html` – základ stránky, metadata a struktura UI.
 - `styles.css` – základní komponenty a desktopový fallback.
-- `visual-system.css` – finální toxic/iOS vizuální systém, mobilní kamera, reveal a výsledkový layout.
+- `visual-system.css` – základ toxic/iOS vizuálního systému, mobilní kamera, reveal a výsledkový layout.
+- `pro-app-polish.css` – finální VOID vizuální autorita, kontrast, skenovací HUD a mobilní výsledek.
 - `face-warp.css` – vizuální efekty deformace, skenu a výsledku.
 - `app.js` – kamera, stav aplikace, výsledky, sdílení a PWA registrace.
 - `face-scan.js` – MediaPipe mapování očí, nosu, úst a kontury, animace skenu a zachycení snímku.
 - `vendor/mediapipe-face-mesh/` – lokální Apache-2.0 MediaPipe Face Mesh model a WebAssembly runtime.
 - `face-warp.js` – lokální canvas deformace obličeje a příprava sdíleného PNG.
-- `responses.json` – knihovna hlášek.
+- `responses.json` a `responses-hard.json` – základní a ostřejší knihovna hlášek.
 - `manifest.json` – PWA nastavení.
 - `service-worker.js` – offline cache.
 - `icon.svg` – ikona aplikace.
