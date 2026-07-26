@@ -1,0 +1,632 @@
+/* Smažka Scan v30 — final professional app polish.
+   This file is intentionally loaded last and acts as the visual authority. */
+
+:root {
+  --pro-bg: #04070c;
+  --pro-surface: rgba(10, 14, 21, 0.84);
+  --pro-surface-strong: rgba(6, 9, 14, 0.94);
+  --pro-glass: rgba(10, 15, 23, 0.68);
+  --pro-line: rgba(255, 255, 255, 0.095);
+  --pro-line-strong: rgba(255, 255, 255, 0.16);
+  --pro-text: #f7f9fb;
+  --pro-muted: rgba(226, 232, 240, 0.66);
+  --pro-cyan: #72e8f2;
+  --pro-mint: #94e8b4;
+  --pro-accent: #ccf36a;
+  --pro-danger: #ff718e;
+  --pro-radius-shell: 30px;
+  --pro-radius-stage: 25px;
+  --pro-radius-control: 18px;
+  --pro-shadow-shell: 0 30px 90px rgba(0, 0, 0, 0.48);
+  --pro-shadow-float: 0 18px 44px rgba(0, 0, 0, 0.34);
+  --pro-ease: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+html {
+  background: #020409;
+  color-scheme: dark;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", Inter, system-ui, sans-serif;
+  font-synthesis: none;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  background:
+    radial-gradient(circle at 50% -12%, rgba(75, 188, 213, 0.13), transparent 38%),
+    linear-gradient(165deg, #020409 0%, #070b12 52%, #020409 100%);
+}
+
+body::before {
+  opacity: 0.055;
+  background-image: linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+  background-size: 100% 3px;
+  mix-blend-mode: soft-light;
+}
+
+button,
+input,
+[role='button'] {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button {
+  touch-action: manipulation;
+}
+
+.ambient {
+  opacity: 0.1;
+  filter: blur(110px);
+}
+
+.container {
+  border-color: var(--pro-line);
+  background:
+    linear-gradient(180deg, rgba(12, 17, 25, 0.88), rgba(4, 7, 12, 0.95));
+  box-shadow: var(--pro-shadow-shell), inset 0 1px rgba(255, 255, 255, 0.055);
+}
+
+.topbar {
+  color: var(--pro-muted);
+}
+
+.brand-lockup {
+  color: rgba(247, 249, 251, 0.94);
+  font-weight: 780;
+  letter-spacing: -0.026em;
+}
+
+.brand-mark {
+  border-color: rgba(114, 232, 242, 0.32);
+  background:
+    radial-gradient(circle at 45% 35%, rgba(255, 255, 255, 0.16), transparent 34%),
+    linear-gradient(145deg, rgba(114, 232, 242, 0.18), rgba(148, 232, 180, 0.08));
+  box-shadow: inset 0 1px rgba(255, 255, 255, 0.14), 0 8px 20px rgba(0, 0, 0, 0.2);
+}
+
+.brand-mark::before {
+  border-color: rgba(229, 250, 252, 0.84);
+}
+
+.brand-mark::after,
+.status-dot {
+  background: var(--pro-mint);
+  box-shadow: 0 0 0 4px rgba(148, 232, 180, 0.07), 0 0 12px rgba(148, 232, 180, 0.48);
+}
+
+.local-status {
+  border-color: rgba(148, 232, 180, 0.15);
+  background: rgba(13, 26, 23, 0.48);
+  color: rgba(190, 247, 211, 0.92);
+}
+
+.hero h1,
+h1 {
+  color: var(--pro-text);
+  letter-spacing: -0.067em;
+  text-shadow: 0 12px 34px rgba(0, 0, 0, 0.62);
+}
+
+.subtitle {
+  color: var(--pro-muted);
+}
+
+.eyebrow {
+  border-color: rgba(114, 232, 242, 0.16);
+  background: rgba(114, 232, 242, 0.055);
+  color: rgba(164, 241, 247, 0.9);
+}
+
+.camera-section {
+  border-color: var(--pro-line);
+  background: linear-gradient(160deg, rgba(11, 16, 24, 0.97), rgba(4, 7, 12, 0.99));
+  box-shadow: 0 22px 60px rgba(0, 0, 0, 0.42), inset 0 1px rgba(255, 255, 255, 0.045);
+}
+
+.video-container {
+  border-color: rgba(255, 255, 255, 0.115);
+  background: #03060b;
+  box-shadow:
+    inset 0 0 72px rgba(0, 0, 0, 0.42),
+    0 18px 50px rgba(0, 0, 0, 0.3);
+}
+
+.video-container::before {
+  opacity: 0.15;
+  background:
+    linear-gradient(rgba(114, 232, 242, 0.026) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(114, 232, 242, 0.022) 1px, transparent 1px);
+  background-size: 100% 64px, 64px 100%;
+}
+
+.video-container::after {
+  inset: 13px;
+  opacity: 0.48;
+  border-radius: 17px;
+  background:
+    linear-gradient(var(--pro-cyan), var(--pro-cyan)) left top / 20px 1px no-repeat,
+    linear-gradient(var(--pro-cyan), var(--pro-cyan)) left top / 1px 20px no-repeat,
+    linear-gradient(var(--pro-cyan), var(--pro-cyan)) right top / 20px 1px no-repeat,
+    linear-gradient(var(--pro-cyan), var(--pro-cyan)) right top / 1px 20px no-repeat,
+    linear-gradient(var(--pro-mint), var(--pro-mint)) left bottom / 20px 1px no-repeat,
+    linear-gradient(var(--pro-mint), var(--pro-mint)) left bottom / 1px 20px no-repeat,
+    linear-gradient(var(--pro-mint), var(--pro-mint)) right bottom / 20px 1px no-repeat,
+    linear-gradient(var(--pro-mint), var(--pro-mint)) right bottom / 1px 20px no-repeat;
+  filter: drop-shadow(0 0 8px rgba(114, 232, 242, 0.13));
+}
+
+.stage-vignette {
+  background:
+    linear-gradient(180deg, rgba(2, 4, 8, 0.3), transparent 24%, transparent 65%, rgba(2, 4, 8, 0.56)),
+    radial-gradient(ellipse at 50% 43%, transparent 48%, rgba(2, 4, 8, 0.38) 100%);
+}
+
+.stage-vignette::before {
+  border-color: rgba(255, 255, 255, 0.075);
+  background: rgba(4, 8, 14, 0.34);
+  color: rgba(221, 238, 240, 0.55);
+  letter-spacing: 0.13em;
+}
+
+.stage-vignette::after {
+  width: 3px;
+  opacity: 0.22;
+}
+
+.camera-idle {
+  color: rgba(219, 229, 236, 0.42);
+}
+
+.idle-eye {
+  border-color: rgba(114, 232, 242, 0.28);
+  background:
+    radial-gradient(circle, rgba(148, 232, 180, 0.82) 0 3px, transparent 4px 12px, rgba(114, 232, 242, 0.18) 13px 14px, transparent 15px);
+  box-shadow: inset 0 0 28px rgba(114, 232, 242, 0.045), 0 0 30px rgba(114, 232, 242, 0.06);
+}
+
+.idle-eye::after {
+  background: var(--pro-mint);
+  box-shadow: 0 0 16px rgba(148, 232, 180, 0.5);
+}
+
+/* Face scan — precise, restrained, clinical rather than arcade-like. */
+.face-lock-frame {
+  opacity: 0.56;
+  background:
+    linear-gradient(90deg, var(--pro-cyan), var(--pro-cyan)) left 3px top 3px / 25px 1px no-repeat,
+    linear-gradient(var(--pro-cyan), var(--pro-cyan)) left 3px top 3px / 1px 25px no-repeat,
+    linear-gradient(90deg, var(--pro-cyan), var(--pro-cyan)) right 3px top 3px / 25px 1px no-repeat,
+    linear-gradient(var(--pro-cyan), var(--pro-cyan)) right 3px top 3px / 1px 25px no-repeat,
+    linear-gradient(90deg, var(--pro-mint), var(--pro-mint)) left 3px bottom 3px / 25px 1px no-repeat,
+    linear-gradient(var(--pro-mint), var(--pro-mint)) left 3px bottom 3px / 1px 25px no-repeat,
+    linear-gradient(90deg, var(--pro-mint), var(--pro-mint)) right 3px bottom 3px / 25px 1px no-repeat,
+    linear-gradient(var(--pro-mint), var(--pro-mint)) right 3px bottom 3px / 1px 25px no-repeat;
+  filter: drop-shadow(0 0 9px rgba(114, 232, 242, 0.15));
+}
+
+.face-lock-frame::before {
+  border-color: rgba(114, 232, 242, 0.11);
+  box-shadow: inset 0 0 24px rgba(114, 232, 242, 0.025);
+}
+
+.face-contour,
+.mesh-line {
+  stroke: rgba(155, 236, 242, 0.38);
+  stroke-width: 0.52;
+}
+
+.face-contour {
+  opacity: 0.54;
+  stroke-dasharray: 3 4;
+}
+
+.mesh-line {
+  opacity: 0.2;
+  stroke-dasharray: 1.4 3.8;
+}
+
+.landmark {
+  fill: rgba(196, 247, 235, 0.9);
+  opacity: 0.35;
+  filter: drop-shadow(0 0 2px rgba(114, 232, 242, 0.5));
+}
+
+#scanOverlay.face-detected .face-contour,
+#scanOverlay.is-scanning .face-contour {
+  stroke: rgba(148, 232, 180, 0.82);
+}
+
+#scanOverlay.face-detected .mesh-line,
+#scanOverlay.face-detected .landmark,
+#scanOverlay.is-scanning .mesh-line,
+#scanOverlay.is-scanning .landmark {
+  opacity: 0.68;
+}
+
+#scanOverlay[data-stage='eyes'] .landmark,
+#scanOverlay[data-stage='features'] .landmark,
+#scanOverlay[data-stage='jaw'] .landmark,
+#scanOverlay[data-stage='analysis'] .landmark,
+#scanOverlay[data-stage='complete'] .landmark {
+  fill: var(--pro-mint);
+}
+
+.face-lock-label {
+  border-color: rgba(114, 232, 242, 0.14);
+  background: rgba(4, 9, 15, 0.58);
+  color: rgba(210, 244, 247, 0.74);
+  box-shadow: 0 7px 18px rgba(0, 0, 0, 0.2);
+}
+
+.feature-label {
+  display: none;
+}
+
+#scanLine {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--pro-cyan) 18%, rgba(255,255,255,.95) 50%, var(--pro-mint) 82%, transparent);
+  box-shadow: 0 0 10px rgba(114, 232, 242, 0.58), 0 0 24px rgba(148, 232, 180, 0.12);
+}
+
+#scanStatus {
+  border-color: rgba(255, 255, 255, 0.095);
+  background: rgba(6, 10, 16, 0.68);
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.28), inset 0 1px rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(22px) saturate(115%);
+  -webkit-backdrop-filter: blur(22px) saturate(115%);
+}
+
+.scan-state-dot,
+#scanOverlay.face-detected .scan-state-dot,
+#scanOverlay.is-scanning .scan-state-dot,
+#scanOverlay.is-complete .scan-state-dot {
+  background: var(--pro-mint);
+  box-shadow: 0 0 0 4px rgba(148, 232, 180, 0.06), 0 0 12px rgba(148, 232, 180, 0.48);
+}
+
+.scan-state-progress {
+  color: var(--pro-mint);
+}
+
+.scan-bar-fill {
+  background: linear-gradient(90deg, var(--pro-cyan), rgba(255,255,255,.94) 52%, var(--pro-mint));
+  box-shadow: 0 0 10px rgba(114, 232, 242, 0.36);
+}
+
+/* Controls — one material, one hierarchy, exact geometry. */
+.camera-control-dock {
+  border-color: rgba(255, 255, 255, 0.105) !important;
+  background:
+    linear-gradient(180deg, rgba(18, 24, 34, 0.72), rgba(7, 11, 17, 0.82)) !important;
+  box-shadow: 0 22px 54px rgba(0, 0, 0, 0.42), inset 0 1px rgba(255, 255, 255, 0.06) !important;
+  backdrop-filter: blur(28px) saturate(120%) !important;
+  -webkit-backdrop-filter: blur(28px) saturate(120%) !important;
+}
+
+.camera-control-dock .primary-button {
+  border-color: rgba(3, 6, 10, 0.94) !important;
+  background: linear-gradient(145deg, #e0f98d, #aee7c0) !important;
+  color: #07100b !important;
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.72),
+    0 0 0 7px rgba(174, 231, 192, 0.065),
+    0 14px 34px rgba(73, 167, 126, 0.2),
+    inset 0 1px rgba(255, 255, 255, 0.62) !important;
+}
+
+.camera-control-dock .secondary-button,
+.camera-control-dock .dock-camera-button {
+  border-color: rgba(255, 255, 255, 0.105) !important;
+  background: rgba(255, 255, 255, 0.06) !important;
+  color: rgba(244, 247, 249, 0.88) !important;
+  box-shadow: inset 0 1px rgba(255, 255, 255, 0.045), 0 9px 24px rgba(0, 0, 0, 0.18) !important;
+}
+
+.camera-control-dock button:focus-visible,
+.ios-settings-button:focus-visible,
+.result button:focus-visible {
+  outline: 2px solid rgba(114, 232, 242, 0.72);
+  outline-offset: 3px;
+}
+
+.camera-hint-overlay {
+  border-color: rgba(255, 255, 255, 0.07) !important;
+  background: rgba(7, 11, 17, 0.42) !important;
+  color: rgba(226, 232, 240, 0.66) !important;
+  box-shadow: 0 9px 26px rgba(0, 0, 0, 0.18) !important;
+}
+
+/* Settings sheet. */
+.ios-settings-button {
+  border-color: rgba(255, 255, 255, 0.095);
+  background: rgba(8, 13, 20, 0.54);
+  color: rgba(244, 247, 249, 0.86);
+  box-shadow: inset 0 1px rgba(255, 255, 255, 0.045), 0 10px 26px rgba(0, 0, 0, 0.18);
+}
+
+.ios-settings-sheet {
+  border-color: rgba(255, 255, 255, 0.11);
+  background:
+    radial-gradient(circle at 82% 0%, rgba(114, 232, 242, 0.08), transparent 34%),
+    linear-gradient(180deg, rgba(16, 22, 31, 0.985), rgba(5, 8, 13, 0.995));
+  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.66), inset 0 1px rgba(255, 255, 255, 0.055);
+}
+
+/* Result — photo first, compact readable information second. */
+.result {
+  --result-accent: var(--pro-mint);
+  border-color: color-mix(in srgb, var(--result-accent) 18%, transparent);
+  background:
+    radial-gradient(circle at 84% 0%, color-mix(in srgb, var(--result-accent) 8%, transparent), transparent 34%),
+    linear-gradient(180deg, rgba(13, 18, 26, 0.985), rgba(4, 7, 12, 0.995));
+  box-shadow: 0 28px 80px rgba(0, 0, 0, 0.58), inset 0 1px rgba(255, 255, 255, 0.045);
+}
+
+.result .result-visual {
+  border-color: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 20px 54px rgba(0, 0, 0, 0.38);
+}
+
+.result .result-badge,
+.result .effect-label {
+  border-color: rgba(255, 255, 255, 0.105);
+  background: rgba(6, 10, 16, 0.58);
+  box-shadow: 0 9px 24px rgba(0, 0, 0, 0.22);
+  backdrop-filter: blur(18px) saturate(115%);
+  -webkit-backdrop-filter: blur(18px) saturate(115%);
+}
+
+.result .effect-label strong {
+  color: var(--result-accent);
+}
+
+.result h2 {
+  color: var(--pro-text);
+  text-shadow: 0 7px 24px rgba(0, 0, 0, 0.58);
+}
+
+.result .description {
+  color: rgba(232, 237, 241, 0.76);
+}
+
+.result .share-button {
+  border: 0;
+  background: linear-gradient(145deg, color-mix(in srgb, var(--result-accent) 76%, white), var(--result-accent));
+  color: #07100b;
+  box-shadow: 0 14px 34px color-mix(in srgb, var(--result-accent) 13%, transparent), inset 0 1px rgba(255, 255, 255, 0.48);
+}
+
+.result .new-scan-button,
+.result .result-tool-button,
+.result .destroy-more-button,
+.in-frame-details-toggle {
+  border-color: rgba(255, 255, 255, 0.095);
+  background: rgba(255, 255, 255, 0.055);
+  color: rgba(245, 247, 249, 0.9);
+  box-shadow: inset 0 1px rgba(255, 255, 255, 0.035);
+}
+
+.diagnostic-panel,
+.secondary-diagnosis {
+  border-color: rgba(255, 255, 255, 0.085);
+  background: rgba(7, 12, 18, 0.66);
+  box-shadow: inset 0 1px rgba(255, 255, 255, 0.03);
+}
+
+.confetti-piece:nth-child(n + 13) {
+  display: none;
+}
+
+/* Mobile is the product, not a squeezed desktop page. */
+@media (max-width: 640px) {
+  body {
+    padding: 0;
+  }
+
+  .container {
+    height: var(--visible-viewport-height, 100dvh);
+    min-height: var(--visible-viewport-height, 100dvh);
+    padding: max(8px, env(safe-area-inset-top)) 8px max(8px, env(safe-area-inset-bottom));
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .topbar {
+    top: calc(max(8px, env(safe-area-inset-top)) + 2px);
+    right: 12px;
+    left: 12px;
+    gap: 8px;
+  }
+
+  .brand-lockup,
+  .local-status,
+  .ios-settings-button {
+    min-height: 36px;
+    border-color: rgba(255, 255, 255, 0.09);
+    background: rgba(7, 11, 17, 0.54);
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.2), inset 0 1px rgba(255, 255, 255, 0.04);
+    backdrop-filter: blur(20px) saturate(115%);
+    -webkit-backdrop-filter: blur(20px) saturate(115%);
+  }
+
+  .brand-lockup {
+    padding: 5px 10px 5px 6px;
+    font-size: 0.68rem;
+  }
+
+  .local-status {
+    font-size: 0.6rem;
+  }
+
+  .hero {
+    top: calc(max(8px, env(safe-area-inset-top)) + 59px);
+    right: 22px;
+    left: 22px;
+  }
+
+  .hero h1 {
+    max-width: 82%;
+    font-size: clamp(1.62rem, 7.15vw, 2.08rem);
+    line-height: 0.95;
+  }
+
+  .camera-section,
+  .video-container {
+    border-radius: var(--pro-radius-shell);
+  }
+
+  .video-container {
+    border-color: rgba(255, 255, 255, 0.105);
+  }
+
+  .camera-control-dock {
+    right: 12px !important;
+    bottom: 12px !important;
+    left: 12px !important;
+    height: 82px;
+    min-height: 82px;
+    grid-template-columns: 56px minmax(78px, 1fr) 56px;
+    gap: 10px;
+    padding: 6px 12px !important;
+    border-radius: 28px !important;
+  }
+
+  .camera-control-dock .primary-button {
+    width: 68px;
+    min-width: 68px;
+    height: 68px;
+    min-height: 68px;
+  }
+
+  .camera-control-dock .secondary-button,
+  .camera-control-dock .dock-camera-button {
+    width: 52px;
+    min-width: 52px;
+    height: 52px;
+    min-height: 52px;
+  }
+
+  .camera-hint-overlay {
+    right: 20px;
+    bottom: 104px;
+    left: 20px;
+    padding: 7px 12px;
+    font-size: 0.61rem;
+  }
+
+  #scanStatus {
+    right: 14px;
+    bottom: 20px;
+    left: 14px;
+    min-height: 46px;
+    border-radius: 15px;
+  }
+
+  #scanBar {
+    right: 26px;
+    bottom: 27px;
+    left: 26px;
+  }
+
+  body.result-in-frame .result:not(.hidden) {
+    border-color: rgba(255, 255, 255, 0.105);
+    border-radius: var(--pro-radius-stage);
+    background: #04070c;
+    box-shadow: 0 22px 66px rgba(0, 0, 0, 0.54), inset 0 1px rgba(255, 255, 255, 0.045);
+  }
+
+  body.result-in-frame .in-frame-result-gradient {
+    height: 43%;
+    background: linear-gradient(180deg, transparent 0%, rgba(4, 7, 12, 0.12) 16%, rgba(4, 7, 12, 0.78) 54%, #04070c 100%);
+  }
+
+  body.result-in-frame .result-badge,
+  body.result-in-frame .effect-label,
+  body.result-in-frame .result-close {
+    background: rgba(5, 9, 15, 0.55);
+    border-color: rgba(255, 255, 255, 0.1);
+  }
+
+  body.result-in-frame .result h2 {
+    font-size: clamp(1.55rem, 7vw, 2.05rem);
+    letter-spacing: -0.045em;
+  }
+
+  body.result-in-frame .result .description {
+    color: rgba(235, 239, 242, 0.76);
+  }
+
+  body.result-in-frame .result-actions {
+    gap: 8px;
+  }
+
+  body.result-in-frame .share-button,
+  body.result-in-frame .new-scan-button {
+    min-height: 48px;
+    border-radius: 15px;
+  }
+}
+
+@media (max-width: 640px) and (max-height: 760px) {
+  .hero {
+    top: calc(max(6px, env(safe-area-inset-top)) + 54px);
+  }
+
+  .hero h1 {
+    font-size: clamp(1.4rem, 6.5vw, 1.8rem);
+  }
+
+  .camera-control-dock {
+    bottom: 9px !important;
+    height: 72px;
+    min-height: 72px;
+    border-radius: 24px !important;
+  }
+
+  .camera-control-dock .primary-button {
+    width: 60px;
+    min-width: 60px;
+    height: 60px;
+    min-height: 60px;
+  }
+
+  .camera-control-dock .secondary-button,
+  .camera-control-dock .dock-camera-button {
+    width: 47px;
+    min-width: 47px;
+    height: 47px;
+    min-height: 47px;
+  }
+
+  .camera-hint-overlay {
+    bottom: 89px;
+  }
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .camera-control-dock button,
+  .result button,
+  .ios-settings-button {
+    transition: transform 180ms var(--pro-ease), border-color 180ms ease, background 180ms ease, box-shadow 180ms ease;
+  }
+
+  .camera-control-dock button:hover,
+  .result button:hover,
+  .ios-settings-button:hover {
+    transform: translateY(-1px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
