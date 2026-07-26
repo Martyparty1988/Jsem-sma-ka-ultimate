@@ -1,4 +1,4 @@
-const CACHE_NAME = 'jsem-smazka-v19';
+const CACHE_NAME = 'jsem-smazka-v20';
 const APP_SHELL = [
   './',
   './index.html',
@@ -16,6 +16,7 @@ const APP_SHELL = [
   './hard-responses.js',
   './experience-upgrades.js',
   './diagnostic-upgrades.js',
+  './privacy-hardening.js?v=20',
   './responses.json',
   './responses-hard.json',
   './manifest.json',
