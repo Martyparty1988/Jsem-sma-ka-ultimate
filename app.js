@@ -67,7 +67,9 @@
     facingMode: 'user',
     cameraRequestId: 0,
     shareImagePromise: Promise.resolve(),
-    deferredInstallPrompt: null
+    deferredInstallPrompt: null,
+    effectProfile: null,
+    effectSeed: 0
   };
 
   function capitalizeFirst(text) {
@@ -254,6 +256,8 @@
     state.currentImageData = null;
     state.effectImageData = null;
     state.effectSeverity = 0;
+    state.effectProfile = null;
+    state.effectSeed = 0;
     elements.preview.removeAttribute('src');
     hide(elements.previewContainer);
     elements.cameraStage?.classList.remove('has-preview');
@@ -322,11 +326,92 @@
     return Math.max(12, Math.min(98, severity));
   }
 
-  function getEffectProfile(severity) {
-    if (severity < 30) return { key: 'soft', label: 'Lehký rozklad' };
-    if (severity < 58) return { key: 'wobble', label: 'Rozhozená realita' };
-    if (severity < 82) return { key: 'melt', label: 'Obličej teče' };
-    return { key: 'critical', label: 'Totální rozpad' };
+  function getEffectProfile(severity, result = {}) {
+    const category = String(result.category || '').toLocaleLowerCase('cs-CZ');
+    const description = String(result.description || '').toLocaleLowerCase('cs-CZ');
+    const text = `${category} ${description}`;
+
+    if (/404|glitch|elektr|sociální/.test(text)) {
+      return { key: 'signal-glitch', label: 'Signál se láme', tone: 'glitch' };
+    }
+
+    if (/trip|vesmír|kysel|měsíč|astrál|prorok/.test(text)) {
+      return { key: 'gravity-loss', label: 'Ztráta gravitace', tone: 'cosmic' };
+    }
+
+    if (/oční|oči|červený|duch|lazar|vypnutej/.test(text)) {
+      return { key: 'eye-sink', label: 'Propad očí', tone: 'hollow' };
+    }
+
+    if (/kebab|mazanec|varna|prach|perník|lajna|pik/.test(text)) {
+      return { key: 'kebab-lens', label: 'Kebab lens', tone: 'lens' };
+    }
+
+    if (/třes|rozklep|rychl|speed|nespací|turbo/.test(text)) {
+      return { key: 'signal-glitch', label: 'Třes reality', tone: 'glitch' };
+    }
+
+    if (/rozpad|úpadek|omyl|pekla|rozbitej|ztracenej/.test(text) || severity >= 84) {
+      return { key: 'liquid-gravity', label: 'Tekutá gravitace', tone: 'melt' };
+    }
+
+    if (severity < 30) return { key: 'soft-drift', label: 'Lehký rozklad', tone: 'soft' };
+    if (severity < 58) return { key: 'facial-drift', label: 'Rozhozená realita', tone: 'wobble' };
+    if (severity < 82) return { key: 'soft-collapse', label: 'Obličej teče', tone: 'melt' };
+    return { key: 'deep-collapse', label: 'Totální rozpad', tone: 'critical' };
+  }
+
+  function reducedMotion() {
+    return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  }
+
+  function ensureRevealOverlay() {
+    let overlay = elements.cameraStage?.querySelector('.result-reveal-overlay');
+    if (overlay) return overlay;
+
+    overlay = document.createElement('div');
+    overlay.className = 'result-reveal-overlay';
+    overlay.setAttribute('aria-hidden', 'true');
+    overlay.innerHTML = `
+      <span class="result-reveal-kicker">damage lock</span>
+      <strong class="result-reveal-title">Obličej se rozpadá</strong>
+      <span class="result-reveal-meter"></span>
+    `;
+    elements.cameraStage?.appendChild(overlay);
+    return overlay;
+  }
+
+  function playResultReveal(effectImageData, severity, effectProfile) {
+    if (!elements.cameraStage || !effectImageData || reducedMotion()) return Promise.resolve();
+
+    return new Promise((resolve) => {
+      const overlay = ensureRevealOverlay();
+      const title = overlay.querySelector('.result-reveal-title');
+      const meter = overlay.querySelector('.result-reveal-meter');
+
+      if (title) title.textContent = effectProfile?.label || 'Obličej se rozpadá';
+      if (meter) meter.textContent = `${severity}%`;
+      elements.cameraStage.style.setProperty('--reveal-strength', String(severity / 100));
+      elements.preview.src = effectImageData;
+      show(elements.previewContainer);
+      elements.cameraStage.classList.add('is-revealing-result', `reveal-${effectProfile?.tone || 'melt'}`);
+      setHint('Výsledek se skládá přímo v rámečku…');
+
+      window.setTimeout(() => {
+        elements.cameraStage.classList.remove(
+          'is-revealing-result',
+          'reveal-soft',
+          'reveal-wobble',
+          'reveal-melt',
+          'reveal-critical',
+          'reveal-glitch',
+          'reveal-cosmic',
+          'reveal-hollow',
+          'reveal-lens'
+        );
+        resolve();
+      }, 980);
+    });
   }
 
   function iconForCategory(category = '') {
@@ -348,9 +433,10 @@
     const description = syncWeekdayText(result.description || 'AI se tváří tajemně a odmítá vypovídat.');
     const emoji = iconForCategory(category);
     const todayLabel = capitalizeFirst(getTodayForms().nominative);
-    const effectProfile = getEffectProfile(severity);
+    const effectProfile = getEffectProfile(severity, result);
 
-    state.lastAnalysisResult = { title: category, description, severity };
+    state.lastAnalysisResult = { title: category, description, severity, effectProfile };
+    state.effectProfile = effectProfile;
     elements.result.replaceChildren();
 
     const closeButton = document.createElement('button');
@@ -440,6 +526,7 @@
     window.setTimeout(async () => {
       const result = getRandomResult();
       const severity = getResultSeverity(result);
+      const effectProfile = getEffectProfile(severity, result);
       let effectImageData = state.currentImageData;
 
       try {
@@ -450,8 +537,10 @@
 
       state.effectSeverity = severity;
       state.effectImageData = effectImageData;
-      displayResult(result, severity, effectImageData);
+      state.effectProfile = effectProfile;
       hide(elements.loading);
+      await playResultReveal(effectImageData, severity, effectProfile);
+      displayResult(result, severity, effectImageData);
       setBusy(false);
       setHint('Hotovo. Můžeš dát další sken nebo rovnou sdílet výsledek.');
     }, delay);
