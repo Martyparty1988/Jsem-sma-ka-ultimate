@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'v29';
+const CACHE_VERSION = 'v30';
 const CACHE_NAME = `jsem-smazka-${CACHE_VERSION}`;
 
 const CORE_ASSETS = [
@@ -19,7 +19,8 @@ const STYLE_ASSETS = [
   './ios-one-screen.css?v=27',
   './in-frame-result.css?v=24',
   './face-landmarks.css?v=29',
-  './visual-system.css?v=29'
+  './visual-system.css?v=29',
+  './pro-app-polish.css?v=30'
 ];
 
 const SCRIPT_ASSETS = [
