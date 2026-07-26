@@ -1,4 +1,4 @@
-const CACHE_NAME = 'jsem-smazka-v24';
+const CACHE_NAME = 'jsem-smazka-v25';
 const APP_SHELL = [
   './',
   './index.html',
@@ -13,8 +13,9 @@ const APP_SHELL = [
   './diagnostic-upgrades.css',
   './ios-one-screen.css?v=21',
   './in-frame-result.css?v=24',
+  './face-landmarks.css?v=25',
   './app.js',
-  './face-scan.js?v=18',
+  './face-scan.js?v=25',
   './face-warp.js?v=22',
   './hard-responses.js',
   './experience-upgrades.js',
