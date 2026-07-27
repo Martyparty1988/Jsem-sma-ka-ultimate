@@ -1,9 +1,11 @@
-/* Smažka v46 — clean 1080x1920 VOID verdict cover for sharing. */
+/* Smažka v52 — clean 1080x1920 VOID verdict cover with final-effect synchronization. */
 (() => {
   'use strict';
 
   const WIDTH = 1080;
   const HEIGHT = 1920;
+  const app = window.SmazkaApp;
+  const state = app?.state;
   const result = document.getElementById('result');
   if (!result) return;
 
@@ -79,12 +81,13 @@
     const visual = result.querySelector('.result-visual');
     const severityText = visual?.querySelector('.effect-label strong')?.textContent || '0%';
     const severity = Math.max(0, Math.min(100, Number.parseInt(severityText, 10) || 0));
+    const visibleImage = visual?.querySelector('img');
 
     return {
       title: result.querySelector('h2')?.textContent?.trim() || 'Rozsudek odmítl vypovídat',
       description: result.querySelector('.description')?.textContent?.trim() || 'Lokální pseudo AI zachytila stav, který se věda rozhodla dál nekomentovat.',
       severity,
-      imageSrc: visual?.querySelector('img')?.currentSrc || visual?.querySelector('img')?.src || '',
+      imageSrc: visibleImage?.currentSrc || visibleImage?.src || state?.effectImageData || state?.currentImageData || '',
       accent: severity >= 80 ? '#f7768e' : '#70e1cf'
     };
   }
@@ -247,6 +250,7 @@
     if (label) label.textContent = 'Tisknu obálku…';
 
     try {
+      await Promise.resolve(state?.shareImagePromise).catch(() => undefined);
       const verdict = collectVerdict();
       const blob = await createCoverBlob(verdict);
       const file = new File([blob], 'jsem-smazka-void-verdict.jpg', { type: 'image/jpeg' });
