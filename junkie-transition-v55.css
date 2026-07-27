@@ -1,4 +1,4 @@
-/* Smažka v55 — professional original-to-deformation morph. */
+/* Smažka v56 — professional original-to-deformation morph. */
 
 /* Keep the pre-result bridge on the captured original. No cheap scale/saturation pop. */
 .video-container.is-revealing-result .preview-container img,
@@ -95,8 +95,8 @@
   z-index: 8;
   left: var(--junkie-face-x);
   top: var(--junkie-face-y);
-  width: calc(var(--junkie-face-rx) * 2.18);
-  height: calc(var(--junkie-face-ry) * 2.1);
+  width: calc(var(--junkie-face-rx) + var(--junkie-face-rx));
+  height: calc(var(--junkie-face-ry) + var(--junkie-face-ry));
   border: 1px solid rgba(88, 214, 194, 0.18);
   border-radius: 46% 46% 42% 42% / 38% 38% 54% 54%;
   opacity: 0;
@@ -160,7 +160,7 @@
 }
 
 .junkie-morph-final {
-  z-index: 4;
+  z-index: 2;
   opacity: 0;
   filter: blur(1.2px) brightness(0.965) contrast(1.025);
   transform: scale(1.002);
