@@ -1,10 +1,6 @@
-/*
- * Junky Verdict Engine v40
- * Satirical, local-only visual damage scoring. This is not medical or drug-use detection.
- */
+/* Junky Verdict Engine v40. Local satirical visual scoring; not medical or drug-use detection. */
 (() => {
   'use strict';
-
   const app = window.SmazkaApp;
   if (!app?.state || !app?.elements || typeof app.runAnalysis !== 'function') return;
 
@@ -12,22 +8,17 @@
   const originalRunAnalysis = app.runAnalysis.bind(app);
   const PACK_URL = 'responses-pernik.json?v=40';
   const RECENT_LIMIT = 5;
-  const LOCKED_LIBRARY_LENGTH = 101;
-  const severityBounds = [16, 94];
-  let engineBusy = false;
-  let packPromise = null;
-  let resultObserver = null;
-  let microcopyQueued = false;
-
+  const LIBRARY_SIZE = 101;
   const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
-  const tierForSeverity = (severity) => (
-    severity < 35 ? 'low' : severity < 58 ? 'worn' : severity < 78 ? 'junky' : 'critical'
-  );
+  const tierFor = (score) => score < 35 ? 'low' : score < 58 ? 'worn' : score < 78 ? 'junky' : 'critical';
+  let engineBusy = false;
+  let packPromise;
+  let microcopyQueued = false;
 
   function hashText(text) {
     let hash = 2166136261;
-    for (let index = 0; index < text.length; index += 1) {
-      hash ^= text.charCodeAt(index);
+    for (let i = 0; i < text.length; i += 1) {
+      hash ^= text.charCodeAt(i);
       hash = Math.imul(hash, 16777619);
     }
     return hash >>> 0;
@@ -38,11 +29,6 @@
     const value = new Uint32Array(1);
     window.crypto.getRandomValues(value);
     return value[0] / 0xffffffff;
-  }
-
-  function distance(a, b) {
-    if (!a || !b) return 0;
-    return Math.hypot(a.x - b.x, a.y - b.y);
   }
 
   function loadImage(source) {
@@ -61,7 +47,6 @@
     let sy = 0;
     let sw = image.width;
     let sh = image.height;
-
     if (imageRatio > targetRatio) {
       sw = image.height * targetRatio;
       sx = (image.width - sw) / 2;
@@ -69,54 +54,44 @@
       sh = image.width / targetRatio;
       sy = (image.height - sh) / 2;
     }
-
     context.drawImage(image, sx, sy, sw, sh, 0, 0, width, height);
   }
 
-  function readLandmarkSignals() {
+  function pointDistance(a, b) {
+    return a && b ? Math.hypot(a.x - b.x, a.y - b.y) : 0;
+  }
+
+  function landmarkSignals() {
     const points = new Map();
     document.querySelectorAll('.face-landmark-mesh circle.landmark').forEach((circle) => {
       if (circle.hidden) return;
       const index = Number(circle.dataset.index);
       const x = Number(circle.getAttribute('cx'));
       const y = Number(circle.getAttribute('cy'));
-      if (Number.isFinite(index) && Number.isFinite(x) && Number.isFinite(y)) {
-        points.set(index, { x, y });
-      }
+      if (Number.isFinite(index) && Number.isFinite(x) && Number.isFinite(y)) points.set(index, { x, y });
     });
-
     if (points.size < 8) return null;
 
-    const rightEyeWidth = distance(points.get(33), points.get(133));
-    const leftEyeWidth = distance(points.get(263), points.get(362));
-    const rightEyeOpen = rightEyeWidth ? distance(points.get(159), points.get(145)) / rightEyeWidth : 0.2;
-    const leftEyeOpen = leftEyeWidth ? distance(points.get(386), points.get(374)) / leftEyeWidth : 0.2;
-    const averageEyeOpen = (rightEyeOpen + leftEyeOpen) / 2;
-    const eyeAsymmetry = Math.abs(rightEyeOpen - leftEyeOpen) / Math.max(0.04, averageEyeOpen);
-
-    const rightEyeCenter = {
-      x: ((points.get(33)?.x || 0) + (points.get(133)?.x || 0)) / 2,
-      y: ((points.get(33)?.y || 0) + (points.get(133)?.y || 0)) / 2
-    };
-    const leftEyeCenter = {
-      x: ((points.get(263)?.x || 0) + (points.get(362)?.x || 0)) / 2,
-      y: ((points.get(263)?.y || 0) + (points.get(362)?.y || 0)) / 2
-    };
-    const eyeDistance = distance(rightEyeCenter, leftEyeCenter);
-    const tilt = eyeDistance ? Math.abs(rightEyeCenter.y - leftEyeCenter.y) / eyeDistance : 0;
-
-    const mouthWidth = distance(points.get(61), points.get(291));
-    const mouthOpen = mouthWidth ? distance(points.get(13), points.get(14)) / mouthWidth : 0;
+    const rightWidth = pointDistance(points.get(33), points.get(133));
+    const leftWidth = pointDistance(points.get(263), points.get(362));
+    const rightOpen = rightWidth ? pointDistance(points.get(159), points.get(145)) / rightWidth : 0.2;
+    const leftOpen = leftWidth ? pointDistance(points.get(386), points.get(374)) / leftWidth : 0.2;
+    const eyeOpen = (rightOpen + leftOpen) / 2;
+    const eyeAsymmetry = Math.abs(rightOpen - leftOpen) / Math.max(0.04, eyeOpen);
+    const rightCenter = { x: ((points.get(33)?.x || 0) + (points.get(133)?.x || 0)) / 2, y: ((points.get(33)?.y || 0) + (points.get(133)?.y || 0)) / 2 };
+    const leftCenter = { x: ((points.get(263)?.x || 0) + (points.get(362)?.x || 0)) / 2, y: ((points.get(263)?.y || 0) + (points.get(362)?.y || 0)) / 2 };
+    const eyeDistance = pointDistance(rightCenter, leftCenter);
+    const mouthWidth = pointDistance(points.get(61), points.get(291));
 
     return {
-      sleepy: clamp((0.22 - averageEyeOpen) / 0.14, 0, 1),
-      eyeAsymmetry: clamp(eyeAsymmetry / 0.8, 0, 1),
-      tilt: clamp(tilt / 0.16, 0, 1),
-      mouthOpen: clamp(mouthOpen / 0.22, 0, 1)
+      sleepy: clamp((0.22 - eyeOpen) / 0.14, 0, 1),
+      asymmetry: clamp(eyeAsymmetry / 0.8, 0, 1),
+      tilt: clamp((eyeDistance ? Math.abs(rightCenter.y - leftCenter.y) / eyeDistance : 0) / 0.16, 0, 1),
+      mouth: clamp((mouthWidth ? pointDistance(points.get(13), points.get(14)) / mouthWidth : 0) / 0.22, 0, 1)
     };
   }
 
-  async function computeVisualSeverity(imageData) {
+  async function computeSeverity(imageData) {
     const image = await loadImage(imageData);
     const width = 96;
     const height = 112;
@@ -128,145 +103,95 @@
     const pixels = context.getImageData(0, 0, width, height).data;
     const luma = new Float32Array(width * height);
     let sum = 0;
-    let sumSquares = 0;
+    let squares = 0;
     let saturation = 0;
-    let darkness = 0;
+    let dark = 0;
     let highlights = 0;
-    let redCast = 0;
-    let leftSum = 0;
-    let rightSum = 0;
-    let leftCount = 0;
-    let rightCount = 0;
+    let red = 0;
+    let left = 0;
+    let right = 0;
 
     for (let y = 0; y < height; y += 1) {
       for (let x = 0; x < width; x += 1) {
-        const pixelIndex = (y * width + x) * 4;
-        const r = pixels[pixelIndex];
-        const g = pixels[pixelIndex + 1];
-        const b = pixels[pixelIndex + 2];
+        const p = (y * width + x) * 4;
+        const r = pixels[p];
+        const g = pixels[p + 1];
+        const b = pixels[p + 2];
         const value = r * 0.2126 + g * 0.7152 + b * 0.0722;
-        const targetIndex = y * width + x;
-        luma[targetIndex] = value;
+        luma[y * width + x] = value;
         sum += value;
-        sumSquares += value * value;
+        squares += value * value;
         saturation += Math.max(r, g, b) - Math.min(r, g, b);
-        if (value < 58) darkness += 1;
+        if (value < 58) dark += 1;
         if (value > 218) highlights += 1;
-        redCast += Math.max(0, r - (g + b) / 2);
-        if (x < width / 2) {
-          leftSum += value;
-          leftCount += 1;
-        } else {
-          rightSum += value;
-          rightCount += 1;
-        }
+        red += Math.max(0, r - (g + b) / 2);
+        if (x < width / 2) left += value;
+        else right += value;
       }
     }
 
-    let edgeEnergy = 0;
+    let edge = 0;
     let edgeCount = 0;
     for (let y = 1; y < height; y += 1) {
       for (let x = 1; x < width; x += 1) {
         const current = luma[y * width + x];
-        edgeEnergy += Math.abs(current - luma[y * width + x - 1]);
-        edgeEnergy += Math.abs(current - luma[(y - 1) * width + x]);
+        edge += Math.abs(current - luma[y * width + x - 1]);
+        edge += Math.abs(current - luma[(y - 1) * width + x]);
         edgeCount += 2;
       }
     }
 
     const count = width * height;
     const mean = sum / count;
-    const deviation = Math.sqrt(Math.max(0, sumSquares / count - mean * mean));
-    const darkRatio = darkness / count;
-    const highlightRatio = highlights / count;
-    const saturationMean = saturation / count;
-    const redMean = redCast / count;
-    const asymmetry = Math.abs(leftSum / leftCount - rightSum / rightCount);
-    const edges = edgeEnergy / edgeCount;
-    const landmarks = readLandmarkSignals();
-    const jitter = ((hashText(String(imageData).slice(-320)) % 1001) / 1000 - 0.5) * 10;
-
+    const deviation = Math.sqrt(Math.max(0, squares / count - mean * mean));
+    const signals = landmarkSignals();
     let score = 23;
     score += clamp((deviation - 28) / 52, 0, 1) * 15;
-    score += clamp(darkRatio / 0.42, 0, 1) * 15;
-    score += clamp(highlightRatio / 0.32, 0, 1) * 4;
-    score += clamp((saturationMean - 24) / 78, 0, 1) * 6;
-    score += clamp((redMean - 3) / 24, 0, 1) * 8;
-    score += clamp(asymmetry / 34, 0, 1) * 10;
-    score += clamp((17 - edges) / 17, 0, 1) * 7;
-
-    if (landmarks) {
-      score += landmarks.sleepy * 11;
-      score += landmarks.eyeAsymmetry * 8;
-      score += landmarks.tilt * 6;
-      score += landmarks.mouthOpen * 4;
-    }
-
-    score += jitter;
-    return clamp(Math.round(score), severityBounds[0], severityBounds[1]);
+    score += clamp((dark / count) / 0.42, 0, 1) * 15;
+    score += clamp((highlights / count) / 0.32, 0, 1) * 4;
+    score += clamp((saturation / count - 24) / 78, 0, 1) * 6;
+    score += clamp((red / count - 3) / 24, 0, 1) * 8;
+    score += clamp(Math.abs(left - right) / (count / 2) / 34, 0, 1) * 10;
+    score += clamp((17 - edge / edgeCount) / 17, 0, 1) * 7;
+    if (signals) score += signals.sleepy * 11 + signals.asymmetry * 8 + signals.tilt * 6 + signals.mouth * 4;
+    score += ((hashText(String(imageData).slice(-320)) % 1001) / 1000 - 0.5) * 10;
+    return clamp(Math.round(score), 16, 94);
   }
 
-  function inferMetadata(item, index, total) {
-    const category = String(item?.category || '');
-    const description = String(item?.description || '');
-    const text = `${category} ${description}`.toLocaleLowerCase('cs-CZ');
-    const explicitMin = Number(item?.minSeverity);
-    const explicitMax = Number(item?.maxSeverity);
-    let minSeverity = Number.isFinite(explicitMin) ? explicitMin : 28;
-    let maxSeverity = Number.isFinite(explicitMax) ? explicitMax : 82;
+  function metadata(item, index, total) {
+    const text = `${item?.category || ''} ${item?.description || ''}`.toLocaleLowerCase('cs-CZ');
+    const hasRange = Number.isFinite(Number(item?.minSeverity)) && Number.isFinite(Number(item?.maxSeverity));
+    let min = hasRange ? Number(item.minSeverity) : 28;
+    let max = hasRange ? Number(item.maxSeverity) : 82;
     let tier = item?.tier || 'worn';
     const tags = Array.isArray(item?.tags) ? [...item.tags] : [];
-
-    if (!Number.isFinite(explicitMin) || !Number.isFinite(explicitMax)) {
+    if (!hasRange) {
       const position = total > 1 ? index / (total - 1) : 0.5;
       if (/startovní|podezřele funkční|čistá lajna|mikrotrip|svěží/.test(text)) {
-        minSeverity = 16;
-        maxSeverity = 38;
-        tier = 'low';
+        min = 16; max = 38; tier = 'low';
       } else if (/kontejner|likvidaci|odpad|zombie|exekutor|expiraci|finální boss|člověk nenalezen|biologick|vypnutej|pekla|úpadek|rozpad|kyselina|dávkovací omyl/.test(text)) {
-        minSeverity = 72;
-        maxSeverity = 98;
-        tier = 'critical';
+        min = 72; max = 98; tier = 'critical';
       } else if (/piko|pika|perník|varna|čelist|paranoi|trosk|třídenní|nespací/.test(text)) {
-        minSeverity = Math.max(42, Math.round(42 + position * 18));
-        maxSeverity = 96;
-        tier = position > 0.68 ? 'critical' : 'junky';
+        min = Math.max(42, Math.round(42 + position * 18)); max = 96; tier = position > 0.68 ? 'critical' : 'junky';
         if (!tags.includes('pernik')) tags.push('pernik');
       } else {
-        minSeverity = Math.round(20 + position * 34);
-        maxSeverity = Math.round(58 + position * 38);
-        tier = position < 0.3 ? 'low' : position > 0.72 ? 'junky' : 'worn';
+        min = Math.round(20 + position * 34); max = Math.round(58 + position * 38); tier = position < 0.3 ? 'low' : position > 0.72 ? 'junky' : 'worn';
       }
     }
-
-    return {
-      ...item,
-      tier,
-      minSeverity: clamp(Math.round(minSeverity), 16, 98),
-      maxSeverity: clamp(Math.round(maxSeverity), 16, 98),
-      tags,
-      weight: clamp(Number(item?.weight) || 1, 0.2, 5)
-    };
-  }
-
-  function recentCategories() {
-    if (!Array.isArray(state.junkyRecentCategories)) state.junkyRecentCategories = [];
-    return state.junkyRecentCategories;
+    return { ...item, tier, minSeverity: clamp(Math.round(min), 16, 98), maxSeverity: clamp(Math.round(max), 16, 98), tags, weight: clamp(Number(item?.weight) || 1, 0.2, 5) };
   }
 
   function weightedPick(items, severity) {
-    const recent = new Set(recentCategories());
+    const recent = new Set(Array.isArray(state.junkyRecentCategories) ? state.junkyRecentCategories : []);
     const weighted = items.map((item) => {
       const center = (item.minSeverity + item.maxSeverity) / 2;
       const range = Math.max(8, item.maxSeverity - item.minSeverity);
       const fit = 1.4 - Math.min(1, Math.abs(severity - center) / range);
-      const pernikBoost = item.tags.includes('pernik') ? (severity >= 58 ? 2.35 : 1.55) : 1;
-      const hardBoost = item.tags.includes('hard') ? 1.25 : 1;
-      const repeatPenalty = recent.has(item.category) ? 0.06 : 1;
-      return { item, weight: Math.max(0.01, item.weight * fit * pernikBoost * hardBoost * repeatPenalty) };
+      const pernik = item.tags.includes('pernik') ? (severity >= 58 ? 2.35 : 1.55) : 1;
+      const repeat = recent.has(item.category) ? 0.06 : 1;
+      return { item, weight: Math.max(0.01, item.weight * fit * pernik * repeat) };
     });
-    const total = weighted.reduce((sum, entry) => sum + entry.weight, 0);
-    let cursor = randomUnit() * total;
+    let cursor = randomUnit() * weighted.reduce((sum, entry) => sum + entry.weight, 0);
     for (const entry of weighted) {
       cursor -= entry.weight;
       if (cursor <= 0) return entry.item;
@@ -275,34 +200,24 @@
   }
 
   function selectVerdict(severity) {
-    const library = Array.from(state.responseLibrary || []);
-    const normalized = library
-      .filter((item) => item?.category && item?.description)
-      .map((item, index) => inferMetadata(item, index, library.length));
+    const source = Array.from(state.responseLibrary || []);
+    const normalized = source.filter((item) => item?.category && item?.description).map((item, index) => metadata(item, index, source.length));
     const exact = normalized.filter((item) => severity >= item.minSeverity && severity <= item.maxSeverity);
     const candidates = exact.length ? exact : normalized
       .map((item) => ({ item, distance: Math.min(Math.abs(severity - item.minSeverity), Math.abs(severity - item.maxSeverity)) }))
       .sort((a, b) => a.distance - b.distance)
       .slice(0, Math.max(6, Math.ceil(normalized.length * 0.18)))
-      .map((entry) => entry.item);
+      .map(({ item }) => item);
     const selected = weightedPick(candidates, severity);
-    const recent = recentCategories();
-    recent.unshift(selected.category);
-    state.junkyRecentCategories = [...new Set(recent)].slice(0, RECENT_LIMIT);
+    const recent = Array.isArray(state.junkyRecentCategories) ? state.junkyRecentCategories : [];
+    state.junkyRecentCategories = [...new Set([selected.category, ...recent])].slice(0, RECENT_LIMIT);
     return selected;
   }
 
-  function makeSeverityLockedLibrary(selected, severity) {
-    const targetIndex = clamp(
-      Math.round(((severity - 16) / 78) * (LOCKED_LIBRARY_LENGTH - 1)),
-      0,
-      LOCKED_LIBRARY_LENGTH - 1
-    );
-    const library = new Array(LOCKED_LIBRARY_LENGTH).fill(selected);
-    Object.defineProperty(library, 'findIndex', {
-      configurable: true,
-      value: () => targetIndex
-    });
+  function lockedLibrary(selected, severity) {
+    const targetIndex = clamp(Math.round(((severity - 16) / 78) * (LIBRARY_SIZE - 1)), 0, LIBRARY_SIZE - 1);
+    const library = new Array(LIBRARY_SIZE).fill(selected);
+    Object.defineProperty(library, 'findIndex', { configurable: true, value: () => targetIndex });
     return library;
   }
 
@@ -312,15 +227,14 @@
     let stable = 0;
     while (performance.now() - started < timeout) {
       const length = Array.isArray(state.responseLibrary) ? state.responseLibrary.length : 0;
-      if (length >= 4 && length === previous) stable += 1;
-      else stable = 0;
+      stable = length >= 4 && length === previous ? stable + 1 : 0;
       if (stable >= 3) return;
       previous = length;
       await new Promise((resolve) => window.setTimeout(resolve, 100));
     }
   }
 
-  function loadPernikPack() {
+  function loadPack() {
     if (packPromise) return packPromise;
     packPromise = (async () => {
       try {
@@ -329,12 +243,11 @@
         const pack = await response.json();
         if (!Array.isArray(pack)) throw new Error('Perníkovej pack nemá správný formát');
         await waitForStableLibrary();
-        const library = state.responseLibrary;
-        const known = new Set(library.map((item) => `${item.category}|${item.description}`));
+        const known = new Set(state.responseLibrary.map((item) => `${item.category}|${item.description}`));
         pack.forEach((item) => {
           const key = `${item?.category}|${item?.description}`;
           if (item?.category && item?.description && !known.has(key)) {
-            library.push(item);
+            state.responseLibrary.push(item);
             known.add(key);
           }
         });
@@ -345,17 +258,18 @@
     return packPromise;
   }
 
-  function restoreLibraryWhenReady(originalLibrary, lockedLibrary) {
-    let restored = false;
-    const observer = new MutationObserver(() => {
+  function restoreLibrary(original, locked) {
+    let done = false;
+    let observer;
+    const restore = () => {
+      if (done) return;
+      done = true;
+      if (state.responseLibrary === locked) state.responseLibrary = original;
+      observer?.disconnect();
+    };
+    observer = new MutationObserver(() => {
       if (!elements.result.classList.contains('hidden') && elements.result.querySelector('.result-content')) restore();
     });
-    const restore = () => {
-      if (restored) return;
-      restored = true;
-      if (state.responseLibrary === lockedLibrary) state.responseLibrary = originalLibrary;
-      observer.disconnect();
-    };
     observer.observe(elements.result, { childList: true, subtree: true, attributes: true, attributeFilter: ['class'] });
     window.setTimeout(restore, 4200);
   }
@@ -366,26 +280,24 @@
       app.showError('Nejdřív dodej ksicht. Bez důkazního materiálu perníkovej tribunál jen čumí do zdi.');
       return;
     }
-
     engineBusy = true;
     app.setBusy(true);
     elements.loading?.classList.remove('hidden');
     app.setHint('Pitevní algoritmus počítá tiky a zbytky lidskosti…');
-
     try {
-      await loadPernikPack();
+      await loadPack();
       await waitForStableLibrary(900);
-      const severity = await computeVisualSeverity(state.currentImageData).catch((error) => {
-        console.warn('Vizuální damage skóre selhalo, používám deterministický fallback:', error);
+      const severity = await computeSeverity(state.currentImageData).catch((error) => {
+        console.warn('Vizuální damage skóre selhalo, používám fallback:', error);
         return 36 + (hashText(String(state.currentImageData).slice(-220)) % 48);
       });
       const selected = selectVerdict(severity);
-      const originalLibrary = state.responseLibrary;
-      const lockedLibrary = makeSeverityLockedLibrary(selected, severity);
+      const original = state.responseLibrary;
+      const locked = lockedLibrary(selected, severity);
       state.visualDamageSeverity = severity;
-      state.visualDamageTier = tierForSeverity(severity);
-      state.responseLibrary = lockedLibrary;
-      restoreLibraryWhenReady(originalLibrary, lockedLibrary);
+      state.visualDamageTier = tierFor(severity);
+      state.responseLibrary = locked;
+      restoreLibrary(original, locked);
       app.setBusy(false);
       originalRunAnalysis(options);
     } finally {
@@ -403,15 +315,11 @@
       reader.readAsDataURL(file);
     });
     const image = await loadImage(source);
-    const maxDimension = 1600;
-    const scale = Math.min(1, maxDimension / Math.max(image.width, image.height));
-    const width = Math.max(1, Math.round(image.width * scale));
-    const height = Math.max(1, Math.round(image.height * scale));
+    const scale = Math.min(1, 1600 / Math.max(image.width, image.height));
     const canvas = document.createElement('canvas');
-    canvas.width = width;
-    canvas.height = height;
-    const context = canvas.getContext('2d');
-    context.drawImage(image, 0, 0, width, height);
+    canvas.width = Math.max(1, Math.round(image.width * scale));
+    canvas.height = Math.max(1, Math.round(image.height * scale));
+    canvas.getContext('2d').drawImage(image, 0, 0, canvas.width, canvas.height);
     return canvas.toDataURL('image/jpeg', 0.9);
   }
 
@@ -422,10 +330,8 @@
     event.stopImmediatePropagation();
     elements.uploadButton.disabled = true;
     elements.analyzeButton.disabled = true;
-
     try {
-      const imageData = await optimizeUpload(file);
-      app.setCurrentImageData(imageData);
+      app.setCurrentImageData(await optimizeUpload(file));
       app.showCapturedFrame();
       elements.captureButton.classList.add('hidden');
       elements.retakeButton.classList.remove('hidden');
@@ -445,21 +351,24 @@
     }
   }
 
-  function replaceExactText(element, replacements) {
+  function setText(element, value) {
+    if (element && element.textContent !== value) element.textContent = value;
+  }
+
+  function replaceExact(element, replacements) {
     if (!element) return;
-    const replacement = replacements[element.textContent.trim()];
-    if (replacement && replacement !== element.textContent) element.textContent = replacement;
+    const value = replacements[element.textContent.trim()];
+    if (value) setText(element, value);
   }
 
   function polishMicrocopy() {
     microcopyQueued = false;
-    replaceExactText(elements.scanHint, {
+    replaceExact(elements.scanHint, {
       'VOID engine pitvá obraz a hledá zbytky člověka…': 'Pitevní algoritmus počítá tiky a zbytky lidskosti…',
       'Podsvětí tiskne rozsudek přímo do ksichtu…': 'Perníkovej tribunál tiskne rozsudek přímo do ksichtu…',
       'Rozsudek je venku. Sdílej ostudu, nebo přiveď další subjekt.': 'Rozsudek venku. Sdílej důkazní materiál, nebo přiveď další trosku.'
     });
-
-    replaceExactText(document.querySelector('.scan-state-copy'), {
+    replaceExact(document.querySelector('.scan-state-copy'), {
       'Zamykám subjekt': 'Zamykám obličejovej důkaz',
       'Oči nalezeny • soudnost ne': 'Zorničky nalezeny • člověk ne',
       'Nos a ústa pod dohledem': 'Čelist a nos na výslechu',
@@ -468,32 +377,19 @@
       'Rozpad potvrzen': 'Biologická reklamace potvrzena'
     });
 
-    const revealTitle = document.querySelector('.result-reveal-title');
-    if (revealTitle && state.visualDamageTier) {
-      revealTitle.textContent = {
-        low: 'Podezřele funkční',
-        worn: 'Čelist na přesčase',
-        junky: 'Perníkovej rozpad potvrzen',
-        critical: 'Člověk nenalezen'
-      }[state.visualDamageTier];
-    }
+    const reveal = document.querySelector('.result-reveal-title');
+    if (reveal && state.visualDamageTier) setText(reveal, {
+      low: 'Podezřele funkční', worn: 'Čelist na přesčase', junky: 'Perníkovej rozpad potvrzen', critical: 'Člověk nenalezen'
+    }[state.visualDamageTier]);
 
-    const detailsLabel = elements.result.querySelector('.in-frame-details-label');
-    if (detailsLabel) {
-      detailsLabel.textContent = elements.result.classList.contains('details-open')
-        ? 'Skrýt pitevní zprávu'
-        : 'Otevřít pitevní zprávu';
+    const details = elements.result.querySelector('.in-frame-details-label');
+    if (details) setText(details, elements.result.classList.contains('details-open') ? 'Skrýt pitevní zprávu' : 'Otevřít pitevní zprávu');
+    const heading = elements.result.querySelector('.diagnostic-heading');
+    if (heading) {
+      setText(heading.querySelector('strong'), 'PITEVNÍ AI ROZBOR');
+      setText(heading.querySelector('small'), '100% nevědecký · 0% diagnóza');
     }
-
-    const diagnosticHeading = elements.result.querySelector('.diagnostic-heading');
-    if (diagnosticHeading) {
-      const strong = diagnosticHeading.querySelector('strong');
-      const small = diagnosticHeading.querySelector('small');
-      if (strong) strong.textContent = 'PITEVNÍ AI ROZBOR';
-      if (small) small.textContent = '100% nevědecký · 0% diagnóza';
-    }
-
-    const labelMap = {
+    const labels = {
       'Stabilita zorniček': 'Zorničky pod dohledem',
       'Kontakt s realitou': 'Signál z planety Země',
       'Koordinace pohybu': 'Schopnost dojít bez svědků',
@@ -502,20 +398,19 @@
       'Zbytková důstojnost': 'Zbytková lidskost',
       'Mozkový ping': 'Odezva posledního neuronu'
     };
-    elements.result.querySelectorAll('.diagnostic-copy span').forEach((label) => replaceExactText(label, labelMap));
-
-    elements.result.querySelectorAll('.result-tool-button span').forEach((label) => {
-      if (label.textContent.trim() === 'Jiná deformace') label.textContent = 'Další porucha';
-      if (label.textContent.trim() === 'Ještě víc mě znič') label.textContent = 'Dorazit zbytky';
-    });
-
+    elements.result.querySelectorAll('.diagnostic-copy span').forEach((label) => replaceExact(label, labels));
+    elements.result.querySelectorAll('.result-tool-button span').forEach((label) => replaceExact(label, {
+      'Jiná deformace': 'Další porucha',
+      'Ještě víc mě znič': 'Dorazit zbytky'
+    }));
     if (!elements.result.classList.contains('hidden')) {
-      elements.result.dataset.verdictTier = state.visualDamageTier || 'worn';
-      elements.result.dataset.visualDamage = String(state.visualDamageSeverity || '');
+      if (elements.result.dataset.verdictTier !== (state.visualDamageTier || 'worn')) elements.result.dataset.verdictTier = state.visualDamageTier || 'worn';
+      const score = String(state.visualDamageSeverity || '');
+      if (elements.result.dataset.visualDamage !== score) elements.result.dataset.visualDamage = score;
     }
   }
 
-  function queueMicrocopyPolish() {
+  function queuePolish() {
     if (microcopyQueued) return;
     microcopyQueued = true;
     window.queueMicrotask(polishMicrocopy);
@@ -530,10 +425,9 @@
     runTieredAnalysis();
   }, true);
 
-  resultObserver = new MutationObserver(queueMicrocopyPolish);
-  resultObserver.observe(document.body, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ['class'] });
-  loadPernikPack();
-  queueMicrocopyPolish();
-
-  window.addEventListener('pagehide', () => resultObserver?.disconnect(), { once: true });
+  const observer = new MutationObserver(queuePolish);
+  observer.observe(document.body, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ['class'] });
+  loadPack();
+  queuePolish();
+  window.addEventListener('pagehide', () => observer.disconnect(), { once: true });
 })();
