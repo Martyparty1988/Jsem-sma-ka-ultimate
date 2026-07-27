@@ -244,7 +244,7 @@
 
     float hash21(vec2 point) {
       point = fract(point * vec2(123.34, 456.21));
-      point += dot(point, point + 45.32);
+      point += vec2(dot(point, point + vec2(45.32)));
       return fract(point.x * point.y);
     }
 
@@ -325,10 +325,10 @@
       float lipMask = ellipseMask(v_uv, u_mouth, 2.1);
       float lipLuma = dot(color, vec3(0.299, 0.587, 0.114));
       color = mix(color, vec3(lipLuma) * vec3(0.9, 0.92, 0.9), lipMask * paleStrength * 0.34);
-      float lipCrack = smoothstep(0.82, 0.97, sin((v_uv.x - u_mouth.x) * u_resolution.x * 0.48 + hash21(v_uv * 91.0 + seed) * 5.0) * 0.5 + 0.5);
+      float lipCrack = smoothstep(0.82, 0.97, sin((v_uv.x - u_mouth.x) * u_resolution.x * 0.48 + hash21(v_uv * 91.0 + vec2(seed)) * 5.0) * 0.5 + 0.5);
       color *= 1.0 - lipMask * lipCrack * paleStrength * 0.075;
 
-      float grain = hash21(floor(v_uv * u_resolution * 0.42) + seed * 73.0) - 0.5;
+      float grain = hash21(floor(v_uv * u_resolution * 0.42) + vec2(seed * 73.0)) - 0.5;
       color *= 1.0 + grain * faceMask * paleStrength * mix(0.05, 0.08, severity);
 
       gl_FragColor = vec4(clamp(color, 0.0, 1.0), 1.0);
@@ -599,7 +599,7 @@
 
     const severity = clamp(Number(state.lastAnalysisResult?.severity || state.effectSeverity || state.visualDamageSeverity || 50), 0, 100);
     const seed = Number(state.effectSeed || state.visualDamageSeverity * 997 || Date.now() % 100000);
-    const token = resultToken(snapshot, severity, seed);
+    const token = `${snapshot.token}|${Math.round(severity)}|${seed}`;
     if (result.dataset.junkieToken === token) return;
     result.dataset.junkieToken = token;
 
