@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'v57';
+const CACHE_VERSION = 'v58';
 const CACHE_NAME = `jsem-smazka-${CACHE_VERSION}`;
 
 const CORE_ASSETS = [
@@ -28,7 +28,8 @@ const STYLE_ASSETS = [
   './junkie-face-effect.css?v=52',
   './result-viewport-v53.css?v=53',
   './pwa-shell-v54.css?v=57',
-  './junkie-transition-v55.css?v=56'
+  './junkie-transition-v55.css?v=56',
+  './result-readability-v58.css?v=58'
 ];
 
 const SCRIPT_ASSETS = [
@@ -49,7 +50,8 @@ const SCRIPT_ASSETS = [
   './result-intensity.js?v=47',
   './junkie-face-effect.js?v=52',
   './junkie-polish-v55.js?v=56',
-  './boot-message-v54.js?v=54'
+  './boot-message-v54.js?v=54',
+  './result-close-reset-v58.js?v=58'
 ];
 
 const DATA_ASSETS = [
