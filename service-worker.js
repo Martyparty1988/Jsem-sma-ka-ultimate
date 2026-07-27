@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'v41';
+const CACHE_VERSION = 'v42';
 const CACHE_NAME = `jsem-smazka-${CACHE_VERSION}`;
 
 const CORE_ASSETS = [
@@ -21,7 +21,7 @@ const STYLE_ASSETS = [
   './face-landmarks.css?v=29',
   './visual-system.css?v=29',
   './quiet-scan.css?v=37',
-  './scanner-focus.css?v=41'
+  './scanner-focus.css?v=42'
 ];
 
 const SCRIPT_ASSETS = [
@@ -36,7 +36,7 @@ const SCRIPT_ASSETS = [
   './privacy-hardening.js?v=20',
   './ios-one-screen.js?v=41',
   './in-frame-result.js?v=27',
-  './scanner-focus.js?v=41'
+  './scanner-focus.js?v=42'
 ];
 
 const DATA_ASSETS = [
