@@ -27,6 +27,7 @@
   <link rel="stylesheet" href="face-landmarks.css?v=29">
   <link rel="stylesheet" href="visual-system.css?v=29">
   <link rel="stylesheet" href="quiet-scan.css?v=37">
+  <link rel="stylesheet" href="scanner-focus.css?v=41">
 </head>
 <body>
   <svg class="icon-sprite" aria-hidden="true">
@@ -74,24 +75,23 @@
     </symbol>
   </svg>
   <div class="ambient ambient-one" aria-hidden="true"></div>
-  <div class="ambient ambient-two" aria-hidden="true"></div>
 
   <main class="container" id="app" aria-labelledby="appTitle">
     <nav class="topbar" aria-label="Stav aplikace">
       <div class="brand-lockup">
         <span class="brand-mark" aria-hidden="true"></span>
-        <span class="brand-copy"><strong>SMAŽKA</strong><small>VOID SCAN // 40</small></span>
+        <span class="brand-copy"><strong>SMAŽKA</strong><small>VOID SCAN // 41</small></span>
       </div>
       <div class="local-status" title="Fotka zůstává v tomto zařízení">
         <span class="status-dot" aria-hidden="true"></span>
-        <span>OFF-GRID</span>
+        <span>LOKÁLNĚ</span>
       </div>
     </nav>
 
     <header class="hero">
-      <p class="eyebrow">podzemní lokální pseudo AI</p>
+      <p class="eyebrow">LOKÁLNÍ PSEUDO AI</p>
       <h1 id="appTitle" data-text="Jsem smažka?">Jsem smažka?</h1>
-      <p class="subtitle">Lokální rozsudek, který měl zůstat zavřený. Nevědecký. Nemilosrdný.</p>
+      <p class="subtitle">Lokální rozsudek. Nevědecký. Nemilosrdný.</p>
     </header>
 
     <section class="camera-section" id="scanner" aria-label="Kamera a sken">
@@ -102,7 +102,7 @@
         </div>
         <div class="camera-idle" id="cameraIdle" aria-hidden="true">
           <span class="idle-eye"></span>
-          <span>Čekám na subjekt</span>
+          <span>Čekám na obličej</span>
         </div>
         <button id="switchCameraButton" class="stage-control hidden" type="button" aria-label="Přepnout kameru" title="Přepnout kameru">
           <svg class="ui-icon" aria-hidden="true"><use href="#icon-switch"></use></svg>
@@ -111,7 +111,7 @@
         <div class="stage-vignette" aria-hidden="true"></div>
       </div>
 
-      <p id="scanHint" class="scan-hint" aria-live="polite">Celý ksicht doprostřed. Důstojnost stranou.</p>
+      <p id="scanHint" class="scan-hint" aria-live="polite">Obličej doprostřed. Důstojnost stranou.</p>
 
       <div id="generalError" class="error-message hidden" role="alert"></div>
 
@@ -137,22 +137,18 @@
       <input type="file" id="uploadInput" accept="image/*" class="hidden">
 
       <div id="loading" class="loading hidden" role="status" aria-live="polite">
-        <p>Počítám tiky a zbytky lidskosti…</p>
+        <p>Analyzuju obličej… Počítám zbytky lidskosti.</p>
       </div>
 
       <div class="privacy-strip" role="note" aria-label="Informace o soukromí">
         <svg class="ui-icon" aria-hidden="true"><use href="#icon-lock"></use></svg>
-        <span>Fotka neopustí zařízení · meme, ne diagnóza.</span>
+        <span>Fotka zůstává v zařízení · meme, ne diagnóza.</span>
       </div>
     </section>
 
     <canvas id="canvas" class="hidden" aria-hidden="true"></canvas>
 
     <footer>
-      <div class="privacy-note">
-        <span class="privacy-icon" aria-hidden="true"><svg class="ui-icon"><use href="#icon-lock"></use></svg></span>
-        <p>Fotka se nikam neposílá. Všechno běží jen v prohlížeči, výsledek je čistě meme a ne diagnóza.</p>
-      </div>
       <button id="installButton" class="install-button hidden" type="button">Přidat jako aplikaci</button>
     </footer>
 
@@ -173,7 +169,8 @@
   <script defer src="experience-upgrades.js?v=31"></script>
   <script defer src="diagnostic-upgrades.js?v=33"></script>
   <script defer src="privacy-hardening.js?v=20"></script>
-  <script defer src="ios-one-screen.js?v=28"></script>
+  <script defer src="ios-one-screen.js?v=41"></script>
   <script defer src="in-frame-result.js?v=27"></script>
+  <script defer src="scanner-focus.js?v=41"></script>
 </body>
 </html>
