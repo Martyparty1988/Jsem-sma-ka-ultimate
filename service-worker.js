@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'v39';
+const CACHE_VERSION = 'v40';
 const CACHE_NAME = `jsem-smazka-${CACHE_VERSION}`;
 
 const CORE_ASSETS = [
@@ -29,6 +29,7 @@ const SCRIPT_ASSETS = [
   './face-scan.js?v=31',
   './face-warp.js?v=27',
   './hard-responses.js?v=31',
+  './junky-verdict-engine.js?v=40',
   './experience-upgrades.js?v=31',
   './diagnostic-upgrades.js?v=33',
   './privacy-hardening.js?v=20',
@@ -38,7 +39,8 @@ const SCRIPT_ASSETS = [
 
 const DATA_ASSETS = [
   './responses.json',
-  './responses-hard.json?v=31'
+  './responses-hard.json?v=31',
+  './responses-pernik.json?v=40'
 ];
 
 const FACE_MODEL_ASSETS = [
