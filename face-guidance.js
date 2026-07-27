@@ -1,4 +1,4 @@
-/* Smažka v44 — local face positioning guidance from MediaPipe landmark geometry. */
+/* Smažka v48 — local face positioning guidance plus stable mobile hero focus. */
 (() => {
   'use strict';
 
@@ -10,6 +10,7 @@
 
   const SAMPLE_INTERVAL = 150;
   const STABLE_SAMPLES = 3;
+  const HERO_RELEASE_DELAY = 650;
   const EYE_GROUPS = {
     right: [33, 133, 159, 145],
     left: [263, 362, 386, 374]
@@ -20,6 +21,21 @@
   let pendingKey = '';
   let pendingCount = 0;
   let appliedKey = '';
+  let heroReleaseTimer = 0;
+
+  function setHeroEngaged(engaged, { immediate = false } = {}) {
+    window.clearTimeout(heroReleaseTimer);
+    heroReleaseTimer = 0;
+
+    if (engaged) {
+      document.body.classList.add('face-guidance-engaged');
+      return;
+    }
+
+    const release = () => document.body.classList.remove('face-guidance-engaged');
+    if (immediate) release();
+    else heroReleaseTimer = window.setTimeout(release, HERO_RELEASE_DELAY);
+  }
 
   function visiblePoint(index) {
     const node = stage.querySelector(`.face-landmark-mesh .landmark[data-index="${index}"]`);
@@ -105,12 +121,13 @@
     );
   }
 
-  function clearGuidance() {
+  function clearGuidance({ keepHero = false, immediate = false } = {}) {
     pendingKey = '';
     pendingCount = 0;
     appliedKey = '';
     stage.removeAttribute('data-guidance');
     hint.removeAttribute('data-guidance');
+    if (!keepHero) setHeroEngaged(false, { immediate });
   }
 
   function applyGuidance(next) {
@@ -127,11 +144,13 @@
     stage.dataset.guidance = next.state;
     hint.dataset.guidance = next.state;
     hint.textContent = next.message;
+    setHeroEngaged(true);
   }
 
   function showSearchState() {
     pendingKey = 'search';
     pendingCount = STABLE_SAMPLES;
+    setHeroEngaged(false);
     if (appliedKey === 'search') return;
     appliedKey = 'search';
     stage.dataset.guidance = 'search';
@@ -145,13 +164,19 @@
     lastSampleAt = now;
 
     const overlay = document.getElementById('scanOverlay');
+    const busy = scannerBusy(overlay);
     const unavailable = !stage.classList.contains('is-live')
       || stage.classList.contains('has-preview')
       || stage.classList.contains('has-camera-error')
-      || scannerBusy(overlay);
+      || busy;
 
     if (unavailable) {
-      clearGuidance();
+      const preserveHero = busy || (
+        stage.classList.contains('has-preview')
+        && document.body.classList.contains('face-guidance-engaged')
+      );
+      clearGuidance({ keepHero: preserveHero });
+      if (preserveHero) setHeroEngaged(true);
       return;
     }
 
@@ -168,6 +193,7 @@
 
   window.addEventListener('pagehide', () => {
     window.cancelAnimationFrame(animationFrame);
-    clearGuidance();
+    window.clearTimeout(heroReleaseTimer);
+    clearGuidance({ immediate: true });
   }, { once: true });
 })();
