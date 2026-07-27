@@ -1,4 +1,4 @@
-/* Smažka v42 — safe runtime cleanup for the scanner-first composition. */
+/* Smažka v45 — safe scanner cleanup and cinematic result sequencing. */
 (() => {
   'use strict';
 
@@ -6,6 +6,8 @@
   const result = app?.elements?.result || document.getElementById('result');
   const scanHint = app?.elements?.scanHint || document.getElementById('scanHint');
   const scanStatus = document.getElementById('scanStatus');
+  const cameraStage = app?.elements?.cameraStage || document.getElementById('cameraStage');
+  const preview = app?.elements?.preview || document.getElementById('preview');
 
   const neutralStatus = new Map([
     ['Probouzím VOID engine', 'Připravuji detekci'],
@@ -18,6 +20,13 @@
     ['Hledám oči, nos a zbytky tváře', 'Hledám obličej'],
     ['Přesná detekce odmítla svědčit', 'Detekce obličeje není dostupná']
   ]);
+
+  const revealPhases = ['reveal-phase-freeze', 'reveal-phase-pulse', 'reveal-phase-print'];
+  let revealTimers = [];
+  let wasRevealing = cameraStage?.classList.contains('is-revealing-result') || false;
+  let lastStablePreviewSrc = preview?.getAttribute('src') || '';
+  let revealTargetSrc = '';
+  let suppressPreviewObservation = false;
 
   function removeLegacyConfetti(root = document) {
     root.querySelectorAll?.('.confetti-layer, .confetti-piece').forEach((node) => node.remove());
@@ -106,6 +115,57 @@
     keepOnlyWorstDiagnosticRed(result);
   }
 
+  function clearRevealTimers() {
+    revealTimers.forEach((timer) => window.clearTimeout(timer));
+    revealTimers = [];
+  }
+
+  function clearRevealPhases() {
+    clearRevealTimers();
+    cameraStage?.classList.remove(...revealPhases);
+    revealTargetSrc = '';
+  }
+
+  function setPreviewSource(src) {
+    if (!preview || !src) return;
+    suppressPreviewObservation = true;
+    preview.setAttribute('src', src);
+    window.requestAnimationFrame(() => {
+      suppressPreviewObservation = false;
+    });
+  }
+
+  function startCinematicReveal() {
+    if (!cameraStage || !preview || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+    clearRevealTimers();
+    cameraStage.classList.remove(...revealPhases);
+
+    revealTargetSrc = preview.getAttribute('src') || '';
+    const frozenSource = lastStablePreviewSrc && lastStablePreviewSrc !== revealTargetSrc
+      ? lastStablePreviewSrc
+      : '';
+
+    cameraStage.classList.add('reveal-phase-freeze');
+    if (frozenSource) setPreviewSource(frozenSource);
+
+    revealTimers.push(window.setTimeout(() => {
+      if (revealTargetSrc) setPreviewSource(revealTargetSrc);
+      cameraStage.classList.remove('reveal-phase-freeze');
+      cameraStage.classList.add('reveal-phase-pulse');
+    }, 150));
+
+    revealTimers.push(window.setTimeout(() => {
+      cameraStage.classList.remove('reveal-phase-pulse');
+      cameraStage.classList.add('reveal-phase-print');
+    }, 320));
+
+    revealTimers.push(window.setTimeout(() => {
+      cameraStage.classList.remove('reveal-phase-print');
+      if (revealTargetSrc) lastStablePreviewSrc = revealTargetSrc;
+    }, 970));
+  }
+
   const resultObserver = result && new MutationObserver(() => {
     window.requestAnimationFrame(decorateResult);
   });
@@ -127,14 +187,36 @@
   });
   legacyEffectsObserver.observe(document.body, { childList: true, subtree: true });
 
+  const previewObserver = preview && new MutationObserver(() => {
+    if (suppressPreviewObservation) return;
+    const currentSrc = preview.getAttribute('src') || '';
+    if (!cameraStage?.classList.contains('is-revealing-result')) {
+      lastStablePreviewSrc = currentSrc;
+    } else if (!revealTargetSrc && currentSrc !== lastStablePreviewSrc) {
+      revealTargetSrc = currentSrc;
+    }
+  });
+  previewObserver?.observe(preview, { attributes: true, attributeFilter: ['src'] });
+
+  const revealObserver = cameraStage && new MutationObserver(() => {
+    const isRevealing = cameraStage.classList.contains('is-revealing-result');
+    if (isRevealing && !wasRevealing) startCinematicReveal();
+    if (!isRevealing && wasRevealing) clearRevealPhases();
+    wasRevealing = isRevealing;
+  });
+  revealObserver?.observe(cameraStage, { attributes: true, attributeFilter: ['class'] });
+
   removeLegacyConfetti();
   cleanStatusCopy();
   cleanHintCopy();
   decorateResult();
 
   window.addEventListener('pagehide', () => {
+    clearRevealPhases();
     resultObserver?.disconnect();
     copyObserver.disconnect();
     legacyEffectsObserver.disconnect();
+    previewObserver?.disconnect();
+    revealObserver?.disconnect();
   }, { once: true });
 })();
