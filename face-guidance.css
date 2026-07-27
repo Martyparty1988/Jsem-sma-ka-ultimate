@@ -1,0 +1,36 @@
+/* Smažka v43 — quiet guidance driven by real MediaPipe landmark positions. */
+
+.video-container[data-guidance="ready"] {
+  border-color: rgba(88, 214, 194, 0.34);
+}
+
+.video-container[data-guidance="adjust"] {
+  border-color: rgba(218, 229, 238, 0.22);
+}
+
+.scan-hint[data-guidance="ready"],
+.camera-hint-overlay[data-guidance="ready"] {
+  color: rgba(126, 225, 209, 0.92) !important;
+  font-weight: 600 !important;
+}
+
+.scan-hint[data-guidance="adjust"],
+.camera-hint-overlay[data-guidance="adjust"] {
+  color: var(--quiet-text-secondary) !important;
+}
+
+.scan-hint[data-guidance="search"],
+.camera-hint-overlay[data-guidance="search"] {
+  color: var(--quiet-text-muted) !important;
+}
+
+body.face-scan-active .scan-hint[data-guidance],
+body.face-scan-active .camera-hint-overlay[data-guidance] {
+  visibility: hidden;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .video-container[data-guidance="ready"] {
+    transition: border-color 180ms ease;
+  }
+}
