@@ -3,9 +3,13 @@
 
   const mobileQuery = window.matchMedia('(max-width: 640px)');
   const app = window.SmazkaApp;
-  if (!mobileQuery.matches || !app?.elements?.result || !app?.elements?.cameraStage) return;
+  if (!app?.elements?.result || !app?.elements?.cameraStage) return;
 
   const { result, cameraStage } = app.elements;
+  const resultBackdrop = document.getElementById('resultBackdrop');
+  const appRoot = document.getElementById('app');
+  const TOP_LAYER_Z = 2147483000;
+  const FRAME_GAP = 8;
   let detailsButton = null;
   let resizeFrame = null;
 
@@ -13,22 +17,99 @@
     return !result.classList.contains('hidden');
   }
 
-  function syncFrame() {
-    if (!resultVisible()) return;
+  function setInlineFrameProperty(name, value) {
+    result.style.setProperty(name, value, 'important');
+  }
 
-    const rect = cameraStage.getBoundingClientRect();
-    const viewportHeight = window.visualViewport?.height || window.innerHeight;
-    const viewportWidth = window.visualViewport?.width || window.innerWidth;
-    const safeGap = 8;
-    const top = Math.max(safeGap, rect.top);
-    const left = Math.max(safeGap, rect.left);
-    const width = Math.min(rect.width, viewportWidth - left - safeGap);
-    const availableHeight = Math.max(420, viewportHeight - top - safeGap);
+  function clearTopLayerStyles() {
+    [
+      'position',
+      'z-index',
+      'top',
+      'right',
+      'bottom',
+      'left',
+      'width',
+      'height',
+      'max-width',
+      'max-height',
+      'margin',
+      'pointer-events',
+      'isolation'
+    ].forEach((property) => result.style.removeProperty(property));
+
+    const content = result.querySelector('.result-content');
+    content?.style.removeProperty('padding-bottom');
+
+    if (resultBackdrop) {
+      ['position', 'z-index', 'inset', 'pointer-events'].forEach((property) => {
+        resultBackdrop.style.removeProperty(property);
+      });
+    }
+  }
+
+  function syncNativeTopLayer(visible) {
+    const supportsPopover = typeof result.showPopover === 'function' && typeof result.hidePopover === 'function';
+    if (!supportsPopover) return;
+
+    try {
+      if (visible) {
+        result.setAttribute('popover', 'manual');
+        if (!result.matches(':popover-open')) result.showPopover();
+      } else {
+        if (result.matches(':popover-open')) result.hidePopover();
+        result.removeAttribute('popover');
+      }
+    } catch {
+      // z-index + fixed positioning below remain the fallback on older Safari builds.
+      if (!visible) result.removeAttribute('popover');
+    }
+  }
+
+  function syncFrame() {
+    if (!mobileQuery.matches || !resultVisible()) return;
+
+    const viewport = window.visualViewport;
+    const viewportTop = viewport?.offsetTop || 0;
+    const viewportLeft = viewport?.offsetLeft || 0;
+    const viewportHeight = viewport?.height || window.innerHeight;
+    const viewportWidth = viewport?.width || window.innerWidth;
+    const top = viewportTop + FRAME_GAP;
+    const left = viewportLeft + FRAME_GAP;
+    const width = Math.max(1, viewportWidth - (FRAME_GAP * 2));
+    const height = Math.max(1, viewportHeight - (FRAME_GAP * 2));
 
     result.style.setProperty('--result-frame-top', `${Math.round(top)}px`);
     result.style.setProperty('--result-frame-left', `${Math.round(left)}px`);
     result.style.setProperty('--result-frame-width', `${Math.round(width)}px`);
-    result.style.setProperty('--result-frame-height', `${Math.round(availableHeight)}px`);
+    result.style.setProperty('--result-frame-height', `${Math.round(height)}px`);
+
+    setInlineFrameProperty('position', 'fixed');
+    setInlineFrameProperty('z-index', String(TOP_LAYER_Z));
+    setInlineFrameProperty('top', `${Math.round(top)}px`);
+    setInlineFrameProperty('right', 'auto');
+    setInlineFrameProperty('bottom', 'auto');
+    setInlineFrameProperty('left', `${Math.round(left)}px`);
+    setInlineFrameProperty('width', `${Math.round(width)}px`);
+    setInlineFrameProperty('height', `${Math.round(height)}px`);
+    setInlineFrameProperty('max-width', 'none');
+    setInlineFrameProperty('max-height', `${Math.round(height)}px`);
+    setInlineFrameProperty('margin', '0');
+    setInlineFrameProperty('pointer-events', 'auto');
+    setInlineFrameProperty('isolation', 'isolate');
+
+    result.querySelector('.result-content')?.style.setProperty(
+      'padding-bottom',
+      'max(14px, env(safe-area-inset-bottom))',
+      'important'
+    );
+
+    if (resultBackdrop) {
+      resultBackdrop.style.setProperty('position', 'fixed', 'important');
+      resultBackdrop.style.setProperty('z-index', String(TOP_LAYER_Z - 1), 'important');
+      resultBackdrop.style.setProperty('inset', '0', 'important');
+      resultBackdrop.style.setProperty('pointer-events', 'auto', 'important');
+    }
   }
 
   function setDetailsOpen(open) {
@@ -45,7 +126,7 @@
       window.requestAnimationFrame(() => {
         const content = result.querySelector('.result-content');
         const panel = result.querySelector('.diagnostic-panel');
-        if (!content || !panel) return;
+        if (!content || !panel || !detailsButton) return;
 
         // Scroll the result sheet itself. scrollIntoView may target the locked
         // document on iOS, leaving the freshly revealed panel below the fold.
@@ -88,18 +169,21 @@
   }
 
   function decorateResult() {
-    const visible = resultVisible();
+    const visible = mobileQuery.matches && resultVisible();
     document.body.classList.toggle('result-in-frame', visible);
     cameraStage.classList.toggle('has-in-frame-result', visible);
+    appRoot?.toggleAttribute('inert', visible);
+    syncNativeTopLayer(visible);
 
     if (!visible) {
       setDetailsOpen(false);
       result.removeAttribute('data-in-frame-ready');
+      clearTopLayerStyles();
       return;
     }
 
     result.setAttribute('data-in-frame-ready', 'true');
-    result.setAttribute('aria-modal', 'false');
+    result.setAttribute('aria-modal', 'true');
     ensureGradient();
     ensureDetailsButton();
     syncFrame();
@@ -125,10 +209,14 @@
   window.addEventListener('orientationchange', scheduleFrameSync, { passive: true });
   window.visualViewport?.addEventListener('resize', scheduleFrameSync, { passive: true });
   window.visualViewport?.addEventListener('scroll', scheduleFrameSync, { passive: true });
+  mobileQuery.addEventListener?.('change', () => window.requestAnimationFrame(decorateResult));
 
   window.addEventListener('pagehide', () => {
     observer.disconnect();
     window.cancelAnimationFrame(resizeFrame);
+    syncNativeTopLayer(false);
+    clearTopLayerStyles();
+    appRoot?.removeAttribute('inert');
     document.body.classList.remove('result-in-frame');
     cameraStage.classList.remove('has-in-frame-result');
   }, { once: true });
