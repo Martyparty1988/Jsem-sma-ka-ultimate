@@ -1,4 +1,4 @@
-/* Smažka v54 — edge-to-edge iPhone PWA shell without duplicated hero or dead safe-area strips. */
+/* Smažka v57 — edge-to-edge iPhone PWA shell with collision-free scanner messaging. */
 
 :root {
   --void-shell: #070a0f;
@@ -162,6 +162,35 @@ body {
     padding: 6px 4px 1px !important;
   }
 
+  #generalError {
+    position: static !important;
+    inset: auto !important;
+    z-index: auto !important;
+    width: 100% !important;
+    max-height: none !important;
+    flex: 0 0 auto !important;
+    margin: 0 0 6px !important;
+    padding: 9px 12px !important;
+    overflow: visible !important;
+    border-color: rgba(251, 113, 133, 0.3) !important;
+    border-radius: 14px !important;
+    background: rgba(55, 18, 28, 0.92) !important;
+    color: rgba(255, 228, 230, 0.88) !important;
+    font-size: clamp(0.68rem, 2.65vw, 0.76rem) !important;
+    font-weight: 680 !important;
+    line-height: 1.32 !important;
+    text-align: center !important;
+    text-wrap: balance;
+    box-shadow: inset 0 1px rgba(255, 255, 255, 0.035) !important;
+    backdrop-filter: blur(14px) !important;
+    -webkit-backdrop-filter: blur(14px) !important;
+  }
+
+  .camera-section:has(#generalError:not(.hidden)) .scan-hint,
+  .camera-section:has(#generalError:not(.hidden)) .camera-hint-overlay {
+    display: none !important;
+  }
+
   .button-group,
   .camera-control-dock {
     height: 54px !important;
@@ -210,6 +239,13 @@ body {
     min-height: 24px !important;
     flex-basis: 24px !important;
     padding-top: 4px !important;
+  }
+
+  #generalError {
+    margin-bottom: 4px !important;
+    padding: 7px 10px !important;
+    font-size: 0.65rem !important;
+    line-height: 1.28 !important;
   }
 
   .button-group,
