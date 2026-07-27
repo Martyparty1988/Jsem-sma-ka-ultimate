@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'v36';
+const CACHE_VERSION = 'v37';
 const CACHE_NAME = `jsem-smazka-${CACHE_VERSION}`;
 
 const CORE_ASSETS = [
@@ -20,7 +20,7 @@ const STYLE_ASSETS = [
   './in-frame-result.css?v=24',
   './face-landmarks.css?v=29',
   './visual-system.css?v=29',
-  './quiet-scan.css?v=36'
+  './quiet-scan.css?v=37'
 ];
 
 const SCRIPT_ASSETS = [
