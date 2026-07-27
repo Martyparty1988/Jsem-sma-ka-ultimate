@@ -1,5 +1,5 @@
 /*
- * Smažka Scan v32 — Quiet Scan
+ * Smažka Scan v33 — Quiet Scan
  * Final visual authority. Existing IDs, states and JavaScript behavior stay intact.
  */
 
@@ -154,6 +154,7 @@ button:disabled {
   font-family: inherit;
   font-size: 0.75rem;
   letter-spacing: 0;
+  transition: opacity 160ms ease;
 }
 
 .brand-lockup {
@@ -277,24 +278,32 @@ button:disabled {
   margin: 0 0 20px;
   text-align: left;
   pointer-events: auto;
+  transition: opacity 160ms ease;
 }
 
 .eyebrow {
-  min-height: 28px;
-  display: inline-flex;
-  align-items: center;
-  margin: 0 0 10px;
-  padding: 5px 10px;
-  border: 1px solid rgba(88, 214, 194, 0.18);
-  border-radius: 999px;
-  background: var(--quiet-accent-soft);
+  min-height: 0;
+  display: inline-block;
+  margin: 0 0 9px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
   color: var(--quiet-accent);
   font-family: inherit;
-  font-size: 0.68rem;
-  font-weight: 650;
-  letter-spacing: 0.04em;
+  font-size: 0.67rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   box-shadow: none;
+}
+
+body.face-scan-active .topbar {
+  opacity: 0.72;
+}
+
+body.face-scan-active .hero {
+  opacity: 0.52;
 }
 
 .hero h1,
@@ -347,7 +356,7 @@ h1 {
   border: 1px solid var(--quiet-border);
   border-radius: var(--quiet-radius-card);
   background: var(--quiet-surface-1);
-  box-shadow: var(--quiet-shadow-card), inset 0 1px rgba(255, 255, 255, 0.04);
+  box-shadow: inset 0 1px rgba(255, 255, 255, 0.04);
 }
 
 .video-container {
@@ -544,6 +553,15 @@ h1 {
   box-shadow: none;
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
+  transition: opacity 160ms ease;
+}
+
+.video-container:not(.is-live) .face-lock-label {
+  opacity: 0;
+}
+
+body.face-scan-active .face-lock-label {
+  opacity: 1;
 }
 
 .face-lock-frame[data-mode="landmarks"] .face-lock-label::after {
@@ -704,6 +722,10 @@ body.face-scan-active .video-container {
   box-shadow: none !important;
 }
 
+body.face-scan-active .scan-hint {
+  visibility: hidden;
+}
+
 .button-group,
 .camera-control-dock {
   display: flex;
@@ -759,7 +781,6 @@ body.face-scan-active .video-container {
 .new-scan-button,
 .install-button,
 .result-tool-button,
-.destroy-more-button,
 .in-frame-details-toggle {
   flex: 1 1 0;
   border: 1px solid var(--quiet-border-strong) !important;
@@ -781,7 +802,6 @@ body.face-scan-active .video-container {
 .new-scan-button:hover,
 .install-button:hover,
 .result-tool-button:hover,
-.destroy-more-button:hover,
 .in-frame-details-toggle:hover {
   border-color: rgba(88, 214, 194, 0.28) !important;
   background: var(--quiet-surface-hover) !important;
@@ -897,6 +917,10 @@ body.face-scan-active .video-container {
 
 footer {
   margin-top: 12px;
+}
+
+footer > .privacy-note {
+  display: none;
 }
 
 .privacy-note {
@@ -1204,6 +1228,14 @@ footer {
   box-shadow: none;
 }
 
+.result-visual .result-badge {
+  right: auto;
+  left: 10px;
+  max-width: calc(100% - 20px);
+  justify-content: flex-start;
+  font-size: 0.625rem;
+}
+
 .effect-label {
   color: var(--quiet-text-secondary);
 }
@@ -1311,6 +1343,7 @@ footer {
 .diagnostic-pulse {
   background: var(--quiet-accent);
   box-shadow: none;
+  animation: none;
 }
 
 .diagnostic-list {
@@ -1318,6 +1351,8 @@ footer {
 }
 
 .diagnostic-row {
+  opacity: 1;
+  transform: none;
   animation: none;
 }
 
@@ -1345,11 +1380,12 @@ footer {
 }
 
 .secondary-diagnosis {
+  border-color: rgba(241, 123, 131, 0.2);
   color: var(--quiet-text-secondary);
 }
 
 .secondary-diagnosis > strong {
-  color: var(--quiet-text);
+  color: var(--quiet-danger);
 }
 
 .result-tool-grid {
@@ -1372,8 +1408,12 @@ footer {
 }
 
 .result-tool-button.result-tool-primary {
-  border-color: rgba(88, 214, 194, 0.25) !important;
-  color: var(--quiet-accent) !important;
+  border-color: var(--quiet-border-strong) !important;
+  color: var(--quiet-text-secondary) !important;
+}
+
+.result-tool-button.result-tool-primary .ui-icon {
+  color: var(--quiet-accent);
 }
 
 .result-actions {
@@ -1397,7 +1437,17 @@ footer {
 
 .destroy-more-button {
   grid-column: 1 / -1;
-  color: var(--quiet-text-secondary) !important;
+  flex: 1 1 0;
+  border: 1px solid rgba(241, 123, 131, 0.34);
+  background: var(--quiet-danger-soft);
+  color: #ffdadd;
+  box-shadow: inset 0 1px rgba(255, 255, 255, 0.035);
+}
+
+.destroy-more-button:hover {
+  border-color: rgba(241, 123, 131, 0.52);
+  background: rgba(241, 123, 131, 0.16);
+  transform: translateY(-1px);
 }
 
 .result-close {
@@ -1440,6 +1490,14 @@ footer {
   border-radius: 12px;
   background: var(--quiet-accent);
   color: #07110f;
+}
+
+body.result-open .app-update-banner,
+body.settings-open .app-update-banner {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateY(16px);
 }
 
 /* Mobile product surface */
@@ -1529,7 +1587,7 @@ footer {
 
   .local-status {
     padding: 6px 9px;
-    font-size: 0.6rem;
+    font-size: 0.64rem;
   }
 
   .ios-settings-button {
@@ -1549,11 +1607,13 @@ footer {
   }
 
   .eyebrow {
-    display: inline-flex;
-    min-height: 24px;
-    margin-bottom: 7px;
-    padding: 4px 8px;
-    font-size: 0.61rem;
+    display: inline-block;
+    min-height: 0;
+    margin-bottom: 6px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    font-size: 0.66rem;
   }
 
   .hero h1,
@@ -1577,7 +1637,7 @@ footer {
     max-width: 94%;
     margin-top: 7px;
     overflow: visible;
-    font-size: clamp(0.72rem, 3.1vw, 0.82rem);
+    font-size: clamp(0.78rem, 3.1vw, 0.84rem);
     line-height: 1.35;
   }
 
@@ -1720,19 +1780,19 @@ footer {
   #uploadButton {
     grid-column: 1;
     grid-row: 1;
-    font-size: 0.75rem;
+    font-size: 0.8rem;
   }
 
   #analyzeButton {
     grid-column: 2;
     grid-row: 1;
-    font-size: 0.8rem;
+    font-size: 0.82rem;
   }
 
   #retakeButton {
     grid-column: 2 / 4;
     grid-row: 1;
-    font-size: 0.8rem;
+    font-size: 0.82rem;
   }
 
   .dock-camera-button {
@@ -1776,7 +1836,7 @@ footer {
     border-radius: 0 !important;
     background: transparent !important;
     color: var(--quiet-text-muted) !important;
-    font-size: 0.67rem !important;
+    font-size: 0.72rem !important;
     font-weight: 450 !important;
     line-height: 1.25;
     text-align: center;
@@ -1798,7 +1858,7 @@ footer {
     border-radius: 9px;
     background: transparent;
     color: var(--quiet-text-muted);
-    font-size: 0.61rem;
+    font-size: 0.69rem;
     line-height: 1.25;
   }
 
@@ -1958,7 +2018,7 @@ footer {
     max-width: calc(100% - 142px);
     color: var(--quiet-text-secondary);
     font-family: inherit;
-    font-size: 0.54rem;
+    font-size: 0.625rem;
   }
 
   body.result-in-frame .effect-label {
@@ -2103,7 +2163,7 @@ footer {
     min-height: 49px;
     padding: 10px;
     border-radius: 14px;
-    font-size: 0.75rem;
+    font-size: 0.8rem;
     font-weight: 650;
   }
 
@@ -2198,7 +2258,7 @@ footer {
     bottom: -31px !important;
     min-height: 25px;
     padding-top: 5px !important;
-    font-size: 0.62rem !important;
+    font-size: 0.69rem !important;
   }
 
   .loading {
@@ -2207,7 +2267,7 @@ footer {
 
   .privacy-strip {
     bottom: 5px;
-    font-size: 0.57rem;
+    font-size: 0.69rem;
   }
 
   body.result-in-frame .result-visual,
@@ -2248,7 +2308,7 @@ footer {
   #uploadButton,
   #analyzeButton,
   #retakeButton {
-    font-size: 0.7rem;
+    font-size: 0.75rem;
   }
 
   .button-group .ui-icon {

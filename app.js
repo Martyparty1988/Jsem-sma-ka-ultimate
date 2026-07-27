@@ -229,7 +229,7 @@
       if (requestId !== state.cameraRequestId) return;
       console.error('Kamera nejde spustit:', error);
       elements.cameraStage?.classList.remove('is-live');
-      showError('Kamera nechce spolupracovat. Povol oprávnění, nebo nahraj fotku ručně.', elements.cameraError);
+      showError('Kamera je zablokovaná. Povol ji, nebo nahraj fotku.', elements.cameraError);
       show(elements.uploadButton);
       setHint('Kamera odmítla svědčit. Nahraj důkazní fotku.');
     }

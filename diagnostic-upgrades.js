@@ -266,7 +266,7 @@
 
     const heading = document.createElement('div');
     heading.className = 'diagnostic-heading';
-    heading.innerHTML = '<span class="diagnostic-pulse" aria-hidden="true"></span><div><strong>AI DETAILNÍ ROZBOR</strong><small>výsledky jsou samozřejmě absolutně nevědecké</small></div>';
+    heading.innerHTML = '<span class="diagnostic-pulse" aria-hidden="true"></span><div><strong>AI ROZBOR</strong><small>100% nevědecký</small></div>';
 
     const list = document.createElement('div');
     list.className = 'diagnostic-list';
@@ -406,7 +406,7 @@
     banner.id = 'appUpdateBanner';
     banner.className = 'app-update-banner';
     banner.setAttribute('role', 'status');
-    banner.innerHTML = '<div><strong>✨ Nová verze je připravená</strong><span>Aktualizace proběhne bez ztráty nastavení.</span></div>';
+    banner.innerHTML = '<div><strong>Nová verze je připravená</strong><span>Aktualizace proběhne bez ztráty nastavení.</span></div>';
 
     const button = document.createElement('button');
     button.type = 'button';
