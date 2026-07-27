@@ -21,12 +21,12 @@
   <link rel="stylesheet" href="face-warp.css?v=27">
   <link rel="stylesheet" href="face-warp-pro.css?v=22">
   <link rel="stylesheet" href="experience-upgrades.css">
-  <link rel="stylesheet" href="diagnostic-upgrades.css">
+  <link rel="stylesheet" href="diagnostic-upgrades.css?v=33">
   <link rel="stylesheet" href="ios-one-screen.css?v=27">
   <link rel="stylesheet" href="in-frame-result.css?v=24">
   <link rel="stylesheet" href="face-landmarks.css?v=29">
   <link rel="stylesheet" href="visual-system.css?v=29">
-  <link rel="stylesheet" href="quiet-scan.css?v=32">
+  <link rel="stylesheet" href="quiet-scan.css?v=33">
 </head>
 <body>
   <svg class="icon-sprite" aria-hidden="true">
@@ -80,7 +80,7 @@
     <nav class="topbar" aria-label="Stav aplikace">
       <div class="brand-lockup">
         <span class="brand-mark" aria-hidden="true"></span>
-        <span class="brand-copy"><strong>SMAŽKA</strong><small>VOID SCAN // 31</small></span>
+        <span class="brand-copy"><strong>SMAŽKA</strong><small>VOID SCAN // 33</small></span>
       </div>
       <div class="local-status" title="Fotka zůstává v tomto zařízení">
         <span class="status-dot" aria-hidden="true"></span>
@@ -91,7 +91,7 @@
     <header class="hero">
       <p class="eyebrow">podzemní lokální pseudo AI</p>
       <h1 id="appTitle" data-text="Jsem smažka?">Jsem smažka?</h1>
-      <p class="subtitle">Otevři portál ke stavu, který měl zůstat zavřený. Nevědecké. Nemilosrdné. Lokální.</p>
+      <p class="subtitle">Lokální rozsudek, který měl zůstat zavřený. Nevědecký. Nemilosrdný.</p>
     </header>
 
     <section class="camera-section" id="scanner" aria-label="Kamera a sken">
@@ -104,13 +104,6 @@
           <span class="idle-eye"></span>
           <span>Čekám na subjekt</span>
         </div>
-        <div class="world-hud" aria-hidden="true">
-          <span>REALITY LINK // UNSTABLE</span>
-          <span>SUBJECT // LOCAL</span>
-        </div>
-        <div class="world-signal" aria-hidden="true">
-          <i></i><span>VOID FEED</span>
-        </div>
         <button id="switchCameraButton" class="stage-control hidden" type="button" aria-label="Přepnout kameru" title="Přepnout kameru">
           <svg class="ui-icon" aria-hidden="true"><use href="#icon-switch"></use></svg>
         </button>
@@ -118,7 +111,7 @@
         <div class="stage-vignette" aria-hidden="true"></div>
       </div>
 
-      <p id="scanHint" class="scan-hint" aria-live="polite">Povol vstup do kamery. Ksicht doprostřed. Důstojnost stranou.</p>
+      <p id="scanHint" class="scan-hint" aria-live="polite">Celý ksicht doprostřed. Důstojnost stranou.</p>
 
       <div id="generalError" class="error-message hidden" role="alert"></div>
 
@@ -147,9 +140,9 @@
         <p>Vážím zbytky důstojnosti…</p>
       </div>
 
-      <div class="privacy-strip" aria-label="Informace o soukromí">
+      <div class="privacy-strip" role="note" aria-label="Informace o soukromí">
         <svg class="ui-icon" aria-hidden="true"><use href="#icon-lock"></use></svg>
-        <span>Fotka zůstává v zařízení. Lokální zpracování · není to diagnóza.</span>
+        <span>Fotka neopustí zařízení · meme, ne diagnóza.</span>
       </div>
     </section>
 
@@ -177,7 +170,7 @@
   <script defer src="face-warp.js?v=27"></script>
   <script defer src="hard-responses.js?v=31"></script>
   <script defer src="experience-upgrades.js?v=31"></script>
-  <script defer src="diagnostic-upgrades.js?v=28"></script>
+  <script defer src="diagnostic-upgrades.js?v=33"></script>
   <script defer src="privacy-hardening.js?v=20"></script>
   <script defer src="ios-one-screen.js?v=28"></script>
   <script defer src="in-frame-result.js?v=24"></script>

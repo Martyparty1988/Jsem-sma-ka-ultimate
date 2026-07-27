@@ -20,7 +20,7 @@ Srandovní webová appka, která simuluje lokální AI sken obličeje a vygeneru
 - `index.html` – základ stránky, metadata a struktura UI.
 - `styles.css` – základní komponenty a desktopový fallback.
 - `visual-system.css` – základ toxic/iOS vizuálního systému, mobilní kamera, reveal a výsledkový layout.
-- `pro-app-polish.css` – finální VOID vizuální autorita, kontrast, skenovací HUD a mobilní výsledek.
+- `quiet-scan.css` – finální vizuální autorita, hierarchie, kontrast a mobilní layout.
 - `face-warp.css` – vizuální efekty deformace, skenu a výsledku.
 - `app.js` – kamera, stav aplikace, výsledky, sdílení a PWA registrace.
 - `face-scan.js` – MediaPipe mapování očí, nosu, úst a kontury, animace skenu a zachycení snímku.
