@@ -1,4 +1,4 @@
-/* Smažka v41 — small runtime cleanup for the scanner-first composition. */
+/* Smažka v42 — safe runtime cleanup for the scanner-first composition. */
 (() => {
   'use strict';
 
@@ -6,16 +6,6 @@
   const result = app?.elements?.result || document.getElementById('result');
   const scanHint = app?.elements?.scanHint || document.getElementById('scanHint');
   const scanStatus = document.getElementById('scanStatus');
-
-  /* The legacy result function still calls confetti. Keep it out of the DOM entirely. */
-  const nativeAppendChild = Element.prototype.appendChild;
-  Element.prototype.appendChild = function appendChildWithoutConfetti(node) {
-    if (node instanceof Element) {
-      if (node.classList.contains('confetti-layer')) return node;
-      if (this.classList?.contains('confetti-layer') && node.classList.contains('confetti-piece')) return node;
-    }
-    return nativeAppendChild.call(this, node);
-  };
 
   const neutralStatus = new Map([
     ['Probouzím VOID engine', 'Připravuji detekci'],
@@ -28,6 +18,11 @@
     ['Hledám oči, nos a zbytky tváře', 'Hledám obličej'],
     ['Přesná detekce odmítla svědčit', 'Detekce obličeje není dostupná']
   ]);
+
+  function removeLegacyConfetti(root = document) {
+    root.querySelectorAll?.('.confetti-layer, .confetti-piece').forEach((node) => node.remove());
+    if (root instanceof Element && root.matches('.confetti-layer, .confetti-piece')) root.remove();
+  }
 
   function cleanStatusCopy() {
     const copy = document.querySelector('.scan-state-copy');
@@ -85,7 +80,7 @@
   function decorateResult() {
     if (!result || result.classList.contains('hidden')) return;
 
-    document.querySelectorAll('.confetti-layer').forEach((node) => node.remove());
+    removeLegacyConfetti();
 
     const badge = result.querySelector('.result-badge');
     if (badge) badge.textContent = 'VOID VERDIKT';
@@ -123,6 +118,16 @@
   if (scanStatus) copyObserver.observe(scanStatus, { childList: true, subtree: true, characterData: true });
   if (scanHint) copyObserver.observe(scanHint, { childList: true, subtree: true, characterData: true });
 
+  const legacyEffectsObserver = new MutationObserver((mutations) => {
+    mutations.forEach((mutation) => {
+      mutation.addedNodes.forEach((node) => {
+        if (node instanceof Element) removeLegacyConfetti(node);
+      });
+    });
+  });
+  legacyEffectsObserver.observe(document.body, { childList: true, subtree: true });
+
+  removeLegacyConfetti();
   cleanStatusCopy();
   cleanHintCopy();
   decorateResult();
@@ -130,6 +135,6 @@
   window.addEventListener('pagehide', () => {
     resultObserver?.disconnect();
     copyObserver.disconnect();
-    Element.prototype.appendChild = nativeAppendChild;
+    legacyEffectsObserver.disconnect();
   }, { once: true });
 })();
