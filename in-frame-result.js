@@ -21,6 +21,14 @@
     result.style.setProperty(name, value, 'important');
   }
 
+  function clearCompositionStyles() {
+    const visual = result.querySelector('.result-visual');
+    const actions = result.querySelector('.result-actions');
+
+    ['height', 'min-height', 'flex'].forEach((property) => visual?.style.removeProperty(property));
+    actions?.style.removeProperty('margin-top');
+  }
+
   function clearTopLayerStyles() {
     [
       'position',
@@ -40,6 +48,7 @@
 
     const content = result.querySelector('.result-content');
     content?.style.removeProperty('padding-bottom');
+    clearCompositionStyles();
 
     if (resultBackdrop) {
       ['position', 'z-index', 'inset', 'pointer-events'].forEach((property) => {
@@ -64,6 +73,23 @@
       // z-index + fixed positioning below remain the fallback on older Safari builds.
       if (!visible) result.removeAttribute('popover');
     }
+  }
+
+  function syncResultComposition(viewportHeight) {
+    const visual = result.querySelector('.result-visual');
+    const actions = result.querySelector('.result-actions');
+    if (!visual || !actions) return;
+
+    if (result.classList.contains('details-open')) {
+      clearCompositionStyles();
+      return;
+    }
+
+    const minimumPhotoHeight = Math.round(Math.max(220, Math.min(320, viewportHeight * 0.34)));
+    visual.style.setProperty('height', 'auto', 'important');
+    visual.style.setProperty('min-height', `${minimumPhotoHeight}px`, 'important');
+    visual.style.setProperty('flex', '1 1 0', 'important');
+    actions.style.setProperty('margin-top', '0', 'important');
   }
 
   function syncFrame() {
@@ -104,6 +130,8 @@
       'important'
     );
 
+    syncResultComposition(viewportHeight);
+
     if (resultBackdrop) {
       resultBackdrop.style.setProperty('position', 'fixed', 'important');
       resultBackdrop.style.setProperty('z-index', String(TOP_LAYER_Z - 1), 'important');
@@ -114,6 +142,8 @@
 
   function setDetailsOpen(open) {
     result.classList.toggle('details-open', open);
+    window.requestAnimationFrame(syncFrame);
+
     if (detailsButton) {
       detailsButton.setAttribute('aria-expanded', String(open));
       const label = detailsButton.querySelector('.in-frame-details-label');
