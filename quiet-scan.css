@@ -1,5 +1,5 @@
 /*
- * Smažka Scan v34 — Quiet Scan
+ * Smažka Scan v36 — Quiet Scan
  * Final visual authority. Existing IDs, states and JavaScript behavior stay intact.
  */
 
@@ -455,6 +455,13 @@ h1 {
   text-transform: none;
 }
 
+.video-container.has-camera-error .camera-idle,
+.video-container.has-camera-error #scanOverlay {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
 .idle-eye {
   position: relative;
   width: 58px;
@@ -892,6 +899,25 @@ body.face-scan-active .scan-hint {
   box-shadow: 0 10px 26px rgba(0, 0, 0, 0.24);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
+}
+
+.video-container.has-camera-error #cameraError {
+  top: 50%;
+  right: 16px;
+  bottom: auto;
+  left: 16px;
+  width: auto;
+  max-width: 360px;
+  margin-inline: auto;
+  padding: 14px 16px;
+  border-color: rgba(241, 123, 131, 0.28);
+  background: rgba(12, 18, 24, 0.92);
+  color: #f5e7e9;
+  font-size: 0.8rem;
+  line-height: 1.45;
+  text-align: center;
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.28);
+  transform: translateY(-50%);
 }
 
 .privacy-strip {
