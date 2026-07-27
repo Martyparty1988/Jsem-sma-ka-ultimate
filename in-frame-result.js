@@ -1,3 +1,4 @@
+/* Smažka v53 — true viewport result composition for mobile Safari and PWA. */
 (() => {
   'use strict';
 
@@ -9,13 +10,11 @@
   const resultBackdrop = document.getElementById('resultBackdrop');
   const appRoot = document.getElementById('app');
   const TOP_LAYER_Z = 2147483000;
-  const FRAME_GAP = 8;
+  const FRAME_GAP = 6;
   let detailsButton = null;
-  let resizeFrame = null;
+  let resizeFrame = 0;
 
-  function resultVisible() {
-    return !result.classList.contains('hidden');
-  }
+  const resultVisible = () => !result.classList.contains('hidden');
 
   function setInlineFrameProperty(name, value) {
     result.style.setProperty(name, value, 'important');
@@ -24,26 +23,16 @@
   function clearCompositionStyles() {
     const visual = result.querySelector('.result-visual');
     const actions = result.querySelector('.result-actions');
-
-    ['height', 'min-height', 'flex'].forEach((property) => visual?.style.removeProperty(property));
+    ['height', 'min-height', 'max-height', 'flex', 'aspect-ratio'].forEach((property) => {
+      visual?.style.removeProperty(property);
+    });
     actions?.style.removeProperty('margin-top');
   }
 
   function clearTopLayerStyles() {
     [
-      'position',
-      'z-index',
-      'top',
-      'right',
-      'bottom',
-      'left',
-      'width',
-      'height',
-      'max-width',
-      'max-height',
-      'margin',
-      'pointer-events',
-      'isolation'
+      'position', 'z-index', 'top', 'right', 'bottom', 'left', 'width', 'height',
+      'max-width', 'max-height', 'margin', 'pointer-events', 'isolation'
     ].forEach((property) => result.style.removeProperty(property));
 
     const content = result.querySelector('.result-content');
@@ -58,8 +47,8 @@
   }
 
   function syncNativeTopLayer(visible) {
-    const supportsPopover = typeof result.showPopover === 'function' && typeof result.hidePopover === 'function';
-    if (!supportsPopover) return;
+    const supported = typeof result.showPopover === 'function' && typeof result.hidePopover === 'function';
+    if (!supported) return;
 
     try {
       if (visible) {
@@ -70,40 +59,35 @@
         result.removeAttribute('popover');
       }
     } catch {
-      // z-index + fixed positioning below remain the fallback on older Safari builds.
       if (!visible) result.removeAttribute('popover');
     }
   }
 
-  function syncResultComposition(viewportHeight) {
-    const visual = result.querySelector('.result-visual');
-    const actions = result.querySelector('.result-actions');
-    if (!visual || !actions) return;
+  function syncResultComposition() {
+    // The result photo is an absolute full-viewport layer. Never give it inline
+    // auto/min heights: Safari resolves that combination as a short block and
+    // leaves a large empty area above it.
+    clearCompositionStyles();
+    result.querySelector('.result-actions')?.style.setProperty('margin-top', '0', 'important');
+  }
 
-    if (result.classList.contains('details-open')) {
-      clearCompositionStyles();
-      return;
-    }
-
-    const minimumPhotoHeight = Math.round(Math.max(220, Math.min(320, viewportHeight * 0.34)));
-    visual.style.setProperty('height', 'auto', 'important');
-    visual.style.setProperty('min-height', `${minimumPhotoHeight}px`, 'important');
-    visual.style.setProperty('flex', '1 1 0', 'important');
-    actions.style.setProperty('margin-top', '0', 'important');
+  function viewportMetrics() {
+    const viewport = window.visualViewport;
+    const top = viewport?.offsetTop || 0;
+    const left = viewport?.offsetLeft || 0;
+    const height = viewport?.height || window.innerHeight;
+    const width = viewport?.width || window.innerWidth;
+    return { top, left, height, width };
   }
 
   function syncFrame() {
     if (!mobileQuery.matches || !resultVisible()) return;
 
-    const viewport = window.visualViewport;
-    const viewportTop = viewport?.offsetTop || 0;
-    const viewportLeft = viewport?.offsetLeft || 0;
-    const viewportHeight = viewport?.height || window.innerHeight;
-    const viewportWidth = viewport?.width || window.innerWidth;
-    const top = viewportTop + FRAME_GAP;
-    const left = viewportLeft + FRAME_GAP;
-    const width = Math.max(1, viewportWidth - (FRAME_GAP * 2));
-    const height = Math.max(1, viewportHeight - (FRAME_GAP * 2));
+    const viewport = viewportMetrics();
+    const top = viewport.top + FRAME_GAP;
+    const left = viewport.left + FRAME_GAP;
+    const width = Math.max(1, viewport.width - FRAME_GAP * 2);
+    const height = Math.max(1, viewport.height - FRAME_GAP * 2);
 
     result.style.setProperty('--result-frame-top', `${Math.round(top)}px`);
     result.style.setProperty('--result-frame-left', `${Math.round(left)}px`);
@@ -130,7 +114,7 @@
       'important'
     );
 
-    syncResultComposition(viewportHeight);
+    syncResultComposition();
 
     if (resultBackdrop) {
       resultBackdrop.style.setProperty('position', 'fixed', 'important');
@@ -147,9 +131,7 @@
     if (detailsButton) {
       detailsButton.setAttribute('aria-expanded', String(open));
       const label = detailsButton.querySelector('.in-frame-details-label');
-      if (label) {
-        label.textContent = open ? 'Skrýt detailní rozbor' : 'Zobrazit detailní rozbor';
-      }
+      if (label) label.textContent = open ? 'Skrýt detailní rozbor' : 'Zobrazit detailní rozbor';
     }
 
     if (open) {
@@ -157,9 +139,6 @@
         const content = result.querySelector('.result-content');
         const panel = result.querySelector('.diagnostic-panel');
         if (!content || !panel || !detailsButton) return;
-
-        // Scroll the result sheet itself. scrollIntoView may target the locked
-        // document on iOS, leaving the freshly revealed panel below the fold.
         content.scrollTo({
           top: Math.max(0, panel.offsetTop - detailsButton.offsetHeight - 8),
           behavior: 'smooth'
@@ -218,8 +197,8 @@
     ensureDetailsButton();
     syncFrame();
     window.requestAnimationFrame(syncFrame);
-    window.setTimeout(syncFrame, 100);
-    window.setTimeout(syncFrame, 480);
+    window.setTimeout(syncFrame, 90);
+    window.setTimeout(syncFrame, 420);
   }
 
   const observer = new MutationObserver(() => window.requestAnimationFrame(decorateResult));
