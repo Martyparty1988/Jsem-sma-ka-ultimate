@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'v38';
+const CACHE_VERSION = 'v39';
 const CACHE_NAME = `jsem-smazka-${CACHE_VERSION}`;
 
 const CORE_ASSETS = [
@@ -33,7 +33,7 @@ const SCRIPT_ASSETS = [
   './diagnostic-upgrades.js?v=33',
   './privacy-hardening.js?v=20',
   './ios-one-screen.js?v=28',
-  './in-frame-result.js?v=26'
+  './in-frame-result.js?v=27'
 ];
 
 const DATA_ASSETS = [
