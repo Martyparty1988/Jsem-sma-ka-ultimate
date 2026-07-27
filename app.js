@@ -147,6 +147,7 @@
   function clearErrors() {
     hide(elements.generalError);
     hide(elements.cameraError);
+    show(elements.scanHint);
   }
 
   function setHint(message) {
@@ -191,6 +192,8 @@
   async function initCamera() {
     if (!navigator.mediaDevices?.getUserMedia) {
       showError('Tenhle prohlížeč neumí otevřít kameru. Nahraj fotku ručně.', elements.cameraError);
+      hide(elements.cameraIdle);
+      hide(elements.scanHint);
       show(elements.uploadButton);
       return;
     }
@@ -200,6 +203,8 @@
     stopCamera({ invalidateRequest: false });
     elements.cameraStage?.classList.remove('is-live');
     elements.cameraStage?.classList.toggle('is-user-facing', state.facingMode === 'user');
+    show(elements.cameraIdle);
+    show(elements.scanHint);
     elements.video.style.display = 'block';
 
     try {
@@ -230,8 +235,9 @@
       console.error('Kamera nejde spustit:', error);
       elements.cameraStage?.classList.remove('is-live');
       showError('Kamera je zablokovaná. Povol ji, nebo nahraj fotku.', elements.cameraError);
+      hide(elements.cameraIdle);
+      hide(elements.scanHint);
       show(elements.uploadButton);
-      setHint('Kamera odmítla svědčit. Nahraj důkazní fotku.');
     }
   }
 

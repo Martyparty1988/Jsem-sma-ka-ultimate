@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'v34';
+const CACHE_VERSION = 'v35';
 const CACHE_NAME = `jsem-smazka-${CACHE_VERSION}`;
 
 const CORE_ASSETS = [
@@ -24,7 +24,7 @@ const STYLE_ASSETS = [
 ];
 
 const SCRIPT_ASSETS = [
-  './app.js?v=31',
+  './app.js?v=35',
   './vendor/mediapipe-face-mesh/face_mesh.js?v=0.4.1633559619',
   './face-scan.js?v=31',
   './face-warp.js?v=27',
