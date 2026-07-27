@@ -24,17 +24,27 @@
   let heroReleaseTimer = 0;
 
   function setHeroEngaged(engaged, { immediate = false } = {}) {
-    window.clearTimeout(heroReleaseTimer);
-    heroReleaseTimer = 0;
-
     if (engaged) {
+      window.clearTimeout(heroReleaseTimer);
+      heroReleaseTimer = 0;
       document.body.classList.add('face-guidance-engaged');
       return;
     }
 
-    const release = () => document.body.classList.remove('face-guidance-engaged');
-    if (immediate) release();
-    else heroReleaseTimer = window.setTimeout(release, HERO_RELEASE_DELAY);
+    const release = () => {
+      heroReleaseTimer = 0;
+      document.body.classList.remove('face-guidance-engaged');
+    };
+
+    if (immediate) {
+      window.clearTimeout(heroReleaseTimer);
+      release();
+      return;
+    }
+
+    if (!heroReleaseTimer) {
+      heroReleaseTimer = window.setTimeout(release, HERO_RELEASE_DELAY);
+    }
   }
 
   function visiblePoint(index) {
