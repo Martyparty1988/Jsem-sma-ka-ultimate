@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'v43';
+const CACHE_VERSION = 'v44';
 const CACHE_NAME = `jsem-smazka-${CACHE_VERSION}`;
 
 const CORE_ASSETS = [
@@ -38,7 +38,7 @@ const SCRIPT_ASSETS = [
   './ios-one-screen.js?v=41',
   './in-frame-result.js?v=27',
   './scanner-focus.js?v=42',
-  './face-guidance.js?v=43'
+  './face-guidance.js?v=44'
 ];
 
 const DATA_ASSETS = [
