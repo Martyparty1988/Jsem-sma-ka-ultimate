@@ -11,7 +11,6 @@
   const localStatus = topbar?.querySelector('.local-status');
   const footer = document.querySelector('footer');
   const cameraStage = elements.cameraStage;
-  const scanHint = elements.scanHint;
 
   if (!buttonGroup || !topbar || !cameraStage) return;
 
@@ -25,11 +24,22 @@
   }
 
   buttonGroup.classList.add('camera-control-dock');
-  if (buttonGroup.parentElement !== cameraStage) cameraStage.appendChild(buttonGroup);
 
-  if (scanHint) {
-    scanHint.classList.add('camera-hint-overlay');
-    if (scanHint.parentElement !== cameraStage) cameraStage.appendChild(scanHint);
+  /* Keep hint and controls in the document flow directly below the camera. */
+  if (elements.scanHint) {
+    elements.scanHint.classList.add('camera-hint-overlay');
+    if (elements.scanHint.parentElement !== cameraStage.parentElement) {
+      cameraStage.insertAdjacentElement('afterend', elements.scanHint);
+    }
+  }
+
+  if (buttonGroup.parentElement !== cameraStage.parentElement) {
+    elements.scanHint?.insertAdjacentElement('afterend', buttonGroup);
+  }
+
+  const privacyStrip = document.querySelector('.privacy-strip');
+  if (privacyStrip && privacyStrip.parentElement !== cameraStage.parentElement) {
+    buttonGroup.insertAdjacentElement('afterend', privacyStrip);
   }
 
   const settingsButton = document.createElement('button');
@@ -61,7 +71,7 @@
 
   const header = document.createElement('div');
   header.className = 'ios-settings-header';
-  header.innerHTML = '<div><strong id="iosSettingsTitle">Nastavení</strong><small>Všechno zůstává jen v tomhle zařízení.</small></div>';
+  header.innerHTML = '<div><strong id="iosSettingsTitle">Nastavení</strong><small>Data zůstávají v tomto zařízení.</small></div>';
 
   const closeButton = document.createElement('button');
   closeButton.type = 'button';
@@ -74,12 +84,15 @@
   content.className = 'ios-settings-content';
 
   const localSettings = footer?.querySelector('.local-settings');
-  const privacyNote = footer?.querySelector('.privacy-note');
   const installButton = elements.installButton;
 
   if (localSettings) content.appendChild(localSettings);
-  if (privacyNote) content.appendChild(privacyNote);
   if (installButton) content.appendChild(installButton);
+
+  const privacyInfo = document.createElement('p');
+  privacyInfo.className = 'ios-privacy-info';
+  privacyInfo.textContent = 'Fotka se zpracuje lokálně a neopustí zařízení.';
+  content.appendChild(privacyInfo);
 
   const installHelp = document.createElement('p');
   installHelp.className = 'ios-install-help';
