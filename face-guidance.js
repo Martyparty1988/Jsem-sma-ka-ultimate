@@ -1,4 +1,4 @@
-/* Smažka v43 — local face positioning guidance from MediaPipe landmark geometry. */
+/* Smažka v44 — local face positioning guidance from MediaPipe landmark geometry. */
 (() => {
   'use strict';
 
@@ -129,6 +129,16 @@
     hint.textContent = next.message;
   }
 
+  function showSearchState() {
+    pendingKey = 'search';
+    pendingCount = STABLE_SAMPLES;
+    if (appliedKey === 'search') return;
+    appliedKey = 'search';
+    stage.dataset.guidance = 'search';
+    hint.dataset.guidance = 'search';
+    hint.textContent = 'Obličej doprostřed.';
+  }
+
   function sample(now) {
     animationFrame = window.requestAnimationFrame(sample);
     if (document.hidden || now - lastSampleAt < SAMPLE_INTERVAL) return;
@@ -147,13 +157,7 @@
 
     const face = geometry();
     if (!face || !overlay?.classList.contains('face-detected')) {
-      if (appliedKey !== 'search') {
-        pendingKey = 'search';
-        pendingCount = STABLE_SAMPLES;
-        appliedKey = 'search';
-        stage.dataset.guidance = 'search';
-        hint.dataset.guidance = 'search';
-      }
+      showSearchState();
       return;
     }
 
