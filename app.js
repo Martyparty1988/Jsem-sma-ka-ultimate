@@ -142,11 +142,15 @@
     if (!target) return;
     target.textContent = message;
     show(target);
+    if (target === elements.cameraError) {
+      elements.cameraStage?.classList.add('has-camera-error');
+    }
   }
 
   function clearErrors() {
     hide(elements.generalError);
     hide(elements.cameraError);
+    elements.cameraStage?.classList.remove('has-camera-error');
     show(elements.scanHint);
   }
 
