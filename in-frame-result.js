@@ -69,7 +69,7 @@
       detailsButton.type = 'button';
       detailsButton.className = 'in-frame-details-toggle';
       detailsButton.setAttribute('aria-expanded', 'false');
-      detailsButton.innerHTML = '<span aria-hidden="true">⌁</span><span class="in-frame-details-label">Zobrazit detailní rozbor</span><i aria-hidden="true">⌄</i>';
+      detailsButton.innerHTML = '<svg class="ui-icon" aria-hidden="true"><use href="#icon-zap"></use></svg><span class="in-frame-details-label">Zobrazit detailní rozbor</span><i aria-hidden="true">⌄</i>';
       detailsButton.addEventListener('click', () => setDetailsOpen(!result.classList.contains('details-open')));
     }
 
