@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="description" content="Jsem smažka? Lokální satirický sken zbytků důstojnosti po večírku. Fotka zůstává v prohlížeči.">
-  <meta name="theme-color" content="#070a0f">
+  <meta name="theme-color" content="#070A0F">
   <meta name="color-scheme" content="dark">
   <meta name="format-detection" content="telephone=no">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -33,6 +33,7 @@
   <link rel="stylesheet" href="result-intensity.css?v=47">
   <link rel="stylesheet" href="junkie-face-effect.css?v=52">
   <link rel="stylesheet" href="result-viewport-v53.css?v=53">
+  <link rel="stylesheet" href="pwa-shell-v54.css?v=54">
 </head>
 <body>
   <svg class="icon-sprite" aria-hidden="true">
@@ -81,11 +82,10 @@
   </svg>
   <div class="ambient ambient-one" aria-hidden="true"></div>
 
-  <main class="container" id="app" aria-labelledby="appTitle">
+  <main class="container" id="app" aria-label="Smažka VOID scan">
     <nav class="topbar" aria-label="Stav aplikace">
-      <div class="brand-lockup">
+      <div class="brand-lockup" aria-label="Smažka">
         <span class="brand-mark" aria-hidden="true"></span>
-        <span class="brand-copy"><strong>SMAŽKA</strong><small>VOID SCAN // 53</small></span>
       </div>
       <div class="local-status" title="Fotka zůstává v tomto zařízení">
         <span class="status-dot" aria-hidden="true"></span>
@@ -93,11 +93,10 @@
       </div>
     </nav>
 
-    <header class="hero">
-      <p class="eyebrow">LOKÁLNÍ PSEUDO AI</p>
-      <h1 id="appTitle" data-text="Jsem smažka?">Jsem smažka?</h1>
-      <p class="subtitle">Lokální rozsudek. Nevědecký. Nemilosrdný.</p>
-    </header>
+    <p id="bootMessage" class="boot-message" role="status" aria-live="polite">
+      <span class="boot-message-copy">DETEKCE SMAŽKY: STANDBY</span>
+      <span class="boot-message-cursor" aria-hidden="true">…</span>
+    </p>
 
     <section class="camera-section" id="scanner" aria-label="Kamera a sken">
       <div class="video-container" id="cameraStage">
@@ -182,5 +181,6 @@
   <script defer src="result-intensity.js?v=47"></script>
   <script defer src="junkie-face-effect.js?v=52"></script>
   <script defer src="junkie-polish-v53.js?v=53"></script>
+  <script defer src="boot-message-v54.js?v=54"></script>
 </body>
 </html>
