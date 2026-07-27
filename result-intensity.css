@@ -1,0 +1,155 @@
+/* Smažka v47 — restrained result intensity states driven by verdict severity. */
+
+.result {
+  --verdict-accent: #70e1cf;
+  --verdict-accent-soft: rgba(112, 225, 207, 0.16);
+  --verdict-photo-filter: saturate(0.94) contrast(1.02);
+  --verdict-fade-mid: rgba(7, 10, 15, 0.7);
+  --verdict-fade-end: #070a0f;
+}
+
+.result[data-intensity="calm"] {
+  --verdict-accent: #70e1cf;
+  --verdict-accent-soft: rgba(112, 225, 207, 0.14);
+  --verdict-photo-filter: saturate(0.94) contrast(1.02) brightness(0.98);
+  --verdict-fade-mid: rgba(7, 10, 15, 0.68);
+  --verdict-fade-end: #070a0f;
+}
+
+.result[data-intensity="disturbed"] {
+  --verdict-accent: #8fd6ca;
+  --verdict-accent-soft: rgba(143, 214, 202, 0.18);
+  --verdict-photo-filter: saturate(0.78) contrast(1.08) brightness(0.92);
+  --verdict-fade-mid: rgba(7, 10, 15, 0.78);
+  --verdict-fade-end: #080b10;
+}
+
+.result[data-intensity="critical"] {
+  --verdict-accent: #f7768e;
+  --verdict-accent-soft: rgba(247, 118, 142, 0.2);
+  --verdict-photo-filter: saturate(0.62) contrast(1.14) brightness(0.86);
+  --verdict-fade-mid: rgba(13, 8, 12, 0.82);
+  --verdict-fade-end: #0b080d;
+}
+
+.result[data-intensity] {
+  border-color: color-mix(in srgb, var(--verdict-accent) 25%, transparent);
+  box-shadow:
+    0 24px 68px rgba(0, 0, 0, 0.46),
+    0 0 0 1px color-mix(in srgb, var(--verdict-accent) 8%, transparent),
+    inset 0 1px rgba(255, 255, 255, 0.04);
+}
+
+.result[data-intensity] .result-visual img,
+.result[data-intensity] .result-visual canvas {
+  filter: var(--verdict-photo-filter);
+  transition: filter 360ms ease;
+}
+
+.result[data-intensity] .result-badge,
+.result[data-intensity] .effect-label,
+.result[data-intensity] .result-close {
+  border-color: color-mix(in srgb, var(--verdict-accent) 24%, rgba(255, 255, 255, 0.08));
+}
+
+.result[data-intensity] .effect-label strong,
+.result[data-intensity] .result-effect-meta strong,
+.result[data-intensity] .diagnostic-row.is-worst .diagnostic-copy strong {
+  color: var(--verdict-accent);
+}
+
+.result[data-intensity] .diagnostic-row.is-worst .diagnostic-meter i {
+  background: var(--verdict-accent);
+  box-shadow: 0 0 10px var(--verdict-accent-soft);
+}
+
+.result[data-intensity] .share-button {
+  border-color: color-mix(in srgb, var(--verdict-accent) 54%, transparent);
+  background: var(--verdict-accent);
+  color: #07100f;
+  box-shadow:
+    inset 0 1px rgba(255, 255, 255, 0.22),
+    0 10px 26px var(--verdict-accent-soft);
+}
+
+.result[data-intensity="critical"] .share-button {
+  color: #17080d;
+}
+
+.result[data-intensity="disturbed"] h2 {
+  text-shadow: 0 8px 28px rgba(0, 0, 0, 0.72);
+}
+
+.result[data-intensity="critical"] h2 {
+  text-shadow:
+    0 8px 28px rgba(0, 0, 0, 0.78),
+    0 0 28px rgba(247, 118, 142, 0.09);
+}
+
+.result[data-intensity="critical"] .effect-label strong {
+  animation: criticalScoreArrival 620ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.result-backdrop[data-intensity="calm"] {
+  background: rgba(3, 7, 11, 0.62);
+}
+
+.result-backdrop[data-intensity="disturbed"] {
+  background: rgba(3, 7, 11, 0.7);
+}
+
+.result-backdrop[data-intensity="critical"] {
+  background:
+    radial-gradient(circle at 50% 35%, rgba(247, 118, 142, 0.07), transparent 38%),
+    rgba(7, 4, 8, 0.76);
+}
+
+@keyframes criticalScoreArrival {
+  0% { opacity: 0; transform: translateY(5px) scale(0.9); }
+  55% { opacity: 1; transform: translateY(0) scale(1.06); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@media (max-width: 640px) {
+  body.result-in-frame .result[data-intensity] .in-frame-result-gradient {
+    background:
+      linear-gradient(
+        180deg,
+        rgba(7, 10, 15, 0) 0%,
+        color-mix(in srgb, var(--verdict-accent) 3%, transparent) 18%,
+        var(--verdict-fade-mid) 53%,
+        color-mix(in srgb, var(--verdict-fade-end) 96%, transparent) 79%,
+        var(--verdict-fade-end) 100%
+      );
+  }
+
+  body.result-in-frame .result[data-intensity] .result-visual::after {
+    background:
+      radial-gradient(
+        ellipse at 50% 40%,
+        transparent 43%,
+        color-mix(in srgb, var(--verdict-accent) 3%, rgba(7, 10, 15, 0.12)) 72%,
+        color-mix(in srgb, var(--verdict-accent) 6%, rgba(7, 10, 15, 0.34)) 100%
+      );
+  }
+
+  body.result-in-frame .result[data-intensity="calm"] .result-content {
+    padding-top: clamp(305px, 56%, 548px);
+  }
+
+  body.result-in-frame .result[data-intensity="disturbed"] .result-content,
+  body.result-in-frame .result[data-intensity="critical"] .result-content {
+    padding-top: clamp(290px, 53%, 520px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .result[data-intensity="critical"] .effect-label strong {
+    animation: none;
+  }
+
+  .result[data-intensity] .result-visual img,
+  .result[data-intensity] .result-visual canvas {
+    transition: none;
+  }
+}
