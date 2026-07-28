@@ -43,7 +43,7 @@
   content: '';
   position: absolute;
   z-index: 22;
-  inset: 14%; 12%;
+  inset: 14% 12%;
   display: block;
   pointer-events: none;
   border: 1px solid rgba(112, 225, 207, 0.78);

@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'v58';
+const CACHE_VERSION = 'v59';
 const CACHE_NAME = `jsem-smazka-${CACHE_VERSION}`;
 
 const CORE_ASSETS = [
@@ -11,25 +11,9 @@ const CORE_ASSETS = [
 ];
 
 const STYLE_ASSETS = [
-  './styles.css',
-  './face-warp.css?v=27',
-  './face-warp-pro.css?v=22',
-  './experience-upgrades.css',
-  './diagnostic-upgrades.css?v=33',
-  './ios-one-screen.css?v=27',
-  './in-frame-result.css?v=24',
-  './face-landmarks.css?v=29',
-  './visual-system.css?v=29',
-  './quiet-scan.css?v=37',
-  './scanner-focus.css?v=42',
-  './face-guidance.css?v=49',
-  './result-transition.css?v=45',
-  './result-intensity.css?v=47',
-  './junkie-face-effect.css?v=52',
-  './result-viewport-v53.css?v=53',
-  './pwa-shell-v54.css?v=57',
-  './junkie-transition-v55.css?v=56',
-  './result-readability-v58.css?v=58'
+  './bundle-base.css?v=59',
+  './bundle-scanner.css?v=59',
+  './bundle-results.css?v=59'
 ];
 
 const SCRIPT_ASSETS = [
