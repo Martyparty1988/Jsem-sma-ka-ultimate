@@ -1,4 +1,4 @@
-/* Junky Verdict Engine v62. Local satirical visual scoring; not medical or drug-use detection. */
+/* Junky Verdict Engine v64. Metadata-driven local satire; not medical or drug-use detection. */
 (() => {
   'use strict';
   const app = window.SmazkaApp;
@@ -6,11 +6,10 @@
 
   const { state, elements } = app;
   const originalRunAnalysis = app.runAnalysis.bind(app);
-  const PACK_URL = 'responses-pernik.json?v=40';
-  const MATCHER_URL = './verdict-matcher.js?v=60';
+  const PACK_URL = 'responses-pernik.json?v=64';
+  const MATCHER_URL = './verdict-matcher.js?v=64';
   const TERMINAL_URL = './terminal-readout.js?v=60';
   const RECENT_LIMIT = 5;
-  const LIBRARY_SIZE = 101;
   const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
   const tierFor = (score) => score < 35 ? 'low' : score < 58 ? 'worn' : score < 78 ? 'junky' : 'critical';
   let engineBusy = false;
@@ -19,6 +18,7 @@
   let terminalPromise;
   let terminalObserver;
   let microcopyQueued = false;
+  let metadataWarningIssued = false;
 
   function hashText(text) {
     let hash = 2166136261;
@@ -245,69 +245,6 @@
     return clamp(Math.round(score), 16, 94);
   }
 
-  function metadata(item, index, total) {
-    const text = `${item?.category || ''} ${item?.description || ''}`.toLocaleLowerCase('cs-CZ');
-    const hasRange = Number.isFinite(Number(item?.minSeverity)) && Number.isFinite(Number(item?.maxSeverity));
-    let min = hasRange ? Number(item.minSeverity) : 28;
-    let max = hasRange ? Number(item.maxSeverity) : 82;
-    let tier = item?.tier || 'worn';
-    const tags = Array.isArray(item?.tags) ? [...item.tags] : [];
-    if (!hasRange) {
-      const position = total > 1 ? index / (total - 1) : 0.5;
-      if (/startovní|podezřele funkční|čistá lajna|mikrotrip|svěží/.test(text)) {
-        min = 16; max = 38; tier = 'low';
-      } else if (/kontejner|likvidaci|odpad|zombie|exekutor|expiraci|finální boss|člověk nenalezen|biologick|vypnutej|pekla|úpadek|rozpad|kyselina|dávkovací omyl/.test(text)) {
-        min = 72; max = 98; tier = 'critical';
-      } else if (/piko|pika|perník|varna|čelist|paranoi|trosk|třídenní|nespací/.test(text)) {
-        min = Math.max(42, Math.round(42 + position * 18)); max = 96; tier = position > 0.68 ? 'critical' : 'junky';
-        if (!tags.includes('pernik')) tags.push('pernik');
-      } else {
-        min = Math.round(20 + position * 34); max = Math.round(58 + position * 38); tier = position < 0.3 ? 'low' : position > 0.72 ? 'junky' : 'worn';
-      }
-    }
-    return { ...item, tier, minSeverity: clamp(Math.round(min), 16, 98), maxSeverity: clamp(Math.round(max), 16, 98), tags, weight: clamp(Number(item?.weight) || 1, 0.2, 5) };
-  }
-
-  function weightedPick(items, severity) {
-    const recent = new Set(Array.isArray(state.junkyRecentCategories) ? state.junkyRecentCategories : []);
-    const weighted = items.map((item) => {
-      const center = (item.minSeverity + item.maxSeverity) / 2;
-      const range = Math.max(8, item.maxSeverity - item.minSeverity);
-      const fit = 1.4 - Math.min(1, Math.abs(severity - center) / range);
-      const pernik = item.tags.includes('pernik') ? (severity >= 58 ? 2.35 : 1.55) : 1;
-      const repeat = recent.has(item.category) ? 0.06 : 1;
-      return { item, weight: Math.max(0.01, item.weight * fit * pernik * repeat) };
-    });
-    let cursor = randomUnit() * weighted.reduce((sum, entry) => sum + entry.weight, 0);
-    for (const entry of weighted) {
-      cursor -= entry.weight;
-      if (cursor <= 0) return entry.item;
-    }
-    return weighted.at(-1)?.item || items[0];
-  }
-
-  function selectVerdict(severity) {
-    const source = Array.from(state.responseLibrary || []);
-    const normalized = source.filter((item) => item?.category && item?.description).map((item, index) => metadata(item, index, source.length));
-    const exact = normalized.filter((item) => severity >= item.minSeverity && severity <= item.maxSeverity);
-    const candidates = exact.length ? exact : normalized
-      .map((item) => ({ item, distance: Math.min(Math.abs(severity - item.minSeverity), Math.abs(severity - item.maxSeverity)) }))
-      .sort((a, b) => a.distance - b.distance)
-      .slice(0, Math.max(6, Math.ceil(normalized.length * 0.18)))
-      .map(({ item }) => item);
-    const selected = weightedPick(candidates, severity);
-    const recent = Array.isArray(state.junkyRecentCategories) ? state.junkyRecentCategories : [];
-    state.junkyRecentCategories = [...new Set([selected.category, ...recent])].slice(0, RECENT_LIMIT);
-    return selected;
-  }
-
-  function lockedLibrary(selected, severity) {
-    const targetIndex = clamp(Math.round(((severity - 16) / 78) * (LIBRARY_SIZE - 1)), 0, LIBRARY_SIZE - 1);
-    const library = new Array(LIBRARY_SIZE).fill(selected);
-    Object.defineProperty(library, 'findIndex', { configurable: true, value: () => targetIndex });
-    return library;
-  }
-
   async function waitForStableLibrary(timeout = 2200) {
     const started = performance.now();
     let previous = -1;
@@ -345,22 +282,6 @@
     return packPromise;
   }
 
-  function restoreLibrary(original, locked) {
-    let done = false;
-    let observer;
-    const restore = () => {
-      if (done) return;
-      done = true;
-      if (state.responseLibrary === locked) state.responseLibrary = original;
-      observer?.disconnect();
-    };
-    observer = new MutationObserver(() => {
-      if (!elements.result.classList.contains('hidden') && elements.result.querySelector('.result-content')) restore();
-    });
-    observer.observe(elements.result, { childList: true, subtree: true, attributes: true, attributeFilter: ['class'] });
-    window.setTimeout(restore, 4200);
-  }
-
   async function runTieredAnalysis(options = {}) {
     if (engineBusy || state.isAnalyzing) return;
     if (!state.currentImageData && !options.skipImageCheck) {
@@ -377,12 +298,8 @@
       const metrics = normalizeDevastationMetrics(options.faceAnalysis?.metrics || options.metrics);
       const faceAnalysis = normalizeFaceAnalysis(options.faceAnalysis, metrics);
       let severity;
-      let selected;
 
       if (metrics) {
-        const { matchVerdict } = await loadMatcher();
-        const triggerResponses = state.responseLibrary.filter((item) => item?.triggers);
-        selected = matchVerdict(metrics, triggerResponses, randomUnit);
         const measuredSeverity = Number(faceAnalysis?.scores?.severity);
         severity = Number.isFinite(measuredSeverity)
           ? clamp(Math.round(measuredSeverity), 12, 98)
@@ -392,21 +309,63 @@
           console.warn('Vizuální damage skóre selhalo, používám fallback:', error);
           return 36 + (hashText(String(state.currentImageData).slice(-220)) % 48);
         });
-        selected = selectVerdict(severity);
       }
 
+      const {
+        hasValidResponseMetadata,
+        selectVerdictByMetadata
+      } = await loadMatcher();
+      const responses = Array.from(state.responseLibrary || [])
+        .filter((item) => item?.category && item?.description);
+      const invalidMetadata = responses.filter((item) => !hasValidResponseMetadata(item));
+      if (invalidMetadata.length && !metadataWarningIssued) {
+        metadataWarningIssued = true;
+        console.warn(
+          `Přeskakuju ${invalidMetadata.length} verdiktů bez explicitních severity/effect/signals metadat.`,
+          invalidMetadata.map((item) => item.id || item.category)
+        );
+      }
+      const recent = Array.isArray(state.junkyRecentCategories)
+        ? state.junkyRecentCategories
+        : [];
+      const selected = selectVerdictByMetadata({
+        severity,
+        signals: faceAnalysis?.signals,
+        metrics,
+        responses,
+        recentCategories: recent,
+        random: randomUnit
+      });
       if (!selected) throw new Error('Knihovna verdiktů je prázdná');
-      const original = state.responseLibrary;
-      const locked = lockedLibrary(selected, severity);
+      state.junkyRecentCategories = [
+        ...new Set([selected.category, ...recent])
+      ].slice(0, RECENT_LIMIT);
+
+      const selectedFaceAnalysis = faceAnalysis
+        ? {
+            ...faceAnalysis,
+            selection: {
+              responseId: selected.id || '',
+              category: selected.category,
+              severity,
+              severityRange: { ...selected.severity },
+              effect: selected.effect,
+              signals: [...selected.signals]
+            }
+          }
+        : null;
       state.visualDamageSeverity = severity;
       state.visualDamageTier = tierFor(severity);
       state.lastDevastationMetrics = metrics;
-      state.faceAnalysis = faceAnalysis;
-      state.responseLibrary = locked;
-      restoreLibrary(original, locked);
+      state.faceAnalysis = selectedFaceAnalysis;
       app.setBusy(false);
       if (metrics) scheduleTerminalReadout(metrics, selected);
-      originalRunAnalysis(options);
+      originalRunAnalysis({
+        ...options,
+        severity,
+        verdict: selected,
+        faceAnalysis: selectedFaceAnalysis
+      });
     } finally {
       engineBusy = false;
       if (!state.isAnalyzing) app.setBusy(false);

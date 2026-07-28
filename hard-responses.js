@@ -7,7 +7,7 @@
 
   const mergeHardResponses = async () => {
     try {
-      const response = await fetch('responses-hard.json?v=31', { cache: 'no-cache' });
+      const response = await fetch('responses-hard.json?v=64', { cache: 'no-cache' });
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       const hardResponses = await response.json();
       if (!Array.isArray(hardResponses) || hardResponses.length === 0) return;

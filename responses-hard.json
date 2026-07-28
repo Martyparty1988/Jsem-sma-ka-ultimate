@@ -1,194 +1,691 @@
 [
   {
+    "id": "hard_panelakovej_nekromant",
     "category": "Panelákovej nekromant",
-    "description": "Vstal jsi z gauče po třech dnech a teď děsíš i vlastní stín. Ten už si hledá jiné bydlení."
+    "description": "Vstal jsi z gauče po třech dnech a teď děsíš i vlastní stín. Ten už si hledá jiné bydlení.",
+    "severity": {
+      "min": 58,
+      "max": 82
+    },
+    "effect": "deep-collapse",
+    "signals": [
+      "sharpness",
+      "exposure",
+      "stability"
+    ]
   },
   {
+    "id": "hard_junky_terminator",
     "category": "Junky terminátor",
-    "description": "Tělo hlásí konec směny, ale mozek pořád objednává přesčas. Bez smlouvy a bez důstojnosti."
+    "description": "Tělo hlásí konec směny, ale mozek pořád objednává přesčas. Bez smlouvy a bez důstojnosti.",
+    "severity": {
+      "min": 62,
+      "max": 86
+    },
+    "effect": "signal-glitch",
+    "signals": [
+      "stability",
+      "sharpness"
+    ]
   },
   {
+    "id": "hard_pernikovej_autopilot",
     "category": "Perníkovej autopilot",
-    "description": "Už neřídíš svoje pohyby. Jen se vezeš v těle, který zapomnělo, kde má brzdu."
+    "description": "Už neřídíš svoje pohyby. Jen se vezeš v těle, který zapomnělo, kde má brzdu.",
+    "severity": {
+      "min": 60,
+      "max": 84
+    },
+    "effect": "total-drift",
+    "signals": [
+      "asymmetry",
+      "pose",
+      "stability"
+    ]
   },
   {
+    "id": "hard_chemickej_bezdomovec",
     "category": "Chemickej bezdomovec",
-    "description": "Domov máš v hlavě, ale i tam tě právě vystěhovali. Zůstal jen průvan a divný světlo."
+    "description": "Domov máš v hlavě, ale i tam tě právě vystěhovali. Zůstal jen průvan a divný světlo.",
+    "severity": {
+      "min": 58,
+      "max": 84
+    },
+    "effect": "gravity-loss",
+    "signals": [
+      "pose",
+      "stability"
+    ]
   },
   {
+    "id": "hard_tridenni_prizrak",
     "category": "Třídenní přízrak",
-    "description": "Spánek tě hledá od pátku. Ty se mu úspěšně vyhýbáš a vypadáš podle toho."
+    "description": "Spánek tě hledá od pátku. Ty se mu úspěšně vyhýbáš a vypadáš podle toho.",
+    "severity": {
+      "min": 60,
+      "max": 86
+    },
+    "effect": "eye-sink",
+    "signals": [
+      "eyes",
+      "exposure"
+    ]
   },
   {
+    "id": "hard_nosni_vysavac",
     "category": "Nosní vysavač",
-    "description": "Vysál jsi stůl, náladu i poslední zbytky soudnosti. Koberec se před tebou klepe."
+    "description": "Vysál jsi stůl, náladu i poslední zbytky soudnosti. Koberec se před tebou klepe.",
+    "severity": {
+      "min": 56,
+      "max": 82
+    },
+    "effect": "kebab-lens",
+    "signals": [
+      "mouth",
+      "exposure"
+    ]
   },
   {
+    "id": "hard_laboratorni_skritek",
     "category": "Laboratorní skřítek",
-    "description": "Smrdíš chemií, šeptáš zásuvce a tvrdíš, že všechno řídíš. Zásuvka nesouhlasí."
+    "description": "Smrdíš chemií, šeptáš zásuvce a tvrdíš, že všechno řídíš. Zásuvka nesouhlasí.",
+    "severity": {
+      "min": 54,
+      "max": 80
+    },
+    "effect": "cheek-pressure",
+    "signals": [
+      "asymmetry",
+      "exposure"
+    ]
   },
   {
+    "id": "hard_rozvarenej_mozek",
     "category": "Rozvařenej mozek",
-    "description": "Myšlenky jsou kaše a každá má vlastní paranoidní přílohu. Servíruješ bez talíře."
+    "description": "Myšlenky jsou kaše a každá má vlastní paranoidní přílohu. Servíruješ bez talíře.",
+    "severity": {
+      "min": 64,
+      "max": 88
+    },
+    "effect": "soft-collapse",
+    "signals": [
+      "exposure",
+      "sharpness"
+    ]
   },
   {
+    "id": "hard_piko_zombie_deluxe",
     "category": "Piko zombie deluxe",
-    "description": "Oči otevřený, systém vypnutý. Pohyb zajišťuje už jen basová linka a svalová paměť."
+    "description": "Oči otevřený, systém vypnutý. Pohyb zajišťuje už jen basová linka a svalová paměť.",
+    "severity": {
+      "min": 72,
+      "max": 94
+    },
+    "effect": "eye-sink",
+    "signals": [
+      "eyes",
+      "exposure"
+    ]
   },
   {
+    "id": "hard_kapsar_reality",
     "category": "Kapsář reality",
-    "description": "Realitě jsi ukradl smysl a teď nevíš, kam jsi ho schoval. Prohledáváš vlastní kapsy už hodinu."
+    "description": "Realitě jsi ukradl smysl a teď nevíš, kam jsi ho schoval. Prohledáváš vlastní kapsy už hodinu.",
+    "severity": {
+      "min": 56,
+      "max": 82
+    },
+    "effect": "gravity-loss",
+    "signals": [
+      "pose",
+      "stability"
+    ]
   },
   {
+    "id": "hard_asfaltovej_diplomat",
     "category": "Asfaltovej diplomat",
-    "description": "Vyjednáváš s chodníkem o příměří. Chodník má lepší argumenty a tvrdší povrch."
+    "description": "Vyjednáváš s chodníkem o příměří. Chodník má lepší argumenty a tvrdší povrch.",
+    "severity": {
+      "min": 58,
+      "max": 84
+    },
+    "effect": "gravity-drop",
+    "signals": [
+      "pose",
+      "stability"
+    ]
   },
   {
+    "id": "hard_rozbitej_laboratorni_potkan",
     "category": "Rozbitej laboratorní potkan",
-    "description": "Běžíš v kolečku, který tam není. Výzkum skončil, jen tobě nikdo neposlal e-mail."
+    "description": "Běžíš v kolečku, který tam není. Výzkum skončil, jen tobě nikdo neposlal e-mail.",
+    "severity": {
+      "min": 66,
+      "max": 90
+    },
+    "effect": "signal-glitch",
+    "signals": [
+      "stability",
+      "sharpness"
+    ]
   },
   {
+    "id": "hard_nocni_odpad_lidstva",
     "category": "Noční odpad lidstva",
-    "description": "Ráno se tě lekne zrcadlo, večer už i tma. Přesto pořád tvrdíš, že jsi v pohodě."
+    "description": "Ráno se tě lekne zrcadlo, večer už i tma. Přesto pořád tvrdíš, že jsi v pohodě.",
+    "severity": {
+      "min": 74,
+      "max": 96
+    },
+    "effect": "deep-collapse",
+    "signals": [
+      "sharpness",
+      "exposure",
+      "stability"
+    ]
   },
   {
+    "id": "hard_paranoidni_satelit",
     "category": "Paranoidní satelit",
-    "description": "Obíháš pokoj a přijímáš signály z topení. Radiátor tě prý pomlouvá u lednice."
+    "description": "Obíháš pokoj a přijímáš signály z topení. Radiátor tě prý pomlouvá u lednice.",
+    "severity": {
+      "min": 60,
+      "max": 86
+    },
+    "effect": "total-drift",
+    "signals": [
+      "asymmetry",
+      "pose",
+      "stability"
+    ]
   },
   {
+    "id": "hard_junkyard_mesias",
     "category": "Junkyard mesiáš",
-    "description": "Přišel jsi zachránit afterparty, ale afterparty volá záchranku pro tebe."
+    "description": "Přišel jsi zachránit afterparty, ale afterparty volá záchranku pro tebe.",
+    "severity": {
+      "min": 68,
+      "max": 92
+    },
+    "effect": "cranial-bloom",
+    "signals": [
+      "mouth",
+      "pose"
+    ]
   },
   {
+    "id": "hard_celist_na_uteku",
     "category": "Čelist na útěku",
-    "description": "Zuby pořádají technoparty bez povolení a čelist už podala výpověď."
+    "description": "Zuby pořádají technoparty bez povolení a čelist už podala výpověď.",
+    "severity": {
+      "min": 64,
+      "max": 90
+    },
+    "effect": "jaw-offset",
+    "signals": [
+      "mouth",
+      "asymmetry"
+    ]
   },
   {
+    "id": "hard_vyzvejkana_existence",
     "category": "Vyžvejkaná existence",
-    "description": "Vesmír tě přežvýkal, vyplivl a ještě si otřel botu. Ty tomu říkáš dobrá noc."
+    "description": "Vesmír tě přežvýkal, vyplivl a ještě si otřel botu. Ty tomu říkáš dobrá noc.",
+    "severity": {
+      "min": 70,
+      "max": 94
+    },
+    "effect": "soft-collapse",
+    "signals": [
+      "exposure",
+      "sharpness"
+    ]
   },
   {
+    "id": "hard_konecna_stanice_varna",
     "category": "Konečná stanice varna",
-    "description": "Všechny spoje už odjely. Ty sedíš na perónu, blikáš a čekáš na vlak do normálu."
+    "description": "Všechny spoje už odjely. Ty sedíš na perónu, blikáš a čekáš na vlak do normálu.",
+    "severity": {
+      "min": 76,
+      "max": 98
+    },
+    "effect": "liquid-gravity",
+    "signals": [
+      "pose",
+      "stability"
+    ]
   },
   {
+    "id": "hard_mozkovej_exekutor",
     "category": "Mozkovej exekutor",
-    "description": "Soudnost zabavena, paměť v dražbě a důstojnost vedená jako nedobytná pohledávka."
+    "description": "Soudnost zabavena, paměť v dražbě a důstojnost vedená jako nedobytná pohledávka.",
+    "severity": {
+      "min": 72,
+      "max": 96
+    },
+    "effect": "deep-collapse",
+    "signals": [
+      "sharpness",
+      "exposure",
+      "stability"
+    ]
   },
   {
+    "id": "hard_prepalenej_mutant",
     "category": "Přepálenej mutant",
-    "description": "Obličej se ti snaží opustit lebku. Upřímně se mu nedivíme."
+    "description": "Obličej se ti snaží opustit lebku. Upřímně se mu nedivíme.",
+    "severity": {
+      "min": 70,
+      "max": 94
+    },
+    "effect": "cranial-bloom",
+    "signals": [
+      "mouth",
+      "pose"
+    ]
   },
   {
+    "id": "hard_kontejner_s_pulsem",
     "category": "Kontejner s pulsem",
-    "description": "Technicky žiješ. Esteticky už proběhl svoz a popeláři odmítli podepsat předávací protokol."
+    "description": "Technicky žiješ. Esteticky už proběhl svoz a popeláři odmítli podepsat předávací protokol.",
+    "severity": {
+      "min": 78,
+      "max": 98
+    },
+    "effect": "deep-collapse",
+    "signals": [
+      "sharpness",
+      "exposure",
+      "stability"
+    ]
   },
   {
+    "id": "hard_biologicka_reklamace",
     "category": "Biologická reklamace",
-    "description": "Výrobní vada potvrzena. Záruka padla někdy mezi druhou nocí bez spánku a hádkou s lampou."
+    "description": "Výrobní vada potvrzena. Záruka padla někdy mezi druhou nocí bez spánku a hádkou s lampou.",
+    "severity": {
+      "min": 74,
+      "max": 98
+    },
+    "effect": "total-drift",
+    "signals": [
+      "asymmetry",
+      "pose",
+      "stability"
+    ]
   },
   {
+    "id": "hard_oblicejovej_trestnej_cin",
     "category": "Obličejovej trestnej čin",
-    "description": "Tenhle ksicht by měl být za páskou. Ne kvůli důkazům — aby se k němu nikdo omylem nepřiblížil."
+    "description": "Tenhle ksicht by měl být za páskou. Ne kvůli důkazům — aby se k němu nikdo omylem nepřiblížil.",
+    "severity": {
+      "min": 68,
+      "max": 94
+    },
+    "effect": "asymmetric-drag",
+    "signals": [
+      "asymmetry",
+      "pose"
+    ]
   },
   {
+    "id": "hard_prenosna_ostuda",
     "category": "Přenosná ostuda",
-    "description": "Důstojnost ti utekla oknem a zablokovala si tě. Teď ji zastupuje mastný čelo a cizí mikina."
+    "description": "Důstojnost ti utekla oknem a zablokovala si tě. Teď ji zastupuje mastný čelo a cizí mikina.",
+    "severity": {
+      "min": 60,
+      "max": 86
+    },
+    "effect": "cheek-pressure",
+    "signals": [
+      "asymmetry",
+      "exposure"
+    ]
   },
   {
+    "id": "hard_nouzovej_rezim_masa",
     "category": "Nouzovej režim masa",
-    "description": "Mozek nenalezen, koordinace vypršela a obličej běží na záložní zdroj. Ten zdroj je čistá drzost."
+    "description": "Mozek nenalezen, koordinace vypršela a obličej běží na záložní zdroj. Ten zdroj je čistá drzost.",
+    "severity": {
+      "min": 80,
+      "max": 98
+    },
+    "effect": "deep-collapse",
+    "signals": [
+      "sharpness",
+      "exposure",
+      "stability"
+    ]
   },
   {
+    "id": "hard_ranni_dukazni_material",
     "category": "Ranní důkazní materiál",
-    "description": "Vypadáš jako poslední fotka v telefonu před zahájením vyšetřování. Čas pořízení: velká chyba."
+    "description": "Vypadáš jako poslední fotka v telefonu před zahájením vyšetřování. Čas pořízení: velká chyba.",
+    "severity": {
+      "min": 64,
+      "max": 90
+    },
+    "effect": "wide-lens",
+    "signals": [
+      "pose",
+      "sharpness"
+    ]
   },
   {
+    "id": "hard_clovek_po_expiraci",
     "category": "Člověk po expiraci",
-    "description": "Spotřebujte do včerejška. Skladováno špatně, otevřeno příliš dlouho a obsah teď komunikuje s radiátorem."
+    "description": "Spotřebujte do včerejška. Skladováno špatně, otevřeno příliš dlouho a obsah teď komunikuje s radiátorem.",
+    "severity": {
+      "min": 78,
+      "max": 98
+    },
+    "effect": "deep-collapse",
+    "signals": [
+      "sharpness",
+      "exposure",
+      "stability"
+    ]
   },
   {
+    "id": "hard_toxickej_screensaver",
     "category": "Toxickej screensaver",
-    "description": "Tělo zamrzlo, oči blikají a v hlavě se odráží logo nonstopu. Pro restart podrž vlastní důstojnost — nenalezena."
+    "description": "Tělo zamrzlo, oči blikají a v hlavě se odráží logo nonstopu. Pro restart podrž vlastní důstojnost — nenalezena.",
+    "severity": {
+      "min": 72,
+      "max": 96
+    },
+    "effect": "eye-sink",
+    "signals": [
+      "eyes",
+      "exposure"
+    ]
   },
   {
+    "id": "hard_mentalni_skladka",
     "category": "Mentální skládka",
-    "description": "Každá myšlenka je nelegální odpad a všechny se ti vysypaly za očima. Třídění už nemá smysl."
+    "description": "Každá myšlenka je nelegální odpad a všechny se ti vysypaly za očima. Třídění už nemá smysl.",
+    "severity": {
+      "min": 76,
+      "max": 98
+    },
+    "effect": "total-drift",
+    "signals": [
+      "asymmetry",
+      "pose",
+      "stability"
+    ]
   },
   {
+    "id": "hard_pytel_skody_s_wi_fi",
     "category": "Pytel škody s Wi-Fi",
-    "description": "Vysíláš nouzový signál. Bohužel jen na frekvenci, kterou chytá popelnice a jedna paranoidní mikrovlnka."
+    "description": "Vysíláš nouzový signál. Bohužel jen na frekvenci, kterou chytá popelnice a jedna paranoidní mikrovlnka.",
+    "severity": {
+      "min": 70,
+      "max": 96
+    },
+    "effect": "signal-glitch",
+    "signals": [
+      "stability",
+      "sharpness"
+    ]
   },
   {
+    "id": "hard_pohreb_soudnosti",
     "category": "Pohřeb soudnosti",
-    "description": "Obřad proběhl bez rodiny. Věnec poslala benzínka, smuteční řeč přednesl automat na cigára."
+    "description": "Obřad proběhl bez rodiny. Věnec poslala benzínka, smuteční řeč přednesl automat na cigára.",
+    "severity": {
+      "min": 82,
+      "max": 98
+    },
+    "effect": "deep-collapse",
+    "signals": [
+      "sharpness",
+      "exposure",
+      "stability"
+    ]
   },
   {
+    "id": "hard_lidskej_pop_up",
     "category": "Lidskej pop-up",
-    "description": "Nikdo tě nechtěl otevřít, nejde tě zavřít a pořád vydáváš divný zvuky. Tlačítko přeskočit chybí."
+    "description": "Nikdo tě nechtěl otevřít, nejde tě zavřít a pořád vydáváš divný zvuky. Tlačítko přeskočit chybí.",
+    "severity": {
+      "min": 62,
+      "max": 88
+    },
+    "effect": "signal-glitch",
+    "signals": [
+      "stability",
+      "sharpness"
+    ]
   },
   {
+    "id": "hard_ksicht_po_vybuchu_nonstopu",
     "category": "Ksicht po výbuchu nonstopu",
-    "description": "Vypadáš, jako kdyby zavíračka dostala vztek a bouchla ti přímo do obličeje. Nonstop se distancuje."
+    "description": "Vypadáš, jako kdyby zavíračka dostala vztek a bouchla ti přímo do obličeje. Nonstop se distancuje.",
+    "severity": {
+      "min": 76,
+      "max": 98
+    },
+    "effect": "cranial-bloom",
+    "signals": [
+      "mouth",
+      "pose"
+    ]
   },
   {
+    "id": "hard_spolecenskej_malware",
     "category": "Společenskej malware",
-    "description": "Přišel jsi bez pozvání, vypnul ostatním náladu a teď se nedáš odstranit běžným způsobem."
+    "description": "Přišel jsi bez pozvání, vypnul ostatním náladu a teď se nedáš odstranit běžným způsobem.",
+    "severity": {
+      "min": 68,
+      "max": 94
+    },
+    "effect": "signal-glitch",
+    "signals": [
+      "stability",
+      "sharpness"
+    ]
   },
   {
+    "id": "hard_troska_s_aktualizaci",
     "category": "Troska s aktualizací",
-    "description": "Nainstaloval sis novou verzi pekla. Opravy chyb žádný, zato přibylo třesení a reklamy na vlastní selhání."
+    "description": "Nainstaloval sis novou verzi pekla. Opravy chyb žádný, zato přibylo třesení a reklamy na vlastní selhání.",
+    "severity": {
+      "min": 70,
+      "max": 96
+    },
+    "effect": "total-drift",
+    "signals": [
+      "asymmetry",
+      "pose",
+      "stability"
+    ]
   },
   {
+    "id": "hard_ksicht_v_likvidaci",
     "category": "Ksicht v likvidaci",
-    "description": "Firma zkrachovala, zaměstnanci utekli a na recepci sedí jen zornička velikosti talíře."
+    "description": "Firma zkrachovala, zaměstnanci utekli a na recepci sedí jen zornička velikosti talíře.",
+    "severity": {
+      "min": 80,
+      "max": 98
+    },
+    "effect": "eye-sink",
+    "signals": [
+      "eyes",
+      "exposure"
+    ]
   },
   {
+    "id": "hard_vypoved_z_lidskosti",
     "category": "Výpověď z lidskosti",
-    "description": "Obličej ti vrátil služební průkaz. V tomhle stavu tě nechce reprezentovat ani vlastní ksicht."
+    "description": "Obličej ti vrátil služební průkaz. V tomhle stavu tě nechce reprezentovat ani vlastní ksicht.",
+    "severity": {
+      "min": 82,
+      "max": 98
+    },
+    "effect": "deep-collapse",
+    "signals": [
+      "sharpness",
+      "exposure",
+      "stability"
+    ]
   },
   {
+    "id": "hard_chodici_zavada",
     "category": "Chodící závada",
-    "description": "Všechno na tobě svítí červeně, ale ty pořád mačkáš pokračovat. Servis tě viděl a zhasnul."
+    "description": "Všechno na tobě svítí červeně, ale ty pořád mačkáš pokračovat. Servis tě viděl a zhasnul.",
+    "severity": {
+      "min": 76,
+      "max": 98
+    },
+    "effect": "signal-glitch",
+    "signals": [
+      "stability",
+      "sharpness"
+    ]
   },
   {
+    "id": "hard_nocni_fauna",
     "category": "Noční fauna",
-    "description": "Přes den se schováváš, v noci syčíš na světlo a živíš se rozhodnutími, za která se ráno stydí i internet."
+    "description": "Přes den se schováváš, v noci syčíš na světlo a živíš se rozhodnutími, za která se ráno stydí i internet.",
+    "severity": {
+      "min": 66,
+      "max": 92
+    },
+    "effect": "eye-sink",
+    "signals": [
+      "eyes",
+      "exposure"
+    ]
   },
   {
+    "id": "hard_zbytkovej_clovek",
     "category": "Zbytkovej člověk",
-    "description": "Analýza našla sedm procent osobnosti, dvě cizí vzpomínky a účtenku, která odmítá vypovídat."
+    "description": "Analýza našla sedm procent osobnosti, dvě cizí vzpomínky a účtenku, která odmítá vypovídat.",
+    "severity": {
+      "min": 84,
+      "max": 98
+    },
+    "effect": "deep-collapse",
+    "signals": [
+      "sharpness",
+      "exposure",
+      "stability"
+    ]
   },
   {
+    "id": "hard_dustojnost_404",
     "category": "Důstojnost 404",
-    "description": "Požadovaná vlastnost nebyla nalezena. Server vrací jen pot, tik a nevyžádanou životní moudrost."
+    "description": "Požadovaná vlastnost nebyla nalezena. Server vrací jen pot, tik a nevyžádanou životní moudrost.",
+    "severity": {
+      "min": 80,
+      "max": 98
+    },
+    "effect": "signal-glitch",
+    "signals": [
+      "stability",
+      "sharpness"
+    ]
   },
   {
+    "id": "hard_kyselinovej_sirotek",
     "category": "Kyselinovej sirotek",
-    "description": "Realita tě odložila u dveří nonstopu s cedulkou nevracet. Nonstop ji poslechl."
+    "description": "Realita tě odložila u dveří nonstopu s cedulkou nevracet. Nonstop ji poslechl.",
+    "severity": {
+      "min": 72,
+      "max": 96
+    },
+    "effect": "gravity-loss",
+    "signals": [
+      "pose",
+      "stability"
+    ]
   },
   {
+    "id": "hard_mestskej_strasak",
     "category": "Městskej strašák",
-    "description": "Holubi změnili chodník, taxikář zamknul dveře a noční tramvaj předstírá poruchu. Ty jdeš dál."
+    "description": "Holubi změnili chodník, taxikář zamknul dveře a noční tramvaj předstírá poruchu. Ty jdeš dál.",
+    "severity": {
+      "min": 70,
+      "max": 96
+    },
+    "effect": "wide-lens",
+    "signals": [
+      "pose",
+      "sharpness"
+    ]
   },
   {
+    "id": "hard_posledni_faze_vecirku",
     "category": "Poslední fáze večírku",
-    "description": "Hudba skončila, světla svítí a personál vytírá kolem tebe. Ty pořád čekáš na drop i základní sebereflexi."
+    "description": "Hudba skončila, světla svítí a personál vytírá kolem tebe. Ty pořád čekáš na drop i základní sebereflexi.",
+    "severity": {
+      "min": 78,
+      "max": 98
+    },
+    "effect": "liquid-gravity",
+    "signals": [
+      "pose",
+      "stability"
+    ]
   },
   {
+    "id": "hard_rozsudek_z_podsveti",
     "category": "Rozsudek z podsvětí",
-    "description": "Vinen z vraždy vlastního rána. Trest: potkat zrcadlo bez filtru a přečíst si odeslané zprávy."
+    "description": "Vinen z vraždy vlastního rána. Trest: potkat zrcadlo bez filtru a přečíst si odeslané zprávy.",
+    "severity": {
+      "min": 82,
+      "max": 98
+    },
+    "effect": "total-drift",
+    "signals": [
+      "asymmetry",
+      "pose",
+      "stability"
+    ]
   },
   {
+    "id": "hard_odpadni_aristokrat",
     "category": "Odpadní aristokrat",
-    "description": "Koruna z víčka, plášť z cizí bundy a království mezi popelníkem a záchodem. Poddaní odešli domů."
+    "description": "Koruna z víčka, plášť z cizí bundy a království mezi popelníkem a záchodem. Poddaní odešli domů.",
+    "severity": {
+      "min": 68,
+      "max": 94
+    },
+    "effect": "cranial-bloom",
+    "signals": [
+      "mouth",
+      "pose"
+    ]
   },
   {
+    "id": "hard_mozek_na_uteku",
     "category": "Mozek na útěku",
-    "description": "Naposledy byl viděn, jak bosý nasedá do nočního autobusu. Prosí veřejnost, aby ho s tebou nespojovala."
+    "description": "Naposledy byl viděn, jak bosý nasedá do nočního autobusu. Prosí veřejnost, aby ho s tebou nespojovala.",
+    "severity": {
+      "min": 84,
+      "max": 98
+    },
+    "effect": "total-drift",
+    "signals": [
+      "asymmetry",
+      "pose",
+      "stability"
+    ]
   },
   {
+    "id": "hard_finalni_boss_ostudy",
     "category": "Finální boss ostudy",
-    "description": "Porazil jsi spánek, vkus i pud sebezáchovy. Odměna: fotka, kterou bude algoritmus schovávat před lidmi."
+    "description": "Porazil jsi spánek, vkus i pud sebezáchovy. Odměna: fotka, kterou bude algoritmus schovávat před lidmi.",
+    "severity": {
+      "min": 88,
+      "max": 100
+    },
+    "effect": "deep-collapse",
+    "signals": [
+      "sharpness",
+      "exposure",
+      "stability"
+    ]
   }
 ]

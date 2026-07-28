@@ -7,9 +7,23 @@ const NUMERIC_TRIGGERS = Object.freeze({
   tilt_max: ['gravitace', (value, limit) => value <= limit]
 });
 
+export const SUPPORTED_SIGNALS = Object.freeze([
+  'pose',
+  'eyes',
+  'mouth',
+  'asymmetry',
+  'stability',
+  'exposure',
+  'sharpness'
+]);
+
 function finiteNumber(value) {
   const number = Number(value);
   return Number.isFinite(number) ? number : null;
+}
+
+function clamp(value, minimum, maximum) {
+  return Math.max(minimum, Math.min(maximum, value));
 }
 
 function normalizedAsymmetry(value) {
@@ -44,7 +58,103 @@ export function scoreVerdict(metrics, verdict) {
   );
 }
 
+export function hasValidResponseMetadata(verdict) {
+  const minimum = finiteNumber(verdict?.severity?.min);
+  const maximum = finiteNumber(verdict?.severity?.max);
+  return minimum !== null
+    && maximum !== null
+    && minimum >= 0
+    && maximum <= 100
+    && minimum <= maximum
+    && typeof verdict?.effect === 'string'
+    && verdict.effect.trim().length > 0
+    && Array.isArray(verdict?.signals)
+    && verdict.signals.every((signal) => SUPPORTED_SIGNALS.includes(signal));
+}
+
+function severityDistance(severity, verdict) {
+  const minimum = Number(verdict.severity.min);
+  const maximum = Number(verdict.severity.max);
+  if (severity < minimum) return minimum - severity;
+  if (severity > maximum) return severity - maximum;
+  return 0;
+}
+
+function dominantSignals(signals, limit = 3) {
+  return SUPPORTED_SIGNALS
+    .map((key) => ({ key, value: finiteNumber(signals?.[key]) }))
+    .filter((entry) => entry.value !== null)
+    .map((entry) => ({ ...entry, value: clamp(entry.value, 0, 1) }))
+    .sort((first, second) => second.value - first.value)
+    .slice(0, limit)
+    .map((entry) => entry.key);
+}
+
+/**
+ * Vybere verdikt podle explicitních metadat.
+ *
+ * 1. Nejdřív se použije rozsah severity (nebo nejbližší rozsah).
+ * 2. Kandidáti se seřadí podle průniku s dominantními vizuálními signály.
+ * 3. Stávající biometrické triggery slouží pouze jako pomocné tie-breakery.
+ * 4. Poslední kategorie dostanou malou penalizaci a z nejlepších se losuje.
+ *
+ * Funkce nemění žádný vstup. `recentCategories` je předáváno explicitně,
+ * takže historie výběru nezavádí skrytý globální stav.
+ */
+export function selectVerdictByMetadata({
+  severity,
+  signals,
+  metrics,
+  responses,
+  recentCategories = [],
+  random = Math.random
+} = {}) {
+  if (!Array.isArray(responses) || responses.length === 0) return null;
+
+  const valid = responses.filter(hasValidResponseMetadata);
+  if (valid.length === 0) return randomItem(responses.filter(Boolean), random);
+
+  const targetSeverity = clamp(finiteNumber(severity) ?? 50, 0, 100);
+  const distances = valid.map((verdict) => ({
+    verdict,
+    distance: severityDistance(targetSeverity, verdict)
+  }));
+  const nearestDistance = distances.reduce(
+    (nearest, entry) => Math.min(nearest, entry.distance),
+    Number.POSITIVE_INFINITY
+  );
+  const severityCandidates = distances
+    .filter((entry) => entry.distance === nearestDistance)
+    .map((entry) => entry.verdict);
+
+  const dominant = dominantSignals(signals);
+  const dominantSet = new Set(dominant);
+  const recent = new Set(recentCategories.filter((category) => typeof category === 'string'));
+  const ranked = severityCandidates.map((verdict) => {
+    const signalMatches = verdict.signals.reduce(
+      (score, signal) => score + Number(dominantSet.has(signal)),
+      0
+    );
+    const triggerScore = scoreVerdict(metrics, verdict);
+    const recencyPenalty = recent.has(verdict.category) ? 0.25 : 0;
+    return {
+      verdict,
+      score: signalMatches * 4 + triggerScore * 0.35 - recencyPenalty
+    };
+  });
+  const highestScore = ranked.reduce(
+    (highest, candidate) => Math.max(highest, candidate.score),
+    Number.NEGATIVE_INFINITY
+  );
+  const bestMatches = ranked
+    .filter((candidate) => Math.abs(candidate.score - highestScore) < 0.000001)
+    .map((candidate) => candidate.verdict);
+
+  return randomItem(bestMatches, random);
+}
+
 function randomItem(items, random) {
+  if (items.length === 0) return null;
   if (items.length === 1) return items[0];
 
   const sample = Number(random());

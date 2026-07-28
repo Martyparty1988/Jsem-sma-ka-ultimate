@@ -1,443 +1,1125 @@
 [
   {
+    "id": "pernik_podezrele_cerstva_troska",
     "category": "Podezřele čerstvá troska",
     "description": "Vypadáš použitelně. To znamená buď dobrý světlo, nebo profesionální sebeklam.",
+    "severity": {
+      "min": 16,
+      "max": 34
+    },
+    "effect": "soft-drift",
+    "signals": [],
     "tier": "low",
     "minSeverity": 16,
     "maxSeverity": 34,
-    "tags": ["pernik", "light", "face"],
+    "tags": [
+      "pernik",
+      "light",
+      "face"
+    ],
     "weight": 1.2
   },
   {
+    "id": "pernik_pernikovej_inventar",
     "category": "Perníkovej inventář",
     "description": "Tři cizí zapalovače, čelist na přesčase a žádná vzpomínka, komu patří mikina.",
+    "severity": {
+      "min": 22,
+      "max": 42
+    },
+    "effect": "signal-glitch",
+    "signals": [
+      "stability",
+      "sharpness"
+    ],
     "tier": "low",
     "minSeverity": 22,
     "maxSeverity": 42,
-    "tags": ["pernik", "jaw", "keys"],
+    "tags": [
+      "pernik",
+      "jaw",
+      "keys"
+    ],
     "weight": 1.5
   },
   {
+    "id": "pernik_piko_ucetnictvi",
     "category": "Piko účetnictví",
     "description": "Tři noci v mínusu, šest tiků na účtu a jedna čelist po splatnosti.",
+    "severity": {
+      "min": 24,
+      "max": 44
+    },
+    "effect": "jaw-offset",
+    "signals": [
+      "mouth",
+      "asymmetry"
+    ],
     "tier": "low",
     "minSeverity": 24,
     "maxSeverity": 44,
-    "tags": ["pernik", "jaw", "sleep"],
+    "tags": [
+      "pernik",
+      "jaw",
+      "sleep"
+    ],
     "weight": 1.45
   },
   {
+    "id": "pernik_celistni_prescas",
     "category": "Čelistní přesčas",
     "description": "Tělo už má padla. Zuby ale pořád jedou směnu bez smlouvy.",
+    "severity": {
+      "min": 25,
+      "max": 46
+    },
+    "effect": "jaw-offset",
+    "signals": [
+      "mouth",
+      "asymmetry"
+    ],
     "tier": "low",
     "minSeverity": 25,
     "maxSeverity": 46,
-    "tags": ["pernik", "jaw"],
+    "tags": [
+      "pernik",
+      "jaw"
+    ],
     "weight": 1.5
   },
   {
+    "id": "pernik_panelakovej_speedrun",
     "category": "Panelákovej speedrun",
     "description": "Za jednu noc jsi ztratil klíče, kamarády i schopnost mrkat normálně.",
+    "severity": {
+      "min": 27,
+      "max": 47
+    },
+    "effect": "signal-glitch",
+    "signals": [
+      "stability",
+      "sharpness"
+    ],
     "tier": "low",
     "minSeverity": 27,
     "maxSeverity": 47,
-    "tags": ["pernik", "eyes", "keys"],
+    "tags": [
+      "pernik",
+      "eyes",
+      "keys"
+    ],
     "weight": 1.4
   },
   {
+    "id": "pernik_piko_meteorolog",
     "category": "Piko meteorolog",
     "description": "Tvrdíš, že přijde bouřka. To jen tvoje čelist mění tlak v místnosti.",
+    "severity": {
+      "min": 28,
+      "max": 48
+    },
+    "effect": "jaw-offset",
+    "signals": [
+      "mouth",
+      "asymmetry"
+    ],
     "tier": "low",
     "minSeverity": 28,
     "maxSeverity": 48,
-    "tags": ["pernik", "jaw"],
+    "tags": [
+      "pernik",
+      "jaw"
+    ],
     "weight": 1.3
   },
   {
+    "id": "pernik_pernikovej_startup",
     "category": "Perníkovej startup",
     "description": "Nápad žádnej, investice zdraví a produkt je další ráno bez důstojnosti.",
+    "severity": {
+      "min": 30,
+      "max": 50
+    },
+    "effect": "late-night",
+    "signals": [
+      "eyes",
+      "exposure"
+    ],
     "tier": "low",
     "minSeverity": 30,
     "maxSeverity": 50,
-    "tags": ["pernik", "morning"],
+    "tags": [
+      "pernik",
+      "morning"
+    ],
     "weight": 1.25
   },
   {
+    "id": "pernik_nonstopovej_sirotek",
     "category": "Nonstopovej sirotek",
     "description": "Ráno tě vyplivlo před benzínkou. I automat na kafe dělal, že tě nezná.",
+    "severity": {
+      "min": 32,
+      "max": 54
+    },
+    "effect": "late-night",
+    "signals": [
+      "eyes",
+      "exposure"
+    ],
     "tier": "worn",
     "minSeverity": 32,
     "maxSeverity": 54,
-    "tags": ["pernik", "nonstop", "morning"],
+    "tags": [
+      "pernik",
+      "nonstop",
+      "morning"
+    ],
     "weight": 1.6
   },
   {
+    "id": "pernik_piko_po_zaruce",
     "category": "Piko po záruce",
     "description": "Výrobce ukončil podporu. Tělo se přesto pokouší spustit další noc.",
+    "severity": {
+      "min": 34,
+      "max": 56
+    },
+    "effect": "eye-sink",
+    "signals": [
+      "eyes",
+      "exposure"
+    ],
     "tier": "worn",
     "minSeverity": 34,
     "maxSeverity": 56,
-    "tags": ["pernik", "body", "sleep"],
+    "tags": [
+      "pernik",
+      "body",
+      "sleep"
+    ],
     "weight": 1.5
   },
   {
+    "id": "pernik_pernikovej_screensaver",
     "category": "Perníkovej screensaver",
     "description": "Oči blikají, tělo zamrzlo a v hlavě běhá logo nonstopu.",
+    "severity": {
+      "min": 36,
+      "max": 58
+    },
+    "effect": "eye-sink",
+    "signals": [
+      "eyes",
+      "exposure"
+    ],
     "tier": "worn",
     "minSeverity": 36,
     "maxSeverity": 58,
-    "tags": ["pernik", "eyes", "nonstop"],
+    "tags": [
+      "pernik",
+      "eyes",
+      "nonstop"
+    ],
     "weight": 1.6
   },
   {
+    "id": "pernik_piko_inventar",
     "category": "Piko inventář",
     "description": "Tři cizí zapalovače, účtenka z benzínky a nulová vzpomínka, proč tě bolí čelist.",
+    "severity": {
+      "min": 36,
+      "max": 60
+    },
+    "effect": "jaw-offset",
+    "signals": [
+      "mouth",
+      "asymmetry"
+    ],
     "tier": "worn",
     "minSeverity": 36,
     "maxSeverity": 60,
-    "tags": ["pernik", "jaw", "nonstop"],
+    "tags": [
+      "pernik",
+      "jaw",
+      "nonstop"
+    ],
     "weight": 1.55
   },
   {
+    "id": "pernik_pernikovej_nahradni_dil",
     "category": "Perníkovej náhradní díl",
     "description": "Člověk chybí. Někdo ho nahradil tikem, potem a názorem na radiátor.",
+    "severity": {
+      "min": 38,
+      "max": 62
+    },
+    "effect": "cheek-pressure",
+    "signals": [
+      "asymmetry",
+      "exposure"
+    ],
     "tier": "worn",
     "minSeverity": 38,
     "maxSeverity": 62,
-    "tags": ["pernik", "radiator", "body"],
+    "tags": [
+      "pernik",
+      "radiator",
+      "body"
+    ],
     "weight": 1.7
   },
   {
+    "id": "pernik_piko_terminal",
     "category": "Piko terminál",
     "description": "Přijímáš pouze mince, špatný nápady a signály z topení.",
+    "severity": {
+      "min": 39,
+      "max": 62
+    },
+    "effect": "gravity-loss",
+    "signals": [
+      "pose",
+      "stability"
+    ],
     "tier": "worn",
     "minSeverity": 39,
     "maxSeverity": 62,
-    "tags": ["pernik", "radiator", "paranoia"],
+    "tags": [
+      "pernik",
+      "radiator",
+      "paranoia"
+    ],
     "weight": 1.4
   },
   {
+    "id": "pernik_celistni_varna",
     "category": "Čelistní varna",
     "description": "Zuby vaří vlastní směnu. Mozek odešel domů bez rozloučení.",
+    "severity": {
+      "min": 40,
+      "max": 64
+    },
+    "effect": "jaw-offset",
+    "signals": [
+      "mouth",
+      "asymmetry"
+    ],
     "tier": "worn",
     "minSeverity": 40,
     "maxSeverity": 64,
-    "tags": ["pernik", "jaw", "brain"],
+    "tags": [
+      "pernik",
+      "jaw",
+      "brain"
+    ],
     "weight": 1.8
   },
   {
+    "id": "pernik_piko_servisni_rezim",
     "category": "Piko servisní režim",
     "description": "Kontrolka mozku bliká, čelist vibruje a servis odmítá převzít zakázku.",
+    "severity": {
+      "min": 42,
+      "max": 66
+    },
+    "effect": "jaw-offset",
+    "signals": [
+      "mouth",
+      "asymmetry"
+    ],
     "tier": "worn",
     "minSeverity": 42,
     "maxSeverity": 66,
-    "tags": ["pernik", "jaw", "brain"],
+    "tags": [
+      "pernik",
+      "jaw",
+      "brain"
+    ],
     "weight": 1.7
   },
   {
+    "id": "pernik_pernikovej_autopilot",
     "category": "Perníkovej autopilot",
     "description": "Nikam nejdeš, jen tělo pokračuje ze zvyku. Cíl cesty: další špatný rozhodnutí.",
+    "severity": {
+      "min": 42,
+      "max": 68
+    },
+    "effect": "soft-collapse",
+    "signals": [
+      "exposure",
+      "sharpness"
+    ],
     "tier": "worn",
     "minSeverity": 42,
     "maxSeverity": 68,
-    "tags": ["pernik", "body", "collapse"],
+    "tags": [
+      "pernik",
+      "body",
+      "collapse"
+    ],
     "weight": 1.7
   },
   {
+    "id": "pernik_piko_roadtrip",
     "category": "Piko roadtrip",
     "description": "Cíl neznámý, řidič neexistuje a navigace tě prosí, ať vystoupíš.",
+    "severity": {
+      "min": 44,
+      "max": 68
+    },
+    "effect": "gravity-loss",
+    "signals": [
+      "pose",
+      "stability"
+    ],
     "tier": "worn",
     "minSeverity": 44,
     "maxSeverity": 68,
-    "tags": ["pernik", "reality", "collapse"],
+    "tags": [
+      "pernik",
+      "reality",
+      "collapse"
+    ],
     "weight": 1.45
   },
   {
+    "id": "pernik_pernikovej_kazatel",
     "category": "Perníkovej kazatel",
     "description": "Kážeš lednici o pravdě. Lednice má vypnuto a stejně působí chytřeji.",
+    "severity": {
+      "min": 46,
+      "max": 72
+    },
+    "effect": "gravity-loss",
+    "signals": [
+      "pose",
+      "stability"
+    ],
     "tier": "junky",
     "minSeverity": 46,
     "maxSeverity": 72,
-    "tags": ["pernik", "paranoia", "appliance"],
+    "tags": [
+      "pernik",
+      "paranoia",
+      "appliance"
+    ],
     "weight": 1.75
   },
   {
+    "id": "pernik_piko_najemnik",
     "category": "Piko nájemník",
     "description": "Paranoia už bydlí v hlavě, neplatí nájem a kontroluje ti telefon.",
+    "severity": {
+      "min": 48,
+      "max": 74
+    },
+    "effect": "signal-glitch",
+    "signals": [
+      "stability",
+      "sharpness"
+    ],
     "tier": "junky",
     "minSeverity": 48,
     "maxSeverity": 74,
-    "tags": ["pernik", "paranoia", "phone"],
+    "tags": [
+      "pernik",
+      "paranoia",
+      "phone"
+    ],
     "weight": 1.8
   },
   {
+    "id": "pernik_piko_pojistovna",
     "category": "Piko pojišťovna",
     "description": "Pojistná událost zamítnuta. Důvod: škodu sis způsobil opakovaně a s nadšením.",
+    "severity": {
+      "min": 50,
+      "max": 76
+    },
+    "effect": "facial-drift",
+    "signals": [
+      "pose",
+      "asymmetry"
+    ],
     "tier": "junky",
     "minSeverity": 50,
     "maxSeverity": 76,
-    "tags": ["pernik", "damage"],
+    "tags": [
+      "pernik",
+      "damage"
+    ],
     "weight": 1.6
   },
   {
+    "id": "pernik_varicova_reklamace",
     "category": "Vařičova reklamace",
     "description": "Chemie proběhla. Kontrola kvality se při pohledu na tebe rozplakala.",
+    "severity": {
+      "min": 50,
+      "max": 78
+    },
+    "effect": "liquid-gravity",
+    "signals": [
+      "pose",
+      "stability"
+    ],
     "tier": "junky",
     "minSeverity": 50,
     "maxSeverity": 78,
-    "tags": ["pernik", "varna", "face"],
+    "tags": [
+      "pernik",
+      "varna",
+      "face"
+    ],
     "weight": 1.9
   },
   {
+    "id": "pernik_pernikovej_bezdomovec",
     "category": "Perníkovej bezdomovec",
     "description": "Domov už nemáš ani v hlavě. I vlastní myšlenky ti vyměnily zámek.",
+    "severity": {
+      "min": 52,
+      "max": 78
+    },
+    "effect": "gravity-loss",
+    "signals": [
+      "pose",
+      "stability"
+    ],
     "tier": "junky",
     "minSeverity": 52,
     "maxSeverity": 78,
-    "tags": ["pernik", "brain", "reality"],
+    "tags": [
+      "pernik",
+      "brain",
+      "reality"
+    ],
     "weight": 1.8
   },
   {
+    "id": "pernik_piko_zombie_z_panelaku",
     "category": "Piko zombie z paneláku",
     "description": "Dveře od výtahu tě poznaly. Sousedé už se to snaží zapomenout.",
+    "severity": {
+      "min": 52,
+      "max": 80
+    },
+    "effect": "eye-sink",
+    "signals": [
+      "eyes",
+      "exposure"
+    ],
     "tier": "junky",
     "minSeverity": 52,
     "maxSeverity": 80,
-    "tags": ["pernik", "zombie", "panelak"],
+    "tags": [
+      "pernik",
+      "zombie",
+      "panelak"
+    ],
     "weight": 1.85
   },
   {
+    "id": "pernik_varna_404",
     "category": "Varna 404",
     "description": "Recept nenalezen. Člověk taky ne. Zůstal jen chemický odér a přehnané sebevědomí.",
+    "severity": {
+      "min": 54,
+      "max": 80
+    },
+    "effect": "signal-glitch",
+    "signals": [
+      "stability",
+      "sharpness"
+    ],
     "tier": "junky",
     "minSeverity": 54,
     "maxSeverity": 80,
-    "tags": ["pernik", "varna", "glitch"],
+    "tags": [
+      "pernik",
+      "varna",
+      "glitch"
+    ],
     "weight": 1.9
   },
   {
+    "id": "pernik_piko_troska_deluxe",
     "category": "Piko troska deluxe",
     "description": "Prémiový balíček obsahuje pot, paranoiu a telefon plný zpráv, které nesmíš číst za střízliva.",
+    "severity": {
+      "min": 55,
+      "max": 82
+    },
+    "effect": "signal-glitch",
+    "signals": [
+      "stability",
+      "sharpness"
+    ],
     "tier": "junky",
     "minSeverity": 55,
     "maxSeverity": 82,
-    "tags": ["pernik", "paranoia", "phone"],
+    "tags": [
+      "pernik",
+      "paranoia",
+      "phone"
+    ],
     "weight": 2
   },
   {
+    "id": "pernik_varicuv_sirotek",
     "category": "Vařičův sirotek",
     "description": "Chemie tě vychovala, nonstop tě nakrmil a ráno se k tobě nikdo nehlásí.",
+    "severity": {
+      "min": 56,
+      "max": 82
+    },
+    "effect": "liquid-gravity",
+    "signals": [
+      "pose",
+      "stability"
+    ],
     "tier": "junky",
     "minSeverity": 56,
     "maxSeverity": 82,
-    "tags": ["pernik", "varna", "nonstop"],
+    "tags": [
+      "pernik",
+      "varna",
+      "nonstop"
+    ],
     "weight": 1.9
   },
   {
+    "id": "pernik_pernikovej_odpis",
     "category": "Perníkovej odpis",
     "description": "Účetní hodnota nula. Biologická hodnota se právě hádá s lampou.",
+    "severity": {
+      "min": 58,
+      "max": 84
+    },
+    "effect": "gravity-loss",
+    "signals": [
+      "pose",
+      "stability"
+    ],
     "tier": "junky",
     "minSeverity": 58,
     "maxSeverity": 84,
-    "tags": ["pernik", "paranoia", "damage"],
+    "tags": [
+      "pernik",
+      "paranoia",
+      "damage"
+    ],
     "weight": 2
   },
   {
+    "id": "pernik_piko_mumie",
     "category": "Piko mumie",
     "description": "Tři dny bez spánku tě zakonzervovaly v potu a špatných rozhodnutích.",
+    "severity": {
+      "min": 58,
+      "max": 84
+    },
+    "effect": "eye-sink",
+    "signals": [
+      "eyes",
+      "exposure"
+    ],
     "tier": "junky",
     "minSeverity": 58,
     "maxSeverity": 84,
-    "tags": ["pernik", "sleep", "body"],
+    "tags": [
+      "pernik",
+      "sleep",
+      "body"
+    ],
     "weight": 1.9
   },
   {
+    "id": "pernik_pernikova_demolice",
     "category": "Perníková demolice",
     "description": "Nosná konstrukce člověka praskla. Provoz pokračuje bez kolaudace.",
+    "severity": {
+      "min": 60,
+      "max": 86
+    },
+    "effect": "soft-collapse",
+    "signals": [
+      "exposure",
+      "sharpness"
+    ],
     "tier": "junky",
     "minSeverity": 60,
     "maxSeverity": 86,
-    "tags": ["pernik", "body", "collapse"],
+    "tags": [
+      "pernik",
+      "body",
+      "collapse"
+    ],
     "weight": 2
   },
   {
+    "id": "pernik_varna_v_obliceji",
     "category": "Varna v obličeji",
     "description": "Ten ksicht vypadá, jako kdyby chemická laboratoř dostala vztek a hodila po tobě směnu.",
+    "severity": {
+      "min": 62,
+      "max": 86
+    },
+    "effect": "liquid-gravity",
+    "signals": [
+      "pose",
+      "stability"
+    ],
     "tier": "junky",
     "minSeverity": 62,
     "maxSeverity": 86,
-    "tags": ["pernik", "varna", "face"],
+    "tags": [
+      "pernik",
+      "varna",
+      "face"
+    ],
     "weight": 2.1
   },
   {
+    "id": "pernik_piko_exekuce",
     "category": "Piko exekuce",
     "description": "Spánek zabaven, důstojnost v dražbě a poslední neuron vedený jako nedobytný majetek.",
+    "severity": {
+      "min": 64,
+      "max": 88
+    },
+    "effect": "eye-sink",
+    "signals": [
+      "eyes",
+      "exposure"
+    ],
     "tier": "junky",
     "minSeverity": 64,
     "maxSeverity": 88,
-    "tags": ["pernik", "sleep", "brain"],
+    "tags": [
+      "pernik",
+      "sleep",
+      "brain"
+    ],
     "weight": 2.1
   },
   {
+    "id": "pernik_pernikovej_dukazni_material",
     "category": "Perníkovej důkazní materiál",
     "description": "Ksicht připravený do sáčku. Kriminálka žádá rukavice a psychickou podporu.",
+    "severity": {
+      "min": 65,
+      "max": 88
+    },
+    "effect": "asymmetric-drag",
+    "signals": [
+      "asymmetry",
+      "pose"
+    ],
     "tier": "junky",
     "minSeverity": 65,
     "maxSeverity": 88,
-    "tags": ["pernik", "face", "evidence"],
+    "tags": [
+      "pernik",
+      "face",
+      "evidence"
+    ],
     "weight": 2.05
   },
   {
+    "id": "pernik_pernikovej_lazar",
     "category": "Perníkovej Lazar",
     "description": "Vstal jsi z mrtvých jen proto, že někdo otevřel sáček vedle.",
+    "severity": {
+      "min": 66,
+      "max": 89
+    },
+    "effect": "eye-sink",
+    "signals": [
+      "eyes",
+      "exposure"
+    ],
     "tier": "junky",
     "minSeverity": 66,
     "maxSeverity": 89,
-    "tags": ["pernik", "zombie", "collapse"],
+    "tags": [
+      "pernik",
+      "zombie",
+      "collapse"
+    ],
     "weight": 2
   },
   {
+    "id": "pernik_konecna_stanice_piko",
     "category": "Konečná stanice Piko",
     "description": "Všechny spoje do normálu odjely. Ty pořád čekáš s igelitkou a zorničkou velikosti poklice.",
+    "severity": {
+      "min": 70,
+      "max": 94
+    },
+    "effect": "eye-sink",
+    "signals": [
+      "eyes",
+      "exposure"
+    ],
     "tier": "critical",
     "minSeverity": 70,
     "maxSeverity": 94,
-    "tags": ["pernik", "eyes", "collapse"],
+    "tags": [
+      "pernik",
+      "eyes",
+      "collapse"
+    ],
     "weight": 2.2
   },
   {
+    "id": "pernik_nouzovej_pytel_organu",
     "category": "Nouzovej pytel orgánů",
     "description": "Srdce jede přes limit, mozek je offline a čelist vysílá vlastní podcast.",
+    "severity": {
+      "min": 72,
+      "max": 95
+    },
+    "effect": "jaw-offset",
+    "signals": [
+      "mouth",
+      "asymmetry"
+    ],
     "tier": "critical",
     "minSeverity": 72,
     "maxSeverity": 95,
-    "tags": ["pernik", "jaw", "body"],
+    "tags": [
+      "pernik",
+      "jaw",
+      "body"
+    ],
     "weight": 2.15
   },
   {
+    "id": "pernik_biologickej_nedoplatek",
     "category": "Biologickej nedoplatek",
     "description": "Všechno na tobě je po splatnosti. Upomínku posílá vlastní tep.",
+    "severity": {
+      "min": 73,
+      "max": 96
+    },
+    "effect": "deep-collapse",
+    "signals": [
+      "sharpness",
+      "exposure",
+      "stability"
+    ],
     "tier": "critical",
     "minSeverity": 73,
     "maxSeverity": 96,
-    "tags": ["pernik", "body", "damage"],
+    "tags": [
+      "pernik",
+      "body",
+      "damage"
+    ],
     "weight": 2.1
   },
   {
+    "id": "pernik_oblicej_po_domovni_prohlidce",
     "category": "Obličej po domovní prohlídce",
     "description": "Někdo ti prohledal ksicht a odnesl všechno použitelný.",
+    "severity": {
+      "min": 74,
+      "max": 97
+    },
+    "effect": "asymmetric-drag",
+    "signals": [
+      "asymmetry",
+      "pose"
+    ],
     "tier": "critical",
     "minSeverity": 74,
     "maxSeverity": 97,
-    "tags": ["pernik", "face", "evidence"],
+    "tags": [
+      "pernik",
+      "face",
+      "evidence"
+    ],
     "weight": 2.25
   },
   {
+    "id": "pernik_ranni_policejni_skica",
     "category": "Ranní policejní skica",
     "description": "Vypadáš jako pachatel, svědek i místo činu v jednom nepovedeným selfie.",
+    "severity": {
+      "min": 75,
+      "max": 98
+    },
+    "effect": "asymmetric-drag",
+    "signals": [
+      "asymmetry",
+      "pose"
+    ],
     "tier": "critical",
     "minSeverity": 75,
     "maxSeverity": 98,
-    "tags": ["pernik", "face", "evidence"],
+    "tags": [
+      "pernik",
+      "face",
+      "evidence"
+    ],
     "weight": 2.25
   },
   {
+    "id": "pernik_odpad_s_obcankou",
     "category": "Odpad s občankou",
     "description": "Jediný, co na tobě dnes působí lidsky, je datum narození. A i tomu nikdo nevěří.",
+    "severity": {
+      "min": 76,
+      "max": 98
+    },
+    "effect": "asymmetric-drag",
+    "signals": [
+      "asymmetry",
+      "pose"
+    ],
     "tier": "critical",
     "minSeverity": 76,
     "maxSeverity": 98,
-    "tags": ["pernik", "face", "damage"],
+    "tags": [
+      "pernik",
+      "face",
+      "damage"
+    ],
     "weight": 2.2
   },
   {
+    "id": "pernik_ksicht_na_doziti",
     "category": "Ksicht na dožití",
     "description": "Servis ukončen, náhradní díly nejsou. Provoz pokračuje z čistý drzosti.",
+    "severity": {
+      "min": 77,
+      "max": 98
+    },
+    "effect": "asymmetric-drag",
+    "signals": [
+      "asymmetry",
+      "pose"
+    ],
     "tier": "critical",
     "minSeverity": 77,
     "maxSeverity": 98,
-    "tags": ["pernik", "face", "body"],
+    "tags": [
+      "pernik",
+      "face",
+      "body"
+    ],
     "weight": 2.25
   },
   {
+    "id": "pernik_chemicka_vypoved",
     "category": "Chemická výpověď",
     "description": "Tělo už dalo výpověď. Jen zorničky dál chodí na neplacený přesčasy.",
+    "severity": {
+      "min": 78,
+      "max": 98
+    },
+    "effect": "eye-sink",
+    "signals": [
+      "eyes",
+      "exposure"
+    ],
     "tier": "critical",
     "minSeverity": 78,
     "maxSeverity": 98,
-    "tags": ["pernik", "eyes", "body"],
+    "tags": [
+      "pernik",
+      "eyes",
+      "body"
+    ],
     "weight": 2.3
   },
   {
+    "id": "pernik_junky_premium_bez_premium",
     "category": "Junky premium bez premium",
     "description": "Platíš zdravím, spánkem a cizí nabíječkou. Výhody žádný.",
+    "severity": {
+      "min": 79,
+      "max": 98
+    },
+    "effect": "eye-sink",
+    "signals": [
+      "eyes",
+      "exposure"
+    ],
     "tier": "critical",
     "minSeverity": 79,
     "maxSeverity": 98,
-    "tags": ["pernik", "sleep", "damage"],
+    "tags": [
+      "pernik",
+      "sleep",
+      "damage"
+    ],
     "weight": 2.1
   },
   {
+    "id": "pernik_troska_k_okamzitemu_odpisu",
     "category": "Troska k okamžitému odpisu",
     "description": "Účetní hodnota nula. Citová hodnota taky, ale matka pořád doufá.",
+    "severity": {
+      "min": 80,
+      "max": 98
+    },
+    "effect": "deep-collapse",
+    "signals": [
+      "sharpness",
+      "exposure",
+      "stability"
+    ],
     "tier": "critical",
     "minSeverity": 80,
     "maxSeverity": 98,
-    "tags": ["pernik", "damage", "collapse"],
+    "tags": [
+      "pernik",
+      "damage",
+      "collapse"
+    ],
     "weight": 2.2
   },
   {
+    "id": "pernik_zbytkova_existence",
     "category": "Zbytková existence",
     "description": "Člověk nenalezen. Zůstal mastnej obal, tik v oku a přesvědčení, že to nikdo nepozná.",
+    "severity": {
+      "min": 82,
+      "max": 98
+    },
+    "effect": "eye-sink",
+    "signals": [
+      "eyes",
+      "exposure"
+    ],
     "tier": "critical",
     "minSeverity": 82,
     "maxSeverity": 98,
-    "tags": ["pernik", "eyes", "collapse"],
+    "tags": [
+      "pernik",
+      "eyes",
+      "collapse"
+    ],
     "weight": 2.4
   },
   {
+    "id": "pernik_posledni_pikaruv_neuron",
     "category": "Poslední pikařův neuron",
     "description": "Sedí sám v koutě, kouří imaginární cigáro a odmítá další směnu.",
+    "severity": {
+      "min": 83,
+      "max": 98
+    },
+    "effect": "total-drift",
+    "signals": [
+      "asymmetry",
+      "pose",
+      "stability"
+    ],
     "tier": "critical",
     "minSeverity": 83,
     "maxSeverity": 98,
-    "tags": ["pernik", "brain", "collapse"],
+    "tags": [
+      "pernik",
+      "brain",
+      "collapse"
+    ],
     "weight": 2.35
   },
   {
+    "id": "pernik_piko_mrtvola",
     "category": "Piko mrtvola",
     "description": "Oči otevřený, člověk zavřenej. Pohyb zajišťuje už jen zvyk a poslední zbytek basy.",
+    "severity": {
+      "min": 84,
+      "max": 98
+    },
+    "effect": "eye-sink",
+    "signals": [
+      "eyes",
+      "exposure"
+    ],
     "tier": "critical",
     "minSeverity": 84,
     "maxSeverity": 98,
-    "tags": ["pernik", "eyes", "zombie"],
+    "tags": [
+      "pernik",
+      "eyes",
+      "zombie"
+    ],
     "weight": 2.35
   },
   {
+    "id": "pernik_piko_bez_cloveka",
     "category": "Piko bez člověka",
     "description": "Systém našel zorničky, pot a čelist. Majitel obličeje se nedostavil.",
+    "severity": {
+      "min": 85,
+      "max": 98
+    },
+    "effect": "jaw-offset",
+    "signals": [
+      "mouth",
+      "asymmetry"
+    ],
     "tier": "critical",
     "minSeverity": 85,
     "maxSeverity": 98,
-    "tags": ["pernik", "eyes", "jaw"],
+    "tags": [
+      "pernik",
+      "eyes",
+      "jaw"
+    ],
     "weight": 2.45
   },
   {
+    "id": "pernik_varna_na_nozickach",
     "category": "Varna na nožičkách",
     "description": "Chemickej provoz běží, ale bezpečnost práce už opustila budovu.",
+    "severity": {
+      "min": 86,
+      "max": 98
+    },
+    "effect": "liquid-gravity",
+    "signals": [
+      "pose",
+      "stability"
+    ],
     "tier": "critical",
     "minSeverity": 86,
     "maxSeverity": 98,
-    "tags": ["pernik", "varna", "body"],
+    "tags": [
+      "pernik",
+      "varna",
+      "body"
+    ],
     "weight": 2.35
   },
   {
+    "id": "pernik_pernikovej_konec_smeny",
     "category": "Perníkovej konec směny",
     "description": "Čelist cvakla píchačky. Mozek je nezvěstnej a tělo odmítá převzít další instrukce.",
+    "severity": {
+      "min": 87,
+      "max": 98
+    },
+    "effect": "jaw-offset",
+    "signals": [
+      "mouth",
+      "asymmetry"
+    ],
     "tier": "critical",
     "minSeverity": 87,
     "maxSeverity": 98,
-    "tags": ["pernik", "jaw", "brain"],
+    "tags": [
+      "pernik",
+      "jaw",
+      "brain"
+    ],
     "weight": 2.5
   }
 ]

@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'v63';
+const CACHE_VERSION = 'v64';
 const CACHE_NAME = `jsem-smazka-${CACHE_VERSION}`;
 
 const CORE_ASSETS = [
@@ -18,15 +18,15 @@ const STYLE_ASSETS = [
 ];
 
 const SCRIPT_ASSETS = [
-  './app.js?v=63',
+  './app.js?v=64',
   './vendor/mediapipe-face-mesh/face_mesh.js?v=0.4.1633559619',
-  './face-scan.js?v=62',
-  './devastation-metrics.js?v=62',
-  './face-warp.js?v=63',
+  './face-scan.js?v=64',
+  './devastation-metrics.js?v=64',
+  './face-warp.js?v=64',
   './face-warp-geometry.js?v=63',
-  './hard-responses.js?v=60',
-  './junky-verdict-engine.js?v=62',
-  './verdict-matcher.js?v=60',
+  './hard-responses.js?v=64',
+  './junky-verdict-engine.js?v=64',
+  './verdict-matcher.js?v=64',
   './terminal-readout.js?v=60',
   './experience-upgrades.js?v=60',
   './diagnostic-upgrades.js?v=60',
@@ -44,8 +44,8 @@ const SCRIPT_ASSETS = [
 
 const DATA_ASSETS = [
   './responses.json',
-  './responses-hard.json',
-  './responses-pernik.json'
+  './responses-hard.json?v=64',
+  './responses-pernik.json?v=64'
 ];
 
 const FACE_MODEL_ASSETS = [

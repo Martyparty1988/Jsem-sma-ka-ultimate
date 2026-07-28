@@ -11,7 +11,7 @@
 
   const SVG_NS = 'http://www.w3.org/2000/svg';
   const MODEL_ROOT = 'vendor/mediapipe-face-mesh/';
-  const METRICS_MODULE_URL = './devastation-metrics.js?v=62';
+  const METRICS_MODULE_URL = './devastation-metrics.js?v=64';
   const DETECTION_MAX_AGE = 620;
   const STILL_DETECTION_TIMEOUT = 8000;
   const SCAN_DURATION = 3000;
@@ -190,6 +190,26 @@
       y: Number(point?.y || 0),
       z: Number(point?.z || 0)
     }));
+  }
+
+  function validateFaceAnalysisScores(faceAnalysis) {
+    const signalScore = Number(faceAnalysis?.scores?.signalScore);
+    const randomScore = Number(faceAnalysis?.scores?.randomScore);
+    const severity = Number(faceAnalysis?.scores?.severity);
+    const expectedSeverity = Math.max(
+      12,
+      Math.min(98, Math.round(signalScore * 0.70 + randomScore * 0.30))
+    );
+
+    if (
+      !Number.isFinite(signalScore)
+      || !Number.isFinite(randomScore)
+      || !Number.isFinite(severity)
+      || severity !== expectedSeverity
+    ) {
+      throw new Error('Face analysis porušil společný 70/30 score kontrakt.');
+    }
+    return faceAnalysis;
   }
 
   function setDetected(detected) {
@@ -583,12 +603,12 @@
       }
 
       const { analyzeFaceImage } = await loadMetricsModule();
-      return analyzeFaceImage({
+      return validateFaceAnalysisScores(await analyzeFaceImage({
         landmarks: cloneLandmarks(faces[0]),
         imageSource: imageData,
         sourceKind: 'upload',
         mirrorX: false
-      });
+      }));
     } finally {
       image.removeAttribute('src');
       faceMesh.setOptions({ maxNumFaces: 1 });
@@ -691,12 +711,12 @@
 
     try {
       const { analyzeFaceImage } = await loadMetricsModule();
-      const faceAnalysis = await analyzeFaceImage({
+      const faceAnalysis = validateFaceAnalysisScores(await analyzeFaceImage({
         landmarks,
         imageSource: dataUrl,
         sourceKind: 'camera',
         mirrorX
-      });
+      }));
       app.runAnalysis({
         skipImageCheck: true,
         metrics: faceAnalysis.metrics,

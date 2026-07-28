@@ -79,6 +79,29 @@ test('front-camera mirroring flips stored x once and preserves absolute metrics'
   assert.deepEqual(metrics(points), metrics(points, { mirrorX: true }));
 });
 
+test('visual signals increase with effect intensity, not image quality', () => {
+  const neutral = calculateDevastationMetrics(normalizeLandmarks(fixture()), {
+    sourceWidth: 1000,
+    sourceHeight: 1000,
+    hydratace: 38
+  });
+  const closedPoints = fixture();
+  closedPoints[159].y = 0.389;
+  closedPoints[145].y = 0.391;
+  closedPoints[386].y = 0.389;
+  closedPoints[374].y = 0.391;
+  const closed = calculateDevastationMetrics(normalizeLandmarks(closedPoints), {
+    sourceWidth: 1000,
+    sourceHeight: 1000,
+    hydratace: 5
+  });
+
+  assert.equal(neutral.signals.eyes, 0);
+  assert.ok(closed.signals.eyes > 0.9);
+  assert.equal(neutral.signals.exposure, 0);
+  assert.ok(closed.signals.exposure > 0.8);
+});
+
 test('faceAnalysis stores the shared contract and explicit 70/30 severity', () => {
   const analysis = buildFaceAnalysis({
     landmarks: fixture(),

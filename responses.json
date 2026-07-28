@@ -3,6 +3,12 @@
     "id": "startovni_davka",
     "category": "Startovní dávka",
     "description": "Zatím jen jedno pivo a špetka odvahy. Varna teprve vrní.",
+    "severity": {
+      "min": 12,
+      "max": 32
+    },
+    "effect": "soft-drift",
+    "signals": [],
     "triggers": {
       "lidskost_min": 58,
       "apertura_min": 48,
@@ -21,6 +27,15 @@
     "id": "cista_lajna",
     "category": "Čistá lajna",
     "description": "Zorničky jak měsíční krajina. Na orbitě, ale s úsměvem.",
+    "severity": {
+      "min": 18,
+      "max": 38
+    },
+    "effect": "late-night",
+    "signals": [
+      "eyes",
+      "exposure"
+    ],
     "triggers": {
       "lidskost_min": 45,
       "apertura_min": 42,
@@ -38,6 +53,15 @@
     "id": "mikrotrip",
     "category": "Mikrotrip",
     "description": "Vidíš barvy, co neexistujou, a slyšíš svět dýchat. Klasickej čtvrtek.",
+    "severity": {
+      "min": 24,
+      "max": 46
+    },
+    "effect": "gravity-loss",
+    "signals": [
+      "pose",
+      "stability"
+    ],
     "triggers": {
       "lidskost_min": 35,
       "apertura_min": 38,
@@ -56,6 +80,15 @@
     "id": "speedova_rozcvicka",
     "category": "Speedová rozcvička",
     "description": "Tělo jede jak mixér, mozek běží pozpátku. Jsi ready na realitu?",
+    "severity": {
+      "min": 28,
+      "max": 52
+    },
+    "effect": "signal-glitch",
+    "signals": [
+      "stability",
+      "sharpness"
+    ],
     "triggers": {
       "lidskost_min": 32,
       "apertura_min": 48,
@@ -74,6 +107,15 @@
     "id": "pikovej_princ",
     "category": "Pikovej princ",
     "description": "Kráčíš po hraně mezi tancem a epilepsií. Koruna z hliníku, srdce z extáze.",
+    "severity": {
+      "min": 38,
+      "max": 62
+    },
+    "effect": "jaw-offset",
+    "signals": [
+      "mouth",
+      "asymmetry"
+    ],
     "triggers": {
       "lidskost_max": 55,
       "apertura_max": 48,
@@ -92,6 +134,15 @@
     "id": "varic_snu",
     "category": "Vařič snů",
     "description": "Z kuchyně jde pára, ale tohle není guláš. Alchymie paneláku.",
+    "severity": {
+      "min": 46,
+      "max": 70
+    },
+    "effect": "gravity-drop",
+    "signals": [
+      "pose",
+      "stability"
+    ],
     "triggers": {
       "lidskost_max": 48,
       "apertura_max": 44,
@@ -109,6 +160,15 @@
     "id": "zrcadlovej_demon",
     "category": "Zrcadlovej démon",
     "description": "Koukáš do zrcadla a ono se kouká zpátky. Asi má taky lajnu.",
+    "severity": {
+      "min": 50,
+      "max": 76
+    },
+    "effect": "asymmetric-drag",
+    "signals": [
+      "asymmetry",
+      "pose"
+    ],
     "triggers": {
       "lidskost_max": 50,
       "apertura_max": 42,
@@ -127,6 +187,15 @@
     "id": "ticha_noc",
     "category": "Tichá noc",
     "description": "Všichni spí. Jen ty a perník máte směnu.",
+    "severity": {
+      "min": 48,
+      "max": 70
+    },
+    "effect": "late-night",
+    "signals": [
+      "eyes",
+      "exposure"
+    ],
     "triggers": {
       "lidskost_max": 45,
       "apertura_max": 35,
@@ -144,6 +213,16 @@
     "id": "spina_v_zilach",
     "category": "Špína v žilách",
     "description": "Srdce buší jak policejní beranidlo. Hrdina čtvrté dávky.",
+    "severity": {
+      "min": 62,
+      "max": 86
+    },
+    "effect": "deep-collapse",
+    "signals": [
+      "sharpness",
+      "exposure",
+      "stability"
+    ],
     "triggers": {
       "lidskost_max": 38,
       "apertura_max": 34,
@@ -162,6 +241,15 @@
     "id": "ztracenej_trip",
     "category": "Ztracenej trip",
     "description": "Když se realita rozpadne, zůstane jen hluk a úsměv bez důvodu.",
+    "severity": {
+      "min": 54,
+      "max": 80
+    },
+    "effect": "gravity-loss",
+    "signals": [
+      "pose",
+      "stability"
+    ],
     "triggers": {
       "lidskost_max": 45,
       "apertura_max": 45,
@@ -180,6 +268,15 @@
     "id": "prach_v_nose",
     "category": "Prach v nose",
     "description": "Nosíš si prach z nebe. Jen není z nebe.",
+    "severity": {
+      "min": 42,
+      "max": 68
+    },
+    "effect": "kebab-lens",
+    "signals": [
+      "mouth",
+      "exposure"
+    ],
     "triggers": {
       "lidskost_max": 50,
       "apertura_max": 40,
@@ -197,6 +294,15 @@
     "id": "nocni_varna",
     "category": "Noční varna",
     "description": "Sirky, hliník a ticho. Chemie má svoje kouzlo i prokletí.",
+    "severity": {
+      "min": 68,
+      "max": 94
+    },
+    "effect": "liquid-gravity",
+    "signals": [
+      "pose",
+      "stability"
+    ],
     "triggers": {
       "lidskost_max": 30,
       "apertura_max": 25,
@@ -214,6 +320,15 @@
     "id": "extazovy_mnich",
     "category": "Extázový mnich",
     "description": "Osvícení nalezeno uprostřed parketu. Nirvána vibruje v 160 BPM.",
+    "severity": {
+      "min": 34,
+      "max": 60
+    },
+    "effect": "gravity-loss",
+    "signals": [
+      "pose",
+      "stability"
+    ],
     "triggers": {
       "lidskost_min": 30,
       "lidskost_max": 65,
@@ -232,6 +347,15 @@
     "id": "fetboy_deluxe",
     "category": "Fetboy deluxe",
     "description": "Ztratil jsi klíče, soudnost i ponětí o čase. Ale beat držíš.",
+    "severity": {
+      "min": 48,
+      "max": 74
+    },
+    "effect": "facial-drift",
+    "signals": [
+      "pose",
+      "asymmetry"
+    ],
     "triggers": {
       "lidskost_max": 45,
       "apertura_max": 42,
@@ -250,6 +374,15 @@
     "id": "lajna_pravdy",
     "category": "Lajna pravdy",
     "description": "Každej má tu svoji cestu. Ty ji máš vysypanou na stole.",
+    "severity": {
+      "min": 40,
+      "max": 66
+    },
+    "effect": "kebab-lens",
+    "signals": [
+      "mouth",
+      "exposure"
+    ],
     "triggers": {
       "lidskost_max": 55,
       "apertura_max": 50,
@@ -267,6 +400,15 @@
     "id": "rozklepanej_buh",
     "category": "Rozklepanej bůh",
     "description": "Vládneš vesmíru, ale ruce máš jak vibrační křeslo.",
+    "severity": {
+      "min": 62,
+      "max": 88
+    },
+    "effect": "signal-glitch",
+    "signals": [
+      "stability",
+      "sharpness"
+    ],
     "triggers": {
       "lidskost_max": 40,
       "apertura_max": 42,
@@ -285,6 +427,15 @@
     "id": "zimni_pika",
     "category": "Zimní pika",
     "description": "Zuby ti cvakaj jak kastaněty. Tělo topí na nouzovej režim.",
+    "severity": {
+      "min": 54,
+      "max": 80
+    },
+    "effect": "eye-sink",
+    "signals": [
+      "eyes",
+      "exposure"
+    ],
     "triggers": {
       "lidskost_max": 42,
       "apertura_max": 35,
@@ -303,6 +454,15 @@
     "id": "dealer_poezie",
     "category": "Dealer poezie",
     "description": "Slova ti tečou z pusy jak sirup z laboratorní skleničky.",
+    "severity": {
+      "min": 36,
+      "max": 62
+    },
+    "effect": "jaw-offset",
+    "signals": [
+      "mouth",
+      "asymmetry"
+    ],
     "triggers": {
       "lidskost_min": 25,
       "lidskost_max": 60,
@@ -321,6 +481,15 @@
     "id": "turbo_vecirek",
     "category": "Turbo večírek",
     "description": "Tři dny, nula spánku, jeden mozek. A ten to vzdal včera.",
+    "severity": {
+      "min": 70,
+      "max": 94
+    },
+    "effect": "signal-glitch",
+    "signals": [
+      "stability",
+      "sharpness"
+    ],
     "triggers": {
       "lidskost_max": 32,
       "apertura_max": 30,
@@ -339,6 +508,15 @@
     "id": "prepaleny_andel",
     "category": "Přepálenej anděl",
     "description": "Křídla z igelitu a hlava z cukru. Lítáš, dokud se neroztopíš.",
+    "severity": {
+      "min": 62,
+      "max": 88
+    },
+    "effect": "gravity-drop",
+    "signals": [
+      "pose",
+      "stability"
+    ],
     "triggers": {
       "lidskost_max": 38,
       "apertura_max": 35,
@@ -356,6 +534,16 @@
     "id": "davkovaci_omyl",
     "category": "Dávkovací omyl",
     "description": "Říkal jsi 'jen trochu'. Tělo slyšelo 'všechno'.",
+    "severity": {
+      "min": 78,
+      "max": 98
+    },
+    "effect": "deep-collapse",
+    "signals": [
+      "sharpness",
+      "exposure",
+      "stability"
+    ],
     "triggers": {
       "lidskost_max": 24,
       "apertura_max": 24,
@@ -374,6 +562,15 @@
     "id": "tovarni_nastaveni",
     "category": "Tovární nastavení",
     "description": "Resetuješ se vodkou a cigárama. Windows by tě neunesly.",
+    "severity": {
+      "min": 32,
+      "max": 60
+    },
+    "effect": "facial-drift",
+    "signals": [
+      "pose",
+      "asymmetry"
+    ],
     "triggers": {
       "lidskost_min": 32,
       "lidskost_max": 65,
@@ -392,6 +589,15 @@
     "id": "ocni_glitch",
     "category": "Oční glitch",
     "description": "Zorničky ti píšou Morseovku. Asi zpráva z pekla.",
+    "severity": {
+      "min": 52,
+      "max": 80
+    },
+    "effect": "eye-sink",
+    "signals": [
+      "eyes",
+      "exposure"
+    ],
     "triggers": {
       "lidskost_max": 50,
       "apertura_max": 28,
@@ -409,6 +615,15 @@
     "id": "prachovej_rytir",
     "category": "Prachovej rytíř",
     "description": "Nosíš bílý brnění a temnej výraz. Klasika sobotní směny.",
+    "severity": {
+      "min": 50,
+      "max": 76
+    },
+    "effect": "kebab-lens",
+    "signals": [
+      "mouth",
+      "exposure"
+    ],
     "triggers": {
       "lidskost_max": 45,
       "apertura_max": 38,
@@ -427,6 +642,15 @@
     "id": "elektrickej_kriz",
     "category": "Elektrickej kříž",
     "description": "Tělo napnutý jak drát, duše visí na zásuvce. Amen.",
+    "severity": {
+      "min": 68,
+      "max": 92
+    },
+    "effect": "signal-glitch",
+    "signals": [
+      "stability",
+      "sharpness"
+    ],
     "triggers": {
       "lidskost_max": 36,
       "apertura_max": 34,
@@ -445,6 +669,15 @@
     "id": "cukrovej_reset",
     "category": "Cukrovej reset",
     "description": "Lízátko, pika a paranoia. Ideální trojkombinace pro úterý.",
+    "severity": {
+      "min": 36,
+      "max": 62
+    },
+    "effect": "lens-bloom",
+    "signals": [
+      "pose",
+      "exposure"
+    ],
     "triggers": {
       "lidskost_min": 28,
       "lidskost_max": 58,
@@ -463,6 +696,15 @@
     "id": "vecirek_404",
     "category": "Večírek 404",
     "description": "Lidi zmizeli, hudba hraje dál. Ty taky možná neexistuješ.",
+    "severity": {
+      "min": 72,
+      "max": 96
+    },
+    "effect": "signal-glitch",
+    "signals": [
+      "stability",
+      "sharpness"
+    ],
     "triggers": {
       "lidskost_max": 30,
       "apertura_max": 32,
@@ -481,6 +723,15 @@
     "id": "mazanec_z_varny",
     "category": "Mazanec z varny",
     "description": "Voníš jak chemickej experiment, ale srdce ti ještě tiká.",
+    "severity": {
+      "min": 54,
+      "max": 80
+    },
+    "effect": "cheek-pressure",
+    "signals": [
+      "asymmetry",
+      "exposure"
+    ],
     "triggers": {
       "lidskost_max": 42,
       "apertura_max": 38,
@@ -498,6 +749,15 @@
     "id": "nespaci_zona",
     "category": "Nespací zóna",
     "description": "Už dávno nespíš, jen blikáš. Tvoje sny běží na loopu.",
+    "severity": {
+      "min": 64,
+      "max": 88
+    },
+    "effect": "eye-sink",
+    "signals": [
+      "eyes",
+      "exposure"
+    ],
     "triggers": {
       "lidskost_max": 34,
       "apertura_max": 26,
@@ -516,6 +776,15 @@
     "id": "tresavej_romantik",
     "category": "Třesavej romantik",
     "description": "Objímáš radiátor a přemýšlíš o lásce. Nikdo tě nechce, ani teplo.",
+    "severity": {
+      "min": 60,
+      "max": 86
+    },
+    "effect": "asymmetric-drag",
+    "signals": [
+      "asymmetry",
+      "pose"
+    ],
     "triggers": {
       "lidskost_max": 45,
       "apertura_max": 35,
@@ -534,6 +803,16 @@
     "id": "duch_nonstopu",
     "category": "Duch nonstopu",
     "description": "Nejsi vidět, jen cítit. A to dost silně.",
+    "severity": {
+      "min": 72,
+      "max": 96
+    },
+    "effect": "deep-collapse",
+    "signals": [
+      "sharpness",
+      "exposure",
+      "stability"
+    ],
     "triggers": {
       "lidskost_max": 28,
       "apertura_max": 24,
@@ -551,6 +830,15 @@
     "id": "falesnej_klid",
     "category": "Falešnej klid",
     "description": "Tvůj tep hraje drum’n’bass. Venku ticho. Uvnitř válka.",
+    "severity": {
+      "min": 44,
+      "max": 70
+    },
+    "effect": "facial-drift",
+    "signals": [
+      "pose",
+      "asymmetry"
+    ],
     "triggers": {
       "lidskost_max": 50,
       "apertura_min": 38,
@@ -569,6 +857,15 @@
     "id": "kysely_prorok",
     "category": "Kyselý prorok",
     "description": "Vidíš budoucnost ve světlech lamp. A mluvíš s asfaltkou.",
+    "severity": {
+      "min": 56,
+      "max": 82
+    },
+    "effect": "gravity-loss",
+    "signals": [
+      "pose",
+      "stability"
+    ],
     "triggers": {
       "lidskost_max": 42,
       "apertura_min": 40,
@@ -587,6 +884,15 @@
     "id": "pernikovej_saman",
     "category": "Perníkovej šaman",
     "description": "Znáš všechny tvary kouře. Ale už ne svoje jméno.",
+    "severity": {
+      "min": 68,
+      "max": 94
+    },
+    "effect": "liquid-gravity",
+    "signals": [
+      "pose",
+      "stability"
+    ],
     "triggers": {
       "lidskost_max": 30,
       "apertura_max": 30,
@@ -605,6 +911,15 @@
     "id": "socialni_glitch",
     "category": "Sociální glitch",
     "description": "Pokusíš se promluvit, ale vyjde z tebe jen šum a sliny.",
+    "severity": {
+      "min": 62,
+      "max": 88
+    },
+    "effect": "signal-glitch",
+    "signals": [
+      "stability",
+      "sharpness"
+    ],
     "triggers": {
       "lidskost_max": 38,
       "apertura_max": 36,
@@ -623,6 +938,15 @@
     "id": "cerveny_oci",
     "category": "Červený oči",
     "description": "Zíráš jak démon z plakátu. A plakát ti odpovídá.",
+    "severity": {
+      "min": 48,
+      "max": 76
+    },
+    "effect": "eye-sink",
+    "signals": [
+      "eyes",
+      "exposure"
+    ],
     "triggers": {
       "lidskost_max": 48,
       "apertura_max": 32,
@@ -640,6 +964,16 @@
     "id": "ultrarychlej_upadek",
     "category": "Ultrarychlej úpadek",
     "description": "Ráno hrdina, večer legenda, ráno zase troska. Rychlej koloběh.",
+    "severity": {
+      "min": 80,
+      "max": 98
+    },
+    "effect": "total-drift",
+    "signals": [
+      "asymmetry",
+      "pose",
+      "stability"
+    ],
     "triggers": {
       "lidskost_max": 25,
       "apertura_max": 25,
@@ -658,6 +992,15 @@
     "id": "drzak_z_pekla",
     "category": "Držák z pekla",
     "description": "Všichni padli, ty jedeš dál. Pika místo víry.",
+    "severity": {
+      "min": 70,
+      "max": 96
+    },
+    "effect": "signal-glitch",
+    "signals": [
+      "stability",
+      "sharpness"
+    ],
     "triggers": {
       "lidskost_max": 30,
       "apertura_min": 35,
@@ -676,6 +1019,15 @@
     "id": "zfetovanej_basnik",
     "category": "Zfetovanej básník",
     "description": "Každý slovo tě stojí dech. Poezie z roztřesený ruky.",
+    "severity": {
+      "min": 54,
+      "max": 80
+    },
+    "effect": "jaw-offset",
+    "signals": [
+      "mouth",
+      "asymmetry"
+    ],
     "triggers": {
       "lidskost_max": 42,
       "apertura_max": 34,
@@ -694,6 +1046,16 @@
     "id": "vypnutej_hrac",
     "category": "Vypnutej hráč",
     "description": "Game over. Dýcháš jen setrvačností.",
+    "severity": {
+      "min": 84,
+      "max": 98
+    },
+    "effect": "deep-collapse",
+    "signals": [
+      "sharpness",
+      "exposure",
+      "stability"
+    ],
     "triggers": {
       "lidskost_max": 20,
       "apertura_max": 18,
@@ -712,6 +1074,15 @@
     "id": "ztracenej_v_beate",
     "category": "Ztracenej v beatě",
     "description": "Srdce ti hraje BPM 180. Tělo čeká, kdy se zhroutí stage.",
+    "severity": {
+      "min": 58,
+      "max": 84
+    },
+    "effect": "gravity-drop",
+    "signals": [
+      "pose",
+      "stability"
+    ],
     "triggers": {
       "lidskost_max": 38,
       "apertura_min": 42,
@@ -730,6 +1101,15 @@
     "id": "prazska_mlha",
     "category": "Pražská mlha",
     "description": "Nevidíš tři metry před sebe. Ale poznáš vůni speedu na dálku.",
+    "severity": {
+      "min": 50,
+      "max": 76
+    },
+    "effect": "eye-sink",
+    "signals": [
+      "eyes",
+      "exposure"
+    ],
     "triggers": {
       "lidskost_max": 45,
       "apertura_max": 28,
@@ -747,6 +1127,15 @@
     "id": "kyselina_v_zilach",
     "category": "Kyselina v žilách",
     "description": "Krvácíš barvy a směješ se asfaltu. To je ten vibe.",
+    "severity": {
+      "min": 72,
+      "max": 96
+    },
+    "effect": "gravity-loss",
+    "signals": [
+      "pose",
+      "stability"
+    ],
     "triggers": {
       "lidskost_max": 32,
       "apertura_min": 45,
@@ -765,6 +1154,15 @@
     "id": "rozbitej_kompas",
     "category": "Rozbitej kompas",
     "description": "Jdeš domů, ale domov už dávno neexistuje.",
+    "severity": {
+      "min": 66,
+      "max": 92
+    },
+    "effect": "asymmetric-drag",
+    "signals": [
+      "asymmetry",
+      "pose"
+    ],
     "triggers": {
       "lidskost_max": 35,
       "apertura_max": 38,
@@ -783,6 +1181,15 @@
     "id": "zpomalenej_vesmir",
     "category": "Zpomalenej vesmír",
     "description": "Všechno se hýbe jak v želé. Možná jsi v čase, možná v tripu.",
+    "severity": {
+      "min": 58,
+      "max": 84
+    },
+    "effect": "soft-collapse",
+    "signals": [
+      "exposure",
+      "sharpness"
+    ],
     "triggers": {
       "lidskost_max": 40,
       "apertura_max": 24,
@@ -801,6 +1208,15 @@
     "id": "mesicni_fetak",
     "category": "Měsíční feťák",
     "description": "Stojíš na balkoně a koukáš na měsíc. On kouká zpátky a směje se.",
+    "severity": {
+      "min": 46,
+      "max": 74
+    },
+    "effect": "gravity-loss",
+    "signals": [
+      "pose",
+      "stability"
+    ],
     "triggers": {
       "lidskost_max": 48,
       "apertura_min": 35,
@@ -819,6 +1235,15 @@
     "id": "elektronickej_lazar",
     "category": "Elektronickej Lazar",
     "description": "Vstal jsi z mrtvých, ale jen proto, že hraje techno.",
+    "severity": {
+      "min": 56,
+      "max": 84
+    },
+    "effect": "cranial-bloom",
+    "signals": [
+      "mouth",
+      "pose"
+    ],
     "triggers": {
       "lidskost_min": 25,
       "lidskost_max": 50,
@@ -837,6 +1262,15 @@
     "id": "prachovej_restart",
     "category": "Prachovej restart",
     "description": "Každá lajna je nový začátek. I konec zároveň.",
+    "severity": {
+      "min": 68,
+      "max": 94
+    },
+    "effect": "liquid-gravity",
+    "signals": [
+      "pose",
+      "stability"
+    ],
     "triggers": {
       "lidskost_max": 35,
       "apertura_max": 32,

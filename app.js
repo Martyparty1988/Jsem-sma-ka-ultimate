@@ -28,18 +28,53 @@
 
   const fallbackResponses = [
     {
+      id: 'fallback_podezrele_funkcni_exemplar',
       category: 'Podezřele funkční exemplář',
-      description: 'Ksicht drží, oči komunikují a důstojnost ještě nebyla prohlášena za nezvěstnou. Tohle smrdí podvodem.'
+      description: 'Ksicht drží, oči komunikují a důstojnost ještě nebyla prohlášena za nezvěstnou. Tohle smrdí podvodem.',
+      severity: { min: 12, max: 34 },
+      effect: 'soft-drift',
+      signals: []
     },
     {
+      id: 'fallback_clovek_v_nouzovym_rezimu',
       category: 'Člověk v nouzovým režimu',
-      description: 'Hardware zatím stojí. Software ale otevřel dveře, odešel do nonstopu a nevrátil klíče.'
+      description: 'Hardware zatím stojí. Software ale otevřel dveře, odešel do nonstopu a nevrátil klíče.',
+      severity: { min: 40, max: 68 },
+      effect: 'facial-drift',
+      signals: ['pose', 'asymmetry']
     },
     {
+      id: 'fallback_ranni_dukazni_material',
       category: 'Ranní důkazní materiál',
-      description: 'V obličeji máš tolik stop, že by ho kriminálka zabalila do sáčku. Ty tomu pořád říkáš povedenej večer.'
+      description: 'V obličeji máš tolik stop, že by ho kriminálka zabalila do sáčku. Ty tomu pořád říkáš povedenej večer.',
+      severity: { min: 70, max: 98 },
+      effect: 'deep-collapse',
+      signals: ['sharpness', 'exposure', 'stability']
     }
   ];
+
+  const effectProfiles = Object.freeze({
+    'soft-drift': { key: 'soft-drift', label: 'Jemný posun proporcí', tone: 'soft' },
+    'late-night': { key: 'late-night', label: 'Únava obličeje', tone: 'soft' },
+    'micro-asymmetry': { key: 'micro-asymmetry', label: 'Mírná asymetrie', tone: 'wobble' },
+    'facial-drift': { key: 'facial-drift', label: 'Posun proporcí', tone: 'wobble' },
+    'cheek-pressure': { key: 'cheek-pressure', label: 'Tlak v oblasti tváří', tone: 'wobble' },
+    'jaw-offset': { key: 'jaw-offset', label: 'Nestabilní čelist', tone: 'wobble' },
+    'lens-bloom': { key: 'lens-bloom', label: 'Širokoúhlá deformace', tone: 'lens' },
+    'signal-glitch': { key: 'signal-glitch', label: 'Signál se láme', tone: 'glitch' },
+    'kebab-lens': { key: 'kebab-lens', label: 'Kebab lens', tone: 'lens' },
+    'gravity-drop': { key: 'gravity-drop', label: 'Gravitační pokles', tone: 'melt' },
+    'soft-collapse': { key: 'soft-collapse', label: 'Měkký kolaps proporcí', tone: 'melt' },
+    'wide-lens': { key: 'wide-lens', label: 'Silná širokoúhlá deformace', tone: 'lens' },
+    'asymmetric-drag': { key: 'asymmetric-drag', label: 'Asymetrický tah', tone: 'wobble' },
+    'gravity-loss': { key: 'gravity-loss', label: 'Ztráta gravitace', tone: 'cosmic' },
+    'eye-sink': { key: 'eye-sink', label: 'Propad očí', tone: 'hollow' },
+    'liquid-gravity': { key: 'liquid-gravity', label: 'Tekutá gravitace', tone: 'melt' },
+    'cranial-bloom': { key: 'cranial-bloom', label: 'Kraniální přetlak', tone: 'critical' },
+    'deep-collapse': { key: 'deep-collapse', label: 'Hluboký kolaps', tone: 'critical' },
+    'total-drift': { key: 'total-drift', label: 'Totální prostorový drift', tone: 'critical' }
+  });
+  const fallbackEffectProfile = effectProfiles['facial-drift'];
 
   const weekdayForms = [
     { nominative: 'neděle', accusative: 'neděli', adjective: 'nedělní', classic: 'Klasická neděle' },
@@ -346,54 +381,22 @@
     return result;
   }
 
-  function getResultSeverity(result) {
-    const library = state.responseLibrary.length ? state.responseLibrary : fallbackResponses;
-    const index = library.findIndex((item) => (
-      item.category === result.category && item.description === result.description
-    ));
-    const position = index >= 0 && library.length > 1 ? index / (library.length - 1) : 0.5;
-    const category = String(result.category || '').toLocaleLowerCase('cs-CZ');
-    let severity = Math.round(16 + position * 78);
+  function getResultSeverity(result, measuredSeverity) {
+    const measured = Number(measuredSeverity);
+    if (Number.isFinite(measured)) return Math.max(12, Math.min(98, Math.round(measured)));
 
-    if (/startovní|svěží|čistá lajna|mikrotrip/.test(category)) severity = Math.min(severity, 29);
-    if (/vypnutej|pekla|úpadek|rozpad|kyselina|dávkovací omyl/.test(category)) severity = Math.max(severity, 84);
+    const minimum = Number(result?.severity?.min);
+    const maximum = Number(result?.severity?.max);
+    if (Number.isFinite(minimum) && Number.isFinite(maximum) && minimum <= maximum) {
+      return Math.max(12, Math.min(98, Math.round((minimum + maximum) / 2)));
+    }
 
-    return Math.max(12, Math.min(98, severity));
+    return 50;
   }
 
-  function getEffectProfile(severity, result = {}) {
-    const category = String(result.category || '').toLocaleLowerCase('cs-CZ');
-    const description = String(result.description || '').toLocaleLowerCase('cs-CZ');
-    const text = `${category} ${description}`;
-
-    if (/404|glitch|elektr|sociální/.test(text)) {
-      return { key: 'signal-glitch', label: 'Signál se láme', tone: 'glitch' };
-    }
-
-    if (/trip|vesmír|kysel|měsíč|astrál|prorok/.test(text)) {
-      return { key: 'gravity-loss', label: 'Ztráta gravitace', tone: 'cosmic' };
-    }
-
-    if (/oční|oči|červený|duch|lazar|vypnutej/.test(text)) {
-      return { key: 'eye-sink', label: 'Propad očí', tone: 'hollow' };
-    }
-
-    if (/kebab|mazanec|varna|prach|perník|lajna|pik/.test(text)) {
-      return { key: 'kebab-lens', label: 'Kebab lens', tone: 'lens' };
-    }
-
-    if (/třes|rozklep|rychl|speed|nespací|turbo/.test(text)) {
-      return { key: 'signal-glitch', label: 'Třes reality', tone: 'glitch' };
-    }
-
-    if (/rozpad|úpadek|omyl|pekla|rozbitej|ztracenej/.test(text) || severity >= 84) {
-      return { key: 'liquid-gravity', label: 'Tekutá gravitace', tone: 'melt' };
-    }
-
-    if (severity < 30) return { key: 'soft-drift', label: 'Lehký rozklad', tone: 'soft' };
-    if (severity < 58) return { key: 'facial-drift', label: 'Rozhozená realita', tone: 'wobble' };
-    if (severity < 82) return { key: 'soft-collapse', label: 'Obličej teče', tone: 'melt' };
-    return { key: 'deep-collapse', label: 'Totální rozpad', tone: 'critical' };
+  function getEffectProfile(result = {}) {
+    const key = typeof result.effect === 'string' ? result.effect.trim() : '';
+    return effectProfiles[key] || fallbackEffectProfile;
   }
 
   function reducedMotion() {
@@ -453,9 +456,17 @@
     const category = syncWeekdayText(result.category || 'Neznámý stav');
     const description = syncWeekdayText(result.description || 'AI se tváří tajemně a odmítá vypovídat.');
     const todayLabel = capitalizeFirst(getTodayForms().nominative);
-    const effectProfile = getEffectProfile(severity, result);
+    const effectProfile = getEffectProfile(result);
 
-    state.lastAnalysisResult = { title: category, description, severity, effectProfile };
+    state.lastAnalysisResult = {
+      id: result.id || '',
+      title: category,
+      description,
+      severity,
+      effect: effectProfile.key,
+      signals: Array.isArray(result.signals) ? [...result.signals] : [],
+      effectProfile
+    };
     state.effectProfile = effectProfile;
     elements.result.replaceChildren();
 
@@ -544,13 +555,13 @@
 
     const delay = 950 + Math.round(Math.random() * 650);
     window.setTimeout(async () => {
-      const result = getRandomResult();
-      const severity = getResultSeverity(result);
-      let effectProfile = getEffectProfile(severity, result);
+      const result = options.verdict || getRandomResult();
+      const severity = getResultSeverity(result, options.severity);
+      let effectProfile = getEffectProfile(result);
       let effectImageData = state.currentImageData;
 
       try {
-        if (state.faceAnalysis && typeof window.SmazkaFaceWarp?.renderFaceEffect === 'function') {
+        if (typeof window.SmazkaFaceWarp?.renderFaceEffect === 'function') {
           const rendered = await window.SmazkaFaceWarp.renderFaceEffect({
             imageData: state.currentImageData,
             severity,
@@ -566,7 +577,7 @@
             label: rendered.label
           };
         } else {
-          effectImageData = await createMeltedEffect(state.currentImageData, severity);
+          console.warn('Jednotný face-warp renderer není dostupný; používám původní fotku.');
         }
       } catch (error) {
         console.warn('Deformace náhledu selhala, používám původní fotku:', error);
@@ -625,127 +636,6 @@
     }
 
     ctx.drawImage(image, sx, sy, sw, sh, x, y, width, height);
-  }
-
-  function seededNoise(seed) {
-    const value = Math.sin(seed * 12.9898) * 43758.5453;
-    return value - Math.floor(value);
-  }
-
-  function createMeltedEffect(imageData, severity) {
-    if (!imageData) return Promise.resolve(null);
-
-    return new Promise((resolve, reject) => {
-      const image = new Image();
-
-      image.onerror = () => reject(new Error('Zdroj efektu se nepovedlo dekódovat'));
-      image.onload = () => {
-        try {
-          const width = 720;
-          const height = 960;
-          const intensity = Math.max(0.12, Math.min(0.98, severity / 100));
-          const source = document.createElement('canvas');
-          const output = document.createElement('canvas');
-          source.width = output.width = width;
-          source.height = output.height = height;
-
-          const sourceContext = source.getContext('2d');
-          const context = output.getContext('2d');
-          drawCoverImage(sourceContext, image, 0, 0, width, height);
-          context.drawImage(source, 0, 0);
-
-          const ghostOffset = Math.round(3 + intensity * 18);
-          context.save();
-          context.globalCompositeOperation = 'screen';
-          context.globalAlpha = 0.035 + intensity * 0.13;
-          context.drawImage(source, ghostOffset, -2);
-          context.drawImage(source, -ghostOffset, 3);
-          context.restore();
-
-          const left = Math.round(width * 0.14);
-          const right = Math.round(width * 0.86);
-          const center = width / 2;
-          const radius = (right - left) / 2;
-          const meltTop = Math.round(height * 0.19);
-          const meltHeight = Math.round(height * 0.57);
-          const sliceWidth = severity >= 82 ? 5 : 7;
-
-          for (let x = left; x < right; x += sliceWidth) {
-            const normalizedX = (x - center) / radius;
-            const faceMask = Math.pow(Math.max(0, 1 - normalizedX * normalizedX), 1.35);
-            const noise = seededNoise(x * 0.37 + severity * 2.11);
-            const pull = Math.round(
-              height * (0.012 + intensity * intensity * 0.19) * faceMask * (0.28 + noise * 0.72)
-            );
-            if (pull < 2) continue;
-
-            const sourceY = meltTop + Math.round(noise * 20 * intensity);
-            const sourceHeight = Math.min(meltHeight, height - sourceY);
-            const wobble = Math.round(
-              Math.sin(x * 0.045 + severity) * (2 + intensity * 11) * faceMask
-            );
-
-            context.drawImage(
-              source,
-              x,
-              sourceY,
-              sliceWidth,
-              sourceHeight,
-              x + wobble,
-              sourceY,
-              sliceWidth + 1,
-              sourceHeight + pull
-            );
-          }
-
-          if (severity >= 42) {
-            const tearCount = 3 + Math.round(intensity * 6);
-            for (let index = 0; index < tearCount; index += 1) {
-              const noise = seededNoise(severity * 9.7 + index * 17.3);
-              const y = Math.round(height * (0.22 + noise * 0.52));
-              const stripeHeight = 4 + Math.round(seededNoise(index + severity) * (9 + intensity * 15));
-              const shift = Math.round((seededNoise(index * 4.3 + severity) - 0.5) * 90 * intensity);
-              context.globalAlpha = 0.46 + intensity * 0.36;
-              context.drawImage(source, 0, y, width, stripeHeight, shift, y + index % 3, width, stripeHeight);
-            }
-            context.globalAlpha = 1;
-          }
-
-          if (severity >= 68) {
-            const dripCount = 5 + Math.round(intensity * 7);
-            for (let index = 0; index < dripCount; index += 1) {
-              const noise = seededNoise(severity * 4.9 + index * 23.1);
-              const dripX = Math.round(width * (0.26 + noise * 0.48));
-              const dripWidth = 5 + Math.round(seededNoise(index + 11.4) * 13);
-              const dripY = Math.round(height * (0.55 + seededNoise(index * 8.2) * 0.12));
-              const dripLength = Math.round(height * (0.05 + seededNoise(index + severity * 0.3) * 0.15) * intensity);
-              context.globalAlpha = 0.62;
-              context.drawImage(source, dripX, dripY - 9, dripWidth, 18, dripX, dripY, dripWidth, dripLength);
-            }
-            context.globalAlpha = 1;
-          }
-
-          const colorWash = context.createLinearGradient(0, 0, width, height);
-          colorWash.addColorStop(0, `rgba(34, 211, 238, ${0.025 + intensity * 0.08})`);
-          colorWash.addColorStop(0.52, 'rgba(2, 6, 23, 0)');
-          colorWash.addColorStop(1, `rgba(244, 63, 94, ${0.02 + intensity * 0.12})`);
-          context.fillStyle = colorWash;
-          context.fillRect(0, 0, width, height);
-
-          const vignette = context.createRadialGradient(width / 2, height * 0.43, height * 0.12, width / 2, height * 0.46, height * 0.69);
-          vignette.addColorStop(0, 'rgba(2, 6, 23, 0)');
-          vignette.addColorStop(1, `rgba(2, 6, 23, ${0.2 + intensity * 0.24})`);
-          context.fillStyle = vignette;
-          context.fillRect(0, 0, width, height);
-
-          resolve(output.toDataURL('image/jpeg', 0.9));
-        } catch (error) {
-          reject(error);
-        }
-      };
-
-      image.src = imageData;
-    });
   }
 
   function wrapText(ctx, text, x, y, maxWidth, lineHeight, maxLines = 3) {

@@ -7,7 +7,7 @@ Srandovní webová appka, která simuluje lokální AI sken obličeje a vygeneru
 - Spustí kameru přímo v prohlížeči.
 - Umí přepnout přední/zadní kameru a použít vlastní fotku.
 - Zobrazí animovaný pseudo scan nad skutečnými lokálně detekovanými body obličeje.
-- Náhodně vybere hlášku z hlavní a tvrdší knihovny verdiktů.
+- Vybere hlášku z explicitního rozsahu závažnosti a dominantních vizuálních signálů; náhoda rozhoduje jen mezi stejně vhodnými kandidáty.
 - Používá jednotný VOID vizuální svět s výrazným, ale čitelným mobilním HUDem.
 - Podle damage levelu lokálně a animovaně deformuje obličej (nafouknutí, stažení, vlnění a stékání).
 - Vygeneruje sdílitelný PNG obrázek s deformovaným obličejem a hláškou.
@@ -25,8 +25,10 @@ Srandovní webová appka, která simuluje lokální AI sken obličeje a vygeneru
 - `app.js` – kamera, stav aplikace, výsledky, sdílení a PWA registrace.
 - `face-scan.js` – MediaPipe mapování očí, nosu, úst a kontury, animace skenu a zachycení snímku.
 - `vendor/mediapipe-face-mesh/` – lokální Apache-2.0 MediaPipe Face Mesh model a WebAssembly runtime.
-- `face-warp.js` – lokální canvas deformace obličeje a příprava sdíleného PNG.
-- `responses.json` a `responses-hard.json` – základní a ostřejší knihovna hlášek.
+- `devastation-metrics.js` – společný lokální kontrakt landmarků, kotev, metrik a satirického skóre.
+- `verdict-matcher.js` – čistý metadata-driven výběr verdiktu bez odvozování z textu nebo pořadí.
+- `face-warp.js` – jednotná WebGL/canvas deformace obličeje a příprava sdíleného PNG.
+- `responses.json`, `responses-hard.json` a `responses-pernik.json` – knihovny hlášek s explicitními poli `severity`, `effect` a `signals`.
 - `manifest.json` – PWA nastavení.
 - `service-worker.js` – offline cache.
 - `icon.svg` – ikona aplikace.
@@ -50,6 +52,10 @@ http://localhost:8000
 ## Nasazení
 
 Projekt je statická webová aplikace, takže jde nasadit například na GitHub Pages, Vercel, Netlify nebo Cloudflare Pages. Není potřeba žádný backend.
+
+## Kontrakt verdiktu
+
+Každá hláška nese vlastní rozsah `severity.min/max`, klíč rendereru `effect` a seznam kompatibilních vizuálních `signals`. Přesunutí hlášky v JSONu ani změna jejího českého textu proto nemění závažnost nebo efekt. Pokud metadata chybí, výběrový modul položku nahlásí a renderer použije dokumentovaný neutrální fallback `facial-drift`.
 
 ## Poznámka
 

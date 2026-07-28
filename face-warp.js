@@ -266,16 +266,14 @@
     return geometryModulePromise;
   }
 
-  function chooseProfile(severity, seed, preferredKey = '') {
-    if (preferredKey) {
-      const preferred = Object.values(tiers)
-        .flat()
-        .find((profile) => profile.key === preferredKey);
-      if (preferred) return preferred;
-    }
+  function chooseProfile(_severity, _seed, preferredKey = '') {
+    const profiles = Object.values(tiers).flat();
+    const preferred = profiles.find((profile) => profile.key === preferredKey);
+    if (preferred) return preferred;
 
-    const tier = severity < 30 ? tiers.mild : severity < 58 ? tiers.medium : severity < 82 ? tiers.high : tiers.critical;
-    return tier[Math.abs(seed) % tier.length];
+    // Missing response metadata is intentionally visible as one documented
+    // neutral fallback. The renderer never guesses an effect from severity.
+    return profiles.find((profile) => profile.key === 'facial-drift');
   }
 
   async function geometryFor(image, width, height, faceAnalysis = state.faceAnalysis) {

@@ -118,6 +118,14 @@ function apertureFromRatio(ratio) {
   return clamp(((ratio - 0.10) / 0.24) * 100, 0, 100);
 }
 
+function eyeEffectIntensity(apertura, leftRatio, rightRatio) {
+  const closure = clamp((32 - apertura) / 32, 0, 1);
+  const widening = clamp((apertura - 86) / 14, 0, 1);
+  const meanRatio = Math.max(0.04, (leftRatio + rightRatio) / 2);
+  const imbalance = clamp(Math.abs(leftRatio - rightRatio) / meanRatio / 0.7, 0, 1);
+  return Math.max(closure, widening, imbalance);
+}
+
 function headTilt(points, width, height) {
   const forehead = pixelPoint(points, 10, width, height);
   const chin = pixelPoint(points, 152, width, height);
@@ -387,10 +395,12 @@ export function calculateDevastationMetrics(
       mouthAsymmetryRatio: round(asymmetryRatio, 4)
     },
     signals: {
-      eyes: round(apertura / 100, 3),
+      // Every signal is effect intensity: higher means stronger visual input,
+      // never a judgment about the person in the photo.
+      eyes: round(eyeEffectIntensity(apertura, leftEyeRatio, rightEyeRatio), 3),
       pose: round(gravitace / 45, 3),
-      asymmetry: round(asymmetryRatio, 3),
-      exposure: round(safeHydration / 38, 3)
+      asymmetry: round(clamp(asymmetryRatio / 0.16, 0, 1), 3),
+      exposure: round(1 - clamp(safeHydration / 38, 0, 1), 3)
     }
   };
 }
