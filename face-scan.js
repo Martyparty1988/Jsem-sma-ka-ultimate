@@ -11,7 +11,9 @@
 
   const SVG_NS = 'http://www.w3.org/2000/svg';
   const MODEL_ROOT = 'vendor/mediapipe-face-mesh/';
+  const METRICS_MODULE_URL = './devastation-metrics.js?v=62';
   const DETECTION_MAX_AGE = 620;
+  const STILL_DETECTION_TIMEOUT = 8000;
   const SCAN_DURATION = 3000;
 
   const FACE_OVAL = [
@@ -149,6 +151,8 @@
   let landmarkCount = 0;
   let lastDetectionAt = 0;
   let lastRawLandmarks = null;
+  let metricsModulePromise = null;
+  let stillRequest = null;
 
   const scanStages = [
     [13, 'Zamykám subjekt', 'lock'],
@@ -173,6 +177,19 @@
       && lastRawLandmarks?.length >= 468
       && now - lastDetectionAt <= DETECTION_MAX_AGE
     );
+  }
+
+  function loadMetricsModule() {
+    metricsModulePromise ||= import(METRICS_MODULE_URL);
+    return metricsModulePromise;
+  }
+
+  function cloneLandmarks(landmarks) {
+    return landmarks.map((point) => ({
+      x: Number(point?.x || 0),
+      y: Number(point?.y || 0),
+      z: Number(point?.z || 0)
+    }));
   }
 
   function setDetected(detected) {
@@ -366,6 +383,14 @@
     detectorFailures = 0;
     overlay.classList.remove('model-loading', 'model-failed');
 
+    if (stillRequest) {
+      const request = stillRequest;
+      stillRequest = null;
+      clearTimeout(request.timer);
+      request.resolve(results);
+      return;
+    }
+
     const landmarks = results?.multiFaceLandmarks?.[0];
     if (landmarks?.length >= 468 && renderLandmarks(landmarks)) {
       landmarkCount = landmarks.length;
@@ -470,6 +495,108 @@
     }
   }
 
+  function waitForDetectorIdle(timeout = 1200) {
+    const startedAt = performance.now();
+    return new Promise((resolve, reject) => {
+      const check = () => {
+        if (!detectionBusy && !stillRequest) {
+          resolve();
+          return;
+        }
+        if (performance.now() - startedAt >= timeout) {
+          reject(new Error('Detektor ještě zpracovává předchozí snímek.'));
+          return;
+        }
+        window.setTimeout(check, 24);
+      };
+      check();
+    });
+  }
+
+  function loadStillImage(source) {
+    return new Promise((resolve, reject) => {
+      const image = new Image();
+      image.decoding = 'async';
+      image.onload = () => resolve(image);
+      image.onerror = () => reject(new Error('Nahranou fotku se nepovedlo dekódovat pro Face Mesh.'));
+      image.src = source;
+    });
+  }
+
+  function sendStillImage(image) {
+    return new Promise((resolve, reject) => {
+      const timer = window.setTimeout(() => {
+        if (stillRequest?.timer !== timer) return;
+        stillRequest = null;
+        reject(new Error('Face Mesh nestihl nahranou fotku zpracovat.'));
+      }, STILL_DETECTION_TIMEOUT);
+
+      stillRequest = { resolve, reject, timer };
+      Promise.resolve(faceMesh.send({ image })).catch((error) => {
+        if (stillRequest?.timer !== timer) return;
+        stillRequest = null;
+        clearTimeout(timer);
+        reject(error);
+      });
+    });
+  }
+
+  function analysisError(message, code) {
+    const error = new Error(message);
+    error.code = code;
+    return error;
+  }
+
+  async function analyzeStillImage(imageData) {
+    if (!imageData) throw analysisError('Nahraná fotka chybí.', 'MISSING_IMAGE');
+    if (!faceMesh || modelState === 'failed') {
+      throw analysisError(
+        'Přesný model obličeje není dostupný. Obnov stránku a zkus fotku znovu.',
+        'MODEL_UNAVAILABLE'
+      );
+    }
+
+    await waitForDetectorIdle();
+    const image = await loadStillImage(imageData);
+    detectionBusy = true;
+    setStatus('Měřím 468 bodů nahrané fotky');
+    app.setHint('VOID hledá na fotce přesně jeden obličej…');
+
+    try {
+      faceMesh.setOptions({ maxNumFaces: 2 });
+      const results = await sendStillImage(image);
+      const faces = Array.isArray(results?.multiFaceLandmarks)
+        ? results.multiFaceLandmarks.filter((landmarks) => landmarks?.length >= 468)
+        : [];
+
+      if (faces.length === 0) {
+        throw analysisError(
+          'Na fotce jsem nenašel použitelný obličej. Nahraj ostřejší fotku zepředu.',
+          'NO_FACE'
+        );
+      }
+      if (faces.length > 1) {
+        throw analysisError(
+          'Na fotce je víc obličejů. Nahraj jednu trosku po druhé.',
+          'MULTIPLE_FACES'
+        );
+      }
+
+      const { analyzeFaceImage } = await loadMetricsModule();
+      return analyzeFaceImage({
+        landmarks: cloneLandmarks(faces[0]),
+        imageSource: imageData,
+        sourceKind: 'upload',
+        mirrorX: false
+      });
+    } finally {
+      image.removeAttribute('src');
+      faceMesh.setOptions({ maxNumFaces: 1 });
+      detectionBusy = false;
+      scheduleDetection(180);
+    }
+  }
+
   function scheduleDetection(delay = 135) {
     clearTimeout(detectionTimer);
     detectionTimer = window.setTimeout(detectFace, delay);
@@ -536,12 +663,14 @@
     app.setHint('Vrať celý ksicht do portálu a spusť rozsudek znovu.');
   }
 
-  function captureAndAnalyze() {
+  async function captureAndAnalyze() {
     if (!hasFreshLandmarks()) {
       cancelScan('Obličej se před zachycením ztratil. Sken bez skutečných bodů nebudu předstírat.');
       return;
     }
 
+    const landmarks = cloneLandmarks(lastRawLandmarks);
+    const mirrorX = app.state?.facingMode === 'user';
     const dataUrl = app.captureCurrentFrame(0.92);
     if (!dataUrl) {
       reset();
@@ -558,7 +687,26 @@
     retakeButton.classList.remove('hidden');
     app.showCapturedFrame();
     app.setBusy(false);
-    app.runAnalysis({ skipImageCheck: true });
+    app.setHint('Přepočítávám oči, náklon a zbytky lidskosti…');
+
+    try {
+      const { analyzeFaceImage } = await loadMetricsModule();
+      const faceAnalysis = await analyzeFaceImage({
+        landmarks,
+        imageSource: dataUrl,
+        sourceKind: 'camera',
+        mirrorX
+      });
+      app.runAnalysis({
+        skipImageCheck: true,
+        metrics: faceAnalysis.metrics,
+        faceAnalysis
+      });
+    } catch (error) {
+      console.error('Biometrické metriky se nepovedlo spočítat:', error);
+      app.showError('Body mám, ale biometrický výpis se rozsypal. Zkus nový sken.');
+      app.setHint('Meme engine odmítl falšovat chybějící hodnoty.');
+    }
   }
 
   function finishScan() {
@@ -571,7 +719,7 @@
 
     finishTimer = window.setTimeout(() => {
       finishTimer = null;
-      captureAndAnalyze();
+      void captureAndAnalyze();
     }, 320);
   }
 
@@ -660,6 +808,7 @@
   window.SmazkaFaceScan = {
     start,
     reset,
+    analyzeStillImage,
     get mode() {
       return modelState === 'ready' ? 'mediapipe-landmarks' : modelState;
     },
@@ -701,6 +850,11 @@
     stopAnimation();
     clearTimeout(detectionTimer);
     clearTimeout(finishTimer);
+    if (stillRequest) {
+      clearTimeout(stillRequest.timer);
+      stillRequest.reject(new Error('Stránka byla zavřena během analýzy.'));
+      stillRequest = null;
+    }
     document.body.classList.remove('face-scan-active');
     const closeResult = faceMesh?.close?.();
     closeResult?.catch?.(() => undefined);

@@ -1,4 +1,4 @@
-/* Junky Verdict Engine v60. Local satirical visual scoring; not medical or drug-use detection. */
+/* Junky Verdict Engine v62. Local satirical visual scoring; not medical or drug-use detection. */
 (() => {
   'use strict';
   const app = window.SmazkaApp;
@@ -60,6 +60,14 @@
       asymetrie,
       hydratace: clamp(hydratace, 0, 100)
     });
+  }
+
+  function normalizeFaceAnalysis(faceAnalysis, metrics) {
+    if (!faceAnalysis || typeof faceAnalysis !== 'object' || !metrics) return null;
+    if (!Array.isArray(faceAnalysis.normalizedLandmarks) || faceAnalysis.normalizedLandmarks.length < 468) {
+      return null;
+    }
+    return faceAnalysis;
   }
 
   function loadMatcher() {
@@ -366,7 +374,8 @@
     try {
       await loadPack();
       await waitForStableLibrary(900);
-      const metrics = normalizeDevastationMetrics(options.metrics);
+      const metrics = normalizeDevastationMetrics(options.faceAnalysis?.metrics || options.metrics);
+      const faceAnalysis = normalizeFaceAnalysis(options.faceAnalysis, metrics);
       let severity;
       let selected;
 
@@ -374,7 +383,10 @@
         const { matchVerdict } = await loadMatcher();
         const triggerResponses = state.responseLibrary.filter((item) => item?.triggers);
         selected = matchVerdict(metrics, triggerResponses, randomUnit);
-        severity = clamp(Math.round(100 - metrics.lidskost), 16, 94);
+        const measuredSeverity = Number(faceAnalysis?.scores?.severity);
+        severity = Number.isFinite(measuredSeverity)
+          ? clamp(Math.round(measuredSeverity), 12, 98)
+          : clamp(Math.round(100 - metrics.lidskost), 16, 94);
       } else {
         severity = await computeSeverity(state.currentImageData).catch((error) => {
           console.warn('Vizuální damage skóre selhalo, používám fallback:', error);
@@ -389,6 +401,7 @@
       state.visualDamageSeverity = severity;
       state.visualDamageTier = tierFor(severity);
       state.lastDevastationMetrics = metrics;
+      state.faceAnalysis = faceAnalysis;
       state.responseLibrary = locked;
       restoreLibrary(original, locked);
       app.setBusy(false);
@@ -425,17 +438,31 @@
     elements.uploadButton.disabled = true;
     elements.analyzeButton.disabled = true;
     try {
-      app.setCurrentImageData(await optimizeUpload(file));
+      const imageData = await optimizeUpload(file);
+      app.setCurrentImageData(imageData);
       app.showCapturedFrame();
       elements.captureButton.classList.add('hidden');
       elements.retakeButton.classList.remove('hidden');
       elements.analyzeButton.classList.remove('hidden');
       app.hideResult();
       app.clearErrors();
-      await runTieredAnalysis();
+      if (typeof window.SmazkaFaceScan?.analyzeStillImage !== 'function') {
+        throw new Error('MediaPipe modul pro nahranou fotku není dostupný.');
+      }
+      const faceAnalysis = await window.SmazkaFaceScan.analyzeStillImage(imageData);
+      await runTieredAnalysis({
+        metrics: faceAnalysis.metrics,
+        faceAnalysis
+      });
     } catch (error) {
-      console.error('Perníkovej upload se nepovedl:', error);
-      app.showError('Fotka se nepovedla načíst. Zkus jinou, tahle odmítla vypovídat.');
+      if (error?.code) console.warn('Perníkovej upload odmítl vstup:', error);
+      else console.error('Perníkovej upload se nepovedl:', error);
+      app.showError(
+        error?.code
+          ? error.message
+          : 'Fotka se nepovedla změřit. Zkus jinou, tahle odmítla vypovídat.'
+      );
+      app.setHint('Pro biometrický verdikt potřebuju jednu jasnou tvář.');
     } finally {
       event.target.value = '';
       if (!state.isAnalyzing) {

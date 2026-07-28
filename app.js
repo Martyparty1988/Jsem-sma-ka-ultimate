@@ -69,7 +69,9 @@
     shareImagePromise: Promise.resolve(),
     deferredInstallPrompt: null,
     effectProfile: null,
-    effectSeed: 0
+    effectSeed: 0,
+    faceAnalysis: null,
+    lastDevastationMetrics: null
   };
 
   function capitalizeFirst(text) {
@@ -109,6 +111,11 @@
   function hideResult({ restoreFocus = false } = {}) {
     hide(elements.result);
     hide(elements.resultBackdrop);
+    if (elements.result?.open && typeof elements.result.close === 'function') {
+      elements.result.close();
+    } else {
+      elements.result?.removeAttribute('open');
+    }
     document.body.classList.remove('result-open');
     if (elements.app) elements.app.inert = false;
 
@@ -123,6 +130,20 @@
   function showResult() {
     show(elements.resultBackdrop);
     show(elements.result);
+    if (
+      elements.result
+      && !elements.result.open
+      && typeof elements.result.showModal === 'function'
+    ) {
+      try {
+        elements.result.showModal();
+      } catch (error) {
+        console.warn('Nativní dialog výsledku se nepovedlo otevřít:', error);
+        elements.result.setAttribute('open', '');
+      }
+    } else if (elements.result && !elements.result.open) {
+      elements.result.setAttribute('open', '');
+    }
     document.body.classList.add('result-open');
     if (elements.app) elements.app.inert = true;
     elements.result.scrollTop = 0;
@@ -255,6 +276,8 @@
 
   function setCurrentImageData(dataUrl) {
     state.currentImageData = dataUrl;
+    state.faceAnalysis = null;
+    state.lastDevastationMetrics = null;
     if (dataUrl && elements.preview) {
       elements.preview.src = dataUrl;
       show(elements.previewContainer);
@@ -268,6 +291,8 @@
     state.effectSeverity = 0;
     state.effectProfile = null;
     state.effectSeed = 0;
+    state.faceAnalysis = null;
+    state.lastDevastationMetrics = null;
     elements.preview.removeAttribute('src');
     hide(elements.previewContainer);
     elements.cameraStage?.classList.remove('has-preview');
@@ -984,6 +1009,10 @@
   });
 
   elements.resultBackdrop.addEventListener('click', () => hideResult({ restoreFocus: true }));
+  elements.result.addEventListener('cancel', (event) => {
+    event.preventDefault();
+    hideResult({ restoreFocus: true });
+  });
   document.addEventListener('keydown', (event) => {
     if (event.key === 'Escape' && !elements.result.classList.contains('hidden')) {
       hideResult({ restoreFocus: true });

@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'v61';
+const CACHE_VERSION = 'v62';
 const CACHE_NAME = `jsem-smazka-${CACHE_VERSION}`;
 
 const CORE_ASSETS = [
@@ -18,17 +18,18 @@ const STYLE_ASSETS = [
 ];
 
 const SCRIPT_ASSETS = [
-  './app.js?v=60',
+  './app.js?v=62',
   './vendor/mediapipe-face-mesh/face_mesh.js?v=0.4.1633559619',
-  './face-scan.js?v=60',
+  './face-scan.js?v=62',
+  './devastation-metrics.js?v=62',
   './face-warp.js?v=60',
   './hard-responses.js?v=60',
-  './junky-verdict-engine.js?v=60',
+  './junky-verdict-engine.js?v=62',
   './verdict-matcher.js?v=60',
   './terminal-readout.js?v=60',
   './experience-upgrades.js?v=60',
   './diagnostic-upgrades.js?v=60',
-  './privacy-hardening.js?v=60',
+  './privacy-hardening.js?v=62',
   './ios-one-screen.js?v=60',
   './in-frame-result.js?v=60',
   './scanner-focus.js?v=60',

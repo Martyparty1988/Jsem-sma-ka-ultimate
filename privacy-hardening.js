@@ -46,6 +46,8 @@
       state.effectProfile = null;
       state.effectSeed = 0;
       state.diagnosticData = null;
+      state.faceAnalysis = null;
+      state.lastDevastationMetrics = null;
       state.shareImagePromise = Promise.resolve();
 
       if (elements.preview?.hasAttribute('src')) elements.preview.removeAttribute('src');
