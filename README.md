@@ -1,43 +1,55 @@
 # Jsem smažka?
 
-Srandovní webová appka, která simuluje lokální AI sken obličeje a vygeneruje meme výsledek ve stylu „damage level po večírku“.
+Satirická mobilní webová aplikace, která lokálně změří MediaPipe Face Mesh landmarky, vybere absurdní meme verdikt a deformuje původní obličej. Výsledek je záměrně přehnaný a není diagnóza.
 
-## Co appka umí
+## Co aplikace umí
 
-- Spustí kameru přímo v prohlížeči.
-- Umí přepnout přední/zadní kameru a použít vlastní fotku.
-- Zobrazí animovaný pseudo scan nad skutečnými lokálně detekovanými body obličeje.
-- Vybere hlášku z explicitního rozsahu závažnosti a dominantních vizuálních signálů; náhoda rozhoduje jen mezi stejně vhodnými kandidáty.
-- Používá jednotný VOID vizuální svět s výrazným, ale čitelným mobilním HUDem.
-- Podle damage levelu lokálně a animovaně deformuje obličej (nafouknutí, stažení, vlnění a stékání).
-- Vygeneruje sdílitelný PNG obrázek s deformovaným obličejem a hláškou.
-- Funguje jako instalovatelná PWA i offline díky `manifest.json` a `service-worker.js`.
-- Fotka se neposílá na server. Všechno běží lokálně v prohlížeči.
-- Nepoužívá žádný externí skript ani analytiku.
+- Otevře kameru přímo v prohlížeči nebo přijme nahranou fotku.
+- Sleduje 468–478 skutečných bodů očí, nosu, úst a kontury obličeje.
+- Počítá lokální satirické metriky a podle explicitních metadat vybírá kompatibilní verdikt.
+- Deformuje obličej pomocí WebGL s canvas fallbackem.
+- Používá face-aware výřez, takže obličej zůstává ve výsledku i sdílené kartě ve stejné pozici.
+- Generuje sdílitelný VOID verdict cover 1080 × 1920.
+- Funguje jako instalovatelná PWA a po načtení také offline.
+- Fotku ani biometrická data nikam neposílá.
 
-## Soubory
+## Produkční vrstvy
 
-- `index.html` – základ stránky, metadata a struktura UI.
-- `styles.css` – základní komponenty a desktopový fallback.
-- `visual-system.css` – základ toxic/iOS vizuálního systému, mobilní kamera, reveal a výsledkový layout.
-- `quiet-scan.css` – finální vizuální autorita, hierarchie, kontrast a mobilní layout.
-- `face-warp.css` – vizuální efekty deformace, skenu a výsledku.
-- `app.js` – kamera, stav aplikace, výsledky, sdílení a PWA registrace.
-- `face-scan.js` – MediaPipe mapování očí, nosu, úst a kontury, animace skenu a zachycení snímku.
-- `vendor/mediapipe-face-mesh/` – lokální Apache-2.0 MediaPipe Face Mesh model a WebAssembly runtime.
-- `devastation-metrics.js` – společný lokální kontrakt landmarků, kotev, metrik a satirického skóre.
-- `verdict-matcher.js` – čistý metadata-driven výběr verdiktu bez odvozování z textu nebo pořadí.
-- `face-warp.js` – jednotná WebGL/canvas deformace obličeje a příprava sdíleného PNG.
-- `responses.json`, `responses-hard.json` a `responses-pernik.json` – knihovny hlášek s explicitními poli `severity`, `effect` a `signals`.
-- `manifest.json` – PWA nastavení.
-- `service-worker.js` – offline cache.
-- `icon.svg` – ikona aplikace.
+### UI
+
+- `bundle-base.css` – základ aplikace, typografie a společné komponenty.
+- `bundle-scanner.css` – kamera, skenovací HUD a mobilní ovládání.
+- `bundle-results.css` – výsledkové komponenty a diagnostika.
+- `scan-theme.css` – finální VOID vizuální polish.
+- `result-mobile-v71.css` – jediná mobilní autorita pro rozměry výsledkové karty.
+
+### Detekce a verdikt
+
+- `app.js` – stav aplikace, kamera, výsledek a základní share fallback.
+- `face-scan.js` – MediaPipe Face Mesh, zachycení a měření fotografie.
+- `devastation-metrics.js` – normalizované landmarky, bounds, anchors, metriky a 70/30 severity kontrakt.
+- `verdict-matcher.js` – metadata-driven výběr verdiktu.
+- `junky-verdict-engine.js` – propojení biometrických metrik s knihovnami hlášek.
+- `responses.json`, `responses-hard.json`, `responses-pernik.json` – knihovny verdiktů.
+
+### Výřez, deformace a export
+
+- `face-aware-crop.js` – společný výpočet cover cropu, object-position a přepočtu landmarků.
+- `face-aware-crop-runtime.js` – připraví face-aware zdroj pro renderer a synchronizuje crop výsledkové fotografie.
+- `face-warp-geometry.js` – převod landmarků na oblasti deformace.
+- `face-warp.js` – WebGL/canvas deformace a finální PNG.
+- `share-cover.js` – sdílená 1080 × 1920 karta používající stejnou crop geometrii.
+- `privacy-hardening.js` – lokální scrub citlivých dat; původní a pracovní oříznutá fotka jsou vedené odděleně.
+
+### PWA
+
+- `manifest.json` – instalační metadata.
+- `service-worker.js` – verzovaná offline cache a update lifecycle.
+- `pwa-update-fix.js` – spolehlivé kliknutí na aktualizaci v iOS PWA.
 
 ## Lokální spuštění
 
-Kvůli kameře je nejlepší spustit appku přes HTTPS, případně přes lokální server. Obyčejné otevření `index.html` ze souboru může v některých prohlížečích blokovat kameru nebo načítání JSON souboru.
-
-Jednoduchá varianta pro lokální test:
+Kamera vyžaduje HTTPS nebo localhost. Pro rychlý lokální server:
 
 ```bash
 python3 -m http.server 8000
@@ -49,14 +61,21 @@ Potom otevři:
 http://localhost:8000
 ```
 
-## Nasazení
+## Testy
 
-Projekt je statická webová aplikace, takže jde nasadit například na GitHub Pages, Vercel, Netlify nebo Cloudflare Pages. Není potřeba žádný backend.
+Testy používají vestavěný Node test runner:
 
-## Kontrakt verdiktu
+```bash
+node --test tests/*.test.mjs
+```
 
-Každá hláška nese vlastní rozsah `severity.min/max`, klíč rendereru `effect` a seznam kompatibilních vizuálních `signals`. Přesunutí hlášky v JSONu ani změna jejího českého textu proto nemění závažnost nebo efekt. Pokud metadata chybí, výběrový modul položku nahlásí a renderer použije dokumentovaný neutrální fallback `facial-drift`.
+Důležité kontrakty:
+
+- `tests/devastation-metrics.test.mjs` – metriky a severity.
+- `tests/face-warp-geometry.test.mjs` – mapování landmarků do rendereru.
+- `tests/face-aware-crop.test.mjs` – crop pro obličej vlevo, vpravo a transformace landmarků.
+- `tests/pwa-cache.test.mjs` – shoda HTML, runtime souborů a offline cache.
 
 ## Poznámka
 
-Výsledek je čistě pro srandu. Není to zdravotní, právní ani žádná jiná diagnóza. Je to prostě meme mašina s dramatickým výrazem.
+Výsledek je meme artefakt. Aplikace nedetekuje užívání látek, zdravotní stav ani identitu člověka.
