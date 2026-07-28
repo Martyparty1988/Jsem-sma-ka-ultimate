@@ -1,4 +1,4 @@
-/* Smažka v53 — true viewport result composition for mobile Safari and PWA. */
+/* Smažka v67 — compact viewport result composition for mobile Safari and PWA. */
 (() => {
   'use strict';
 
@@ -21,12 +21,25 @@
   }
 
   function clearCompositionStyles() {
+    const content = result.querySelector('.result-content');
     const visual = result.querySelector('.result-visual');
     const actions = result.querySelector('.result-actions');
-    ['height', 'min-height', 'max-height', 'flex', 'aspect-ratio'].forEach((property) => {
-      visual?.style.removeProperty(property);
+    const title = result.querySelector('h2');
+    const gradient = result.querySelector('.in-frame-result-gradient');
+
+    [
+      'position', 'z-index', 'inset', 'top', 'right', 'bottom', 'left',
+      'width', 'height', 'min-height', 'max-height', 'flex', 'aspect-ratio',
+      'margin', 'border-radius'
+    ].forEach((property) => visual?.style.removeProperty(property));
+
+    ['justify-content', 'padding-top', 'gap'].forEach((property) => {
+      content?.style.removeProperty(property);
     });
+
     actions?.style.removeProperty('margin-top');
+    title?.style.removeProperty('margin-top');
+    gradient?.style.removeProperty('display');
   }
 
   function clearTopLayerStyles() {
@@ -64,11 +77,46 @@
   }
 
   function syncResultComposition() {
-    // The result photo is an absolute full-viewport layer. Never give it inline
-    // auto/min heights: Safari resolves that combination as a short block and
-    // leaves a large empty area above it.
-    clearCompositionStyles();
-    result.querySelector('.result-actions')?.style.setProperty('margin-top', '0', 'important');
+    const content = result.querySelector('.result-content');
+    const visual = result.querySelector('.result-visual');
+    const actions = result.querySelector('.result-actions');
+    const title = result.querySelector('h2');
+    const gradient = result.querySelector('.in-frame-result-gradient');
+    if (!content || !visual) return;
+
+    const detailsOpen = result.classList.contains('details-open');
+
+    // Older in-frame CSS treated the image as a full-screen absolute background
+    // and reserved up to 55 % of the sheet above the copy. Mobile Safari then
+    // produced a large dead area between the photo and verdict. Keep every block
+    // in normal document flow so the copy always starts directly below the image.
+    content.style.setProperty('justify-content', 'flex-start', 'important');
+    content.style.setProperty('padding-top', '0', 'important');
+    content.style.setProperty('gap', detailsOpen ? '8px' : '9px', 'important');
+
+    visual.style.setProperty('position', 'relative', 'important');
+    visual.style.setProperty('z-index', '0', 'important');
+    visual.style.setProperty('inset', 'auto', 'important');
+    visual.style.setProperty('top', 'auto', 'important');
+    visual.style.setProperty('right', 'auto', 'important');
+    visual.style.setProperty('bottom', 'auto', 'important');
+    visual.style.setProperty('left', 'auto', 'important');
+    visual.style.setProperty('width', 'calc(100% + 28px)', 'important');
+    visual.style.setProperty(
+      'height',
+      detailsOpen ? 'clamp(142px, 20dvh, 174px)' : 'clamp(245px, 40dvh, 350px)',
+      'important'
+    );
+    visual.style.setProperty('min-height', '0', 'important');
+    visual.style.setProperty('max-height', 'none', 'important');
+    visual.style.setProperty('flex', '0 0 auto', 'important');
+    visual.style.setProperty('aspect-ratio', 'auto', 'important');
+    visual.style.setProperty('margin', '0 -14px 5px', 'important');
+    visual.style.setProperty('border-radius', '0', 'important');
+
+    title?.style.setProperty('margin-top', '0', 'important');
+    actions?.style.setProperty('margin-top', '0', 'important');
+    gradient?.style.setProperty('display', 'none', 'important');
   }
 
   function viewportMetrics() {
