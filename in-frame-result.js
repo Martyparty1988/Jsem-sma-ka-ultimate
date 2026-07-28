@@ -1,4 +1,4 @@
-/* Smažka v70 — single mobile result composition for Safari and installed PWA. */
+/* Smažka v71 — single mobile result composition for Safari and installed PWA. */
 (() => {
   'use strict';
 
@@ -73,7 +73,7 @@
       clearProperties(media, [
         'position', 'inset', 'top', 'right', 'bottom', 'left', 'width', 'height',
         'min-width', 'min-height', 'max-width', 'max-height', 'display',
-        'object-fit', 'object-position', 'transform-origin'
+        'object-fit', 'object-position', 'transform', 'transform-origin'
       ]);
     });
 
@@ -108,6 +108,7 @@
       setImportant(media, 'display', 'block');
       setImportant(media, 'object-fit', 'cover');
       setImportant(media, 'object-position', '50% 38%');
+      setImportant(media, 'transform', 'none');
       setImportant(media, 'transform-origin', '50% 50%');
 
       if (media instanceof HTMLImageElement && !media.dataset.resultLayoutLoadBound) {
@@ -127,12 +128,12 @@
     const title = content.querySelector(':scope > h2');
     const actions = content.querySelector(':scope > .result-actions');
 
-    // The bundled legacy layers alternately make the photo a fullscreen absolute
-    // background and then insert auto margins below it. Force one normal-flow
-    // composition here so no spacer can split the photo from the verdict.
-    setImportant(content, 'height', 'auto');
+    // One full-height flex composition: the image absorbs remaining space while
+    // verdict copy stays directly below it. Legacy translateX(-50%) is cancelled
+    // on every canvas/image so the media cannot slide halfway out of the frame.
+    setImportant(content, 'height', '100%');
     setImportant(content, 'min-height', '0');
-    setImportant(content, 'max-height', `${Math.max(1, Math.round(viewportHeight))}px`);
+    setImportant(content, 'max-height', '100%');
     setImportant(content, 'justify-content', 'flex-start');
     setImportant(content, 'align-items', 'stretch');
     setImportant(content, 'padding-top', '0');
@@ -151,14 +152,10 @@
     setImportant(visual, 'bottom', 'auto');
     setImportant(visual, 'left', 'auto');
     setImportant(visual, 'width', 'calc(100% + 28px)');
-    setImportant(
-      visual,
-      'height',
-      detailsOpen ? 'clamp(142px, 20dvh, 174px)' : 'clamp(260px, 40dvh, 380px)'
-    );
-    setImportant(visual, 'min-height', '0');
+    setImportant(visual, 'height', detailsOpen ? 'clamp(142px, 20dvh, 174px)' : 'auto');
+    setImportant(visual, 'min-height', detailsOpen ? '0' : 'clamp(260px, 34dvh, 360px)');
     setImportant(visual, 'max-height', 'none');
-    setImportant(visual, 'flex', '0 0 auto');
+    setImportant(visual, 'flex', detailsOpen ? '0 0 auto' : '1 1 auto');
     setImportant(visual, 'aspect-ratio', 'auto');
     setImportant(visual, 'margin', '0 -14px 5px');
     setImportant(visual, 'overflow', 'hidden');
@@ -172,7 +169,7 @@
     setImportant(actions, 'margin-top', '0');
 
     result.querySelector(':scope > .in-frame-result-gradient')?.remove();
-    result.dataset.resultLayout = 'v70';
+    result.dataset.resultLayout = 'v71';
   }
 
   function viewportMetrics() {
@@ -201,7 +198,7 @@
     setImportant(result, 'bottom', 'auto');
     setImportant(result, 'left', `${Math.round(left)}px`);
     setImportant(result, 'width', `${Math.round(width)}px`);
-    setImportant(result, 'height', 'auto');
+    setImportant(result, 'height', `${Math.round(maxHeight)}px`);
     setImportant(result, 'max-width', 'none');
     setImportant(result, 'max-height', `${Math.round(maxHeight)}px`);
     setImportant(result, 'margin', '0');
