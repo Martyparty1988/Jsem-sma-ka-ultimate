@@ -546,11 +546,28 @@
     window.setTimeout(async () => {
       const result = getRandomResult();
       const severity = getResultSeverity(result);
-      const effectProfile = getEffectProfile(severity, result);
+      let effectProfile = getEffectProfile(severity, result);
       let effectImageData = state.currentImageData;
 
       try {
-        effectImageData = await createMeltedEffect(state.currentImageData, severity);
+        if (state.faceAnalysis && typeof window.SmazkaFaceWarp?.renderFaceEffect === 'function') {
+          const rendered = await window.SmazkaFaceWarp.renderFaceEffect({
+            imageData: state.currentImageData,
+            severity,
+            effect: effectProfile.key,
+            faceAnalysis: state.faceAnalysis,
+            output: { width: 480, height: 640, crop: 'cover' }
+          });
+          effectImageData = rendered.finalDataUrl;
+          state.effectSeed = rendered.seed;
+          effectProfile = {
+            ...effectProfile,
+            key: rendered.effect,
+            label: rendered.label
+          };
+        } else {
+          effectImageData = await createMeltedEffect(state.currentImageData, severity);
+        }
       } catch (error) {
         console.warn('Deformace náhledu selhala, používám původní fotku:', error);
       }
