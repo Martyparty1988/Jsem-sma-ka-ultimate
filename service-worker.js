@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'v69';
+const CACHE_VERSION = 'v70';
 const CACHE_NAME = `jsem-smazka-${CACHE_VERSION}`;
 
 const CORE_ASSETS = [
@@ -14,7 +14,8 @@ const STYLE_ASSETS = [
   './bundle-base.css?v=60',
   './bundle-scanner.css?v=60',
   './bundle-results.css?v=60',
-  './scan-theme.css?v=65'
+  './scan-theme.css?v=65',
+  './result-mobile-v70.css?v=70'
 ];
 
 const SCRIPT_ASSETS = [
@@ -33,15 +34,14 @@ const SCRIPT_ASSETS = [
   './pwa-update-fix.js?v=68',
   './privacy-hardening.js?v=62',
   './ios-one-screen.js?v=60',
-  './in-frame-result.js?v=67',
+  './in-frame-result.js?v=70',
   './scanner-focus.js?v=60',
   './face-guidance.js?v=60',
   './share-cover.js?v=60',
   './result-intensity.js?v=60',
   './junkie-polish-v55.js?v=60',
   './boot-message-v54.js?v=60',
-  './result-close-reset-v58.js?v=60',
-  './result-layout-fix-v69.js?v=69'
+  './result-close-reset-v58.js?v=60'
 ];
 
 const DATA_ASSETS = [
