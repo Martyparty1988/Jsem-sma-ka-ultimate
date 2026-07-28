@@ -1,0 +1,90 @@
+/* Smažka v71 — full-height mobile result without legacy canvas shifts. */
+
+@media (max-width: 640px) {
+  html body.result-in-frame dialog#result.result:not(.hidden) .result-content {
+    height: 100% !important;
+    min-height: 0 !important;
+    max-height: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    justify-content: flex-start !important;
+    gap: 9px !important;
+    padding: 0 14px max(14px, env(safe-area-inset-bottom)) !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+  }
+
+  html body.result-in-frame dialog#result.result:not(.hidden) .result-content > * {
+    flex: 0 0 auto !important;
+  }
+
+  html body.result-in-frame dialog#result.result:not(.hidden) .result-content > .result-visual {
+    position: relative !important;
+    z-index: 0 !important;
+    inset: auto !important;
+    width: calc(100% + 28px) !important;
+    height: auto !important;
+    min-height: clamp(260px, 34dvh, 360px) !important;
+    max-height: none !important;
+    flex: 1 1 auto !important;
+    aspect-ratio: auto !important;
+    margin: 0 -14px 5px !important;
+    overflow: hidden !important;
+    border-radius: 0 !important;
+    background: #080d12 !important;
+  }
+
+  html body.result-in-frame dialog#result.result:not(.hidden) .result-visual > img:not(.junkie-share-source),
+  html body.result-in-frame dialog#result.result:not(.hidden) .result-visual > canvas,
+  html body.result-in-frame dialog#result.result:not(.hidden) .result-visual > .junkie-polished-image,
+  html body.result-in-frame dialog#result.result:not(.hidden) .result-visual > .junkie-morph-origin,
+  html body.result-in-frame dialog#result.result:not(.hidden) .result-visual > .junkie-morph-final {
+    position: absolute !important;
+    inset: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    min-width: 100% !important;
+    min-height: 100% !important;
+    max-width: none !important;
+    max-height: none !important;
+    display: block !important;
+    object-fit: cover !important;
+    object-position: 50% 38% !important;
+    transform: none !important;
+    transform-origin: 50% 50% !important;
+  }
+
+  html body.result-in-frame dialog#result.result:not(.hidden) .result-content > .result-effect-meta,
+  html body.result-in-frame dialog#result.result:not(.hidden) .result-content > h2,
+  html body.result-in-frame dialog#result.result:not(.hidden) .result-content > .description,
+  html body.result-in-frame dialog#result.result:not(.hidden) .result-content > .in-frame-details-toggle,
+  html body.result-in-frame dialog#result.result:not(.hidden) .result-content > .result-actions {
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+  }
+
+  html body.result-in-frame dialog#result.result:not(.hidden) .result-content > .result-actions {
+    padding-top: 1px !important;
+  }
+
+  html body.result-in-frame dialog#result.result.details-open:not(.hidden) .result-content > .result-visual {
+    height: clamp(142px, 20dvh, 174px) !important;
+    min-height: 0 !important;
+    flex: 0 0 auto !important;
+  }
+
+  html body.result-in-frame dialog#result.result:not(.hidden) > .in-frame-result-gradient {
+    display: none !important;
+  }
+}
+
+@media (max-width: 640px) and (max-height: 760px) {
+  html body.result-in-frame dialog#result.result:not(.hidden) .result-content > .result-visual {
+    min-height: clamp(220px, 31dvh, 290px) !important;
+  }
+
+  html body.result-in-frame dialog#result.result.details-open:not(.hidden) .result-content > .result-visual {
+    min-height: 0 !important;
+  }
+}
