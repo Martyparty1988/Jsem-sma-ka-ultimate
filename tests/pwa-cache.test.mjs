@@ -28,11 +28,11 @@ globalThis.__PWA_TEST__ = { CACHE_NAME, APP_SHELL };`;
   return context.__PWA_TEST__;
 }
 
-test('PWA v64 caches every changed runtime and data dependency', () => {
+test('PWA v70 caches every current runtime, style and data dependency', () => {
   const { CACHE_NAME, APP_SHELL } = serviceWorkerContract();
   const assets = new Set(APP_SHELL);
 
-  assert.equal(CACHE_NAME, 'jsem-smazka-v64');
+  assert.equal(CACHE_NAME, 'jsem-smazka-v70');
   [
     './app.js?v=64',
     './face-scan.js?v=64',
@@ -41,10 +41,14 @@ test('PWA v64 caches every changed runtime and data dependency', () => {
     './hard-responses.js?v=64',
     './junky-verdict-engine.js?v=64',
     './verdict-matcher.js?v=64',
+    './in-frame-result.js?v=70',
+    './result-mobile-v70.css?v=70',
     './responses.json',
     './responses-hard.json?v=64',
     './responses-pernik.json?v=64'
   ].forEach((asset) => assert.equal(assets.has(asset), true, asset));
+
+  assert.equal(assets.has('./result-layout-fix-v69.js?v=69'), false);
 
   APP_SHELL.forEach((asset) => {
     const pathname = asset.replace(/^\.\//, '').split('?')[0] || 'index.html';
@@ -52,7 +56,7 @@ test('PWA v64 caches every changed runtime and data dependency', () => {
   });
 });
 
-test('HTML and dynamic module URLs agree with the v64 cache graph', () => {
+test('HTML and dynamic module URLs agree with the v70 cache graph', () => {
   const { APP_SHELL } = serviceWorkerContract();
   const assets = new Set(APP_SHELL);
   const index = read('index.html');
@@ -60,6 +64,10 @@ test('HTML and dynamic module URLs agree with the v64 cache graph', () => {
   const indexScripts = [...index.matchAll(/<script defer src="([^"]+)"/g)]
     .map((match) => `./${match[1]}`);
   indexScripts.forEach((asset) => assert.equal(assets.has(asset), true, asset));
+
+  const indexStyles = [...index.matchAll(/<link rel="stylesheet" href="([^"]+)"/g)]
+    .map((match) => `./${match[1]}`);
+  indexStyles.forEach((asset) => assert.equal(assets.has(asset), true, asset));
 
   const dynamicAssets = [
     read('face-scan.js').match(/METRICS_MODULE_URL = '([^']+)'/)?.[1],
@@ -70,4 +78,17 @@ test('HTML and dynamic module URLs agree with the v64 cache graph', () => {
   ].filter(Boolean).map((asset) => asset.startsWith('./') ? asset : `./${asset}`);
 
   dynamicAssets.forEach((asset) => assert.equal(assets.has(asset), true, asset));
+});
+
+test('mobile result authority removes legacy auto spacers', () => {
+  const css = read('result-mobile-v70.css');
+  const runtime = read('in-frame-result.js');
+  const index = read('index.html');
+
+  assert.match(css, /result-effect-meta[\s\S]*margin-top:\s*0\s*!important/);
+  assert.match(css, /result-actions[\s\S]*margin-top:\s*0\s*!important/);
+  assert.match(css, /result-visual[\s\S]*height:\s*clamp\(260px,\s*40dvh,\s*380px\)/);
+  assert.match(runtime, /setImportant\(meta, 'margin-top', '0'\)/);
+  assert.match(runtime, /setImportant\(media, 'height', '100%'\)/);
+  assert.doesNotMatch(index, /result-layout-fix-v69/);
 });
