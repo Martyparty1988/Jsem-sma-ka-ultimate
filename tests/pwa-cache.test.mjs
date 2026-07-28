@@ -28,19 +28,23 @@ globalThis.__PWA_TEST__ = { CACHE_NAME, APP_SHELL };`;
   return context.__PWA_TEST__;
 }
 
-test('PWA v71 caches every current runtime, style and data dependency', () => {
+test('PWA v72 caches every current runtime, style and data dependency', () => {
   const { CACHE_NAME, APP_SHELL } = serviceWorkerContract();
   const assets = new Set(APP_SHELL);
 
-  assert.equal(CACHE_NAME, 'jsem-smazka-v71');
+  assert.equal(CACHE_NAME, 'jsem-smazka-v72');
   [
     './app.js?v=64',
+    './face-aware-crop.js?v=72',
+    './face-aware-crop-runtime.js?v=72',
     './face-scan.js?v=64',
     './devastation-metrics.js?v=64',
     './face-warp.js?v=64',
     './hard-responses.js?v=64',
     './junky-verdict-engine.js?v=64',
     './verdict-matcher.js?v=64',
+    './privacy-hardening.js?v=72',
+    './share-cover.js?v=72',
     './in-frame-result.js?v=71',
     './result-mobile-v71.css?v=71',
     './responses.json',
@@ -57,7 +61,7 @@ test('PWA v71 caches every current runtime, style and data dependency', () => {
   });
 });
 
-test('HTML and dynamic module URLs agree with the v71 cache graph', () => {
+test('HTML and dynamic module URLs agree with the v72 cache graph', () => {
   const { APP_SHELL } = serviceWorkerContract();
   const assets = new Set(APP_SHELL);
   const index = read('index.html');
@@ -81,7 +85,7 @@ test('HTML and dynamic module URLs agree with the v71 cache graph', () => {
   dynamicAssets.forEach((asset) => assert.equal(assets.has(asset), true, asset));
 });
 
-test('mobile result v71 fills the viewport and cancels legacy media translation', () => {
+test('mobile result v71 remains the single viewport layout authority', () => {
   const css = read('result-mobile-v71.css');
   const runtime = read('in-frame-result.js');
   const index = read('index.html');
@@ -95,4 +99,17 @@ test('mobile result v71 fills the viewport and cancels legacy media translation'
   assert.match(runtime, /result\.dataset\.resultLayout = 'v71'/);
   assert.doesNotMatch(index, /result-mobile-v70/);
   assert.doesNotMatch(index, /result-layout-fix-v69/);
+});
+
+test('face-aware crop is loaded before the renderer bridge and shared cover', () => {
+  const index = read('index.html');
+  const cropIndex = index.indexOf('face-aware-crop.js?v=72');
+  const warpIndex = index.indexOf('face-warp.js?v=64');
+  const runtimeIndex = index.indexOf('face-aware-crop-runtime.js?v=72');
+  const shareIndex = index.indexOf('share-cover.js?v=72');
+
+  assert.ok(cropIndex > -1);
+  assert.ok(warpIndex > cropIndex);
+  assert.ok(runtimeIndex > warpIndex);
+  assert.ok(shareIndex > runtimeIndex);
 });
