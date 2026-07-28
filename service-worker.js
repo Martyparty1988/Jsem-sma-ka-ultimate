@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'v64';
+const CACHE_VERSION = 'v65';
 const CACHE_NAME = `jsem-smazka-${CACHE_VERSION}`;
 
 const CORE_ASSETS = [
@@ -14,6 +14,7 @@ const STYLE_ASSETS = [
   './bundle-base.css?v=60',
   './bundle-scanner.css?v=60',
   './bundle-results.css?v=60',
+  './scan-theme.css?v=65',
   './terminal-readout.css'
 ];
 
