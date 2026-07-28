@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'v67';
+const CACHE_VERSION = 'v68';
 const CACHE_NAME = `jsem-smazka-${CACHE_VERSION}`;
 
 const CORE_ASSETS = [
@@ -30,6 +30,7 @@ const SCRIPT_ASSETS = [
   './terminal-readout.js?v=60',
   './experience-upgrades.js?v=60',
   './diagnostic-upgrades.js?v=60',
+  './pwa-update-fix.js?v=68',
   './privacy-hardening.js?v=62',
   './ios-one-screen.js?v=60',
   './in-frame-result.js?v=67',
@@ -71,7 +72,9 @@ self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => cache.addAll(APP_SHELL))
   );
-  self.skipWaiting();
+  // Do not activate automatically. The visible update button decides when the
+  // new worker takes control, which avoids the iOS race where `waiting`
+  // disappears before the tap handler runs.
 });
 
 self.addEventListener('activate', (event) => {
@@ -85,7 +88,9 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('message', (event) => {
-  if (event.data?.type === 'SKIP_WAITING') self.skipWaiting();
+  if (event.data?.type === 'SKIP_WAITING') {
+    event.waitUntil(self.skipWaiting());
+  }
 });
 
 self.addEventListener('fetch', (event) => {
