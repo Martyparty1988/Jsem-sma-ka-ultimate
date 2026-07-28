@@ -1,4 +1,4 @@
-/* Smažka v52 — clean 1080x1920 VOID verdict cover with final-effect synchronization. */
+/* Smažka v72 — clean 1080x1920 VOID verdict cover with shared face-aware crop. */
 (() => {
   'use strict';
 
@@ -6,6 +6,7 @@
   const HEIGHT = 1920;
   const app = window.SmazkaApp;
   const state = app?.state;
+  const cropApi = window.SmazkaFaceCrop;
   const result = document.getElementById('result');
   if (!result) return;
 
@@ -20,7 +21,11 @@
     ctx.closePath();
   }
 
-  function drawCoverImage(ctx, image, x, y, width, height) {
+  function drawCoverImage(ctx, image, x, y, width, height, faceAnalysis = null) {
+    if (typeof cropApi?.drawImageCover === 'function') {
+      return cropApi.drawImageCover(ctx, image, x, y, width, height, faceAnalysis);
+    }
+
     const imageRatio = image.naturalWidth / image.naturalHeight;
     const targetRatio = width / height;
     let sx = 0;
@@ -37,6 +42,7 @@
     }
 
     ctx.drawImage(image, sx, sy, sw, sh, x, y, width, height);
+    return null;
   }
 
   function lineBreaks(ctx, text, maxWidth, maxLines) {
@@ -88,6 +94,7 @@
       description: result.querySelector('.description')?.textContent?.trim() || 'Lokální pseudo AI zachytila stav, který se věda rozhodla dál nekomentovat.',
       severity,
       imageSrc: visibleImage?.currentSrc || visibleImage?.src || state?.effectImageData || state?.currentImageData || '',
+      faceAnalysis: state?.effectFaceAnalysis || state?.faceAnalysis || null,
       accent: severity >= 80 ? '#f7768e' : '#70e1cf'
     };
   }
@@ -146,7 +153,8 @@
     if (verdict.imageSrc) {
       try {
         const image = await loadImage(verdict.imageSrc);
-        drawCoverImage(ctx, image, photoX, photoY, photoWidth, photoHeight);
+        drawCoverImage(ctx, image, photoX, photoY, photoWidth, photoHeight, verdict.faceAnalysis);
+        image.removeAttribute('src');
       } catch {
         drawFallbackPhoto(ctx, photoX, photoY, photoWidth, photoHeight, verdict.accent);
       }
