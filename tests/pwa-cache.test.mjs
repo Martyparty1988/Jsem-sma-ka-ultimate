@@ -28,11 +28,11 @@ globalThis.__PWA_TEST__ = { CACHE_NAME, APP_SHELL };`;
   return context.__PWA_TEST__;
 }
 
-test('PWA v70 caches every current runtime, style and data dependency', () => {
+test('PWA v71 caches every current runtime, style and data dependency', () => {
   const { CACHE_NAME, APP_SHELL } = serviceWorkerContract();
   const assets = new Set(APP_SHELL);
 
-  assert.equal(CACHE_NAME, 'jsem-smazka-v70');
+  assert.equal(CACHE_NAME, 'jsem-smazka-v71');
   [
     './app.js?v=64',
     './face-scan.js?v=64',
@@ -41,13 +41,14 @@ test('PWA v70 caches every current runtime, style and data dependency', () => {
     './hard-responses.js?v=64',
     './junky-verdict-engine.js?v=64',
     './verdict-matcher.js?v=64',
-    './in-frame-result.js?v=70',
-    './result-mobile-v70.css?v=70',
+    './in-frame-result.js?v=71',
+    './result-mobile-v71.css?v=71',
     './responses.json',
     './responses-hard.json?v=64',
     './responses-pernik.json?v=64'
   ].forEach((asset) => assert.equal(assets.has(asset), true, asset));
 
+  assert.equal(assets.has('./result-mobile-v70.css?v=70'), false);
   assert.equal(assets.has('./result-layout-fix-v69.js?v=69'), false);
 
   APP_SHELL.forEach((asset) => {
@@ -56,7 +57,7 @@ test('PWA v70 caches every current runtime, style and data dependency', () => {
   });
 });
 
-test('HTML and dynamic module URLs agree with the v70 cache graph', () => {
+test('HTML and dynamic module URLs agree with the v71 cache graph', () => {
   const { APP_SHELL } = serviceWorkerContract();
   const assets = new Set(APP_SHELL);
   const index = read('index.html');
@@ -80,15 +81,18 @@ test('HTML and dynamic module URLs agree with the v70 cache graph', () => {
   dynamicAssets.forEach((asset) => assert.equal(assets.has(asset), true, asset));
 });
 
-test('mobile result authority removes legacy auto spacers', () => {
-  const css = read('result-mobile-v70.css');
+test('mobile result v71 fills the viewport and cancels legacy media translation', () => {
+  const css = read('result-mobile-v71.css');
   const runtime = read('in-frame-result.js');
   const index = read('index.html');
 
   assert.match(css, /result-effect-meta[\s\S]*margin-top:\s*0\s*!important/);
   assert.match(css, /result-actions[\s\S]*margin-top:\s*0\s*!important/);
-  assert.match(css, /result-visual[\s\S]*height:\s*clamp\(260px,\s*40dvh,\s*380px\)/);
-  assert.match(runtime, /setImportant\(meta, 'margin-top', '0'\)/);
-  assert.match(runtime, /setImportant\(media, 'height', '100%'\)/);
+  assert.match(css, /result-visual[\s\S]*flex:\s*1 1 auto\s*!important/);
+  assert.match(css, /transform:\s*none\s*!important/);
+  assert.match(runtime, /setImportant\(media, 'transform', 'none'\)/);
+  assert.match(runtime, /setImportant\(result, 'height', `\$\{Math\.round\(maxHeight\)\}px`\)/);
+  assert.match(runtime, /result\.dataset\.resultLayout = 'v71'/);
+  assert.doesNotMatch(index, /result-mobile-v70/);
   assert.doesNotMatch(index, /result-layout-fix-v69/);
 });
