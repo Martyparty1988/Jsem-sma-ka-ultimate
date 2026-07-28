@@ -41,10 +41,13 @@
 
     try {
       state.currentImageData = null;
+      state.originalImageData = null;
       state.effectImageData = null;
       state.effectSeverity = 0;
       state.effectProfile = null;
       state.effectSeed = 0;
+      state.effectFaceAnalysis = null;
+      state.faceCrop = null;
       state.diagnosticData = null;
       state.faceAnalysis = null;
       state.lastDevastationMetrics = null;
@@ -125,7 +128,9 @@
         await Promise.resolve(state.shareImagePromise).catch(() => undefined);
       }
 
-      const dataUrl = kind === 'original' ? state.currentImageData : state.effectImageData;
+      const dataUrl = kind === 'original'
+        ? state.originalImageData || state.currentImageData
+        : state.effectImageData;
       if (!dataUrl) throw new Error('Fotka už není dostupná');
 
       const extension = String(dataUrl).startsWith('data:image/png')
