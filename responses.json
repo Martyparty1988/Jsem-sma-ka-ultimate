@@ -1,194 +1,854 @@
 [
   {
+    "id": "startovni_davka",
     "category": "Startovní dávka",
-    "description": "Zatím jen jedno pivo a špetka odvahy. Varna teprve vrní."
+    "description": "Zatím jen jedno pivo a špetka odvahy. Varna teprve vrní.",
+    "triggers": {
+      "lidskost_min": 58,
+      "apertura_min": 48,
+      "tilt_max": 12,
+      "asymetrie": "nízká"
+    },
+    "metrics_flavor": {
+      "apertura": "APERTURA: {value}% // MOTOR BĚŽÍ",
+      "gravitace": "GRAVITACE: {value}° // JEŠTĚ STOJÍ",
+      "asymetrie": "ASYMETRIE: {value} // LEHKÝ ŠLIC",
+      "hydratace": "H₂O: -{value}% // PRVNÍ PIVO",
+      "lidskost": "LIDSKOST: {value}% // ČLOVĚK PŘIPOJEN"
+    }
   },
   {
+    "id": "cista_lajna",
     "category": "Čistá lajna",
-    "description": "Zorničky jak měsíční krajina. Na orbitě, ale s úsměvem."
+    "description": "Zorničky jak měsíční krajina. Na orbitě, ale s úsměvem.",
+    "triggers": {
+      "lidskost_min": 45,
+      "apertura_min": 42,
+      "tilt_max": 16
+    },
+    "metrics_flavor": {
+      "apertura": "APERTURA: {value}% // DRÁHA VOLNÁ",
+      "gravitace": "GRAVITACE: {value}° // ORBITA DRŽÍ",
+      "asymetrie": "ASYMETRIE: {value} // ROVNÁ LAJNA",
+      "hydratace": "H₂O: -{value}% // SNÍH VYSUŠIL",
+      "lidskost": "LIDSKOST: {value}% // ÚSMĚV DRŽÍ"
+    }
   },
   {
+    "id": "mikrotrip",
     "category": "Mikrotrip",
-    "description": "Vidíš barvy, co neexistujou, a slyšíš svět dýchat. Klasickej čtvrtek."
+    "description": "Vidíš barvy, co neexistujou, a slyšíš svět dýchat. Klasickej čtvrtek.",
+    "triggers": {
+      "lidskost_min": 35,
+      "apertura_min": 38,
+      "tilt_max": 20,
+      "asymetrie": "nízká"
+    },
+    "metrics_flavor": {
+      "apertura": "APERTURA: {value}% // BARVY NAVÍC",
+      "gravitace": "GRAVITACE: {value}° // ČAS SE KLOPÍ",
+      "asymetrie": "ASYMETRIE: {value} // DUHA UJELA",
+      "hydratace": "H₂O: -{value}% // VODA TRIPUJE",
+      "lidskost": "LIDSKOST: {value}% // REALITA MÁ PAUZU"
+    }
   },
   {
+    "id": "speedova_rozcvicka",
     "category": "Speedová rozcvička",
-    "description": "Tělo jede jak mixér, mozek běží pozpátku. Jsi ready na realitu?"
+    "description": "Tělo jede jak mixér, mozek běží pozpátku. Jsi ready na realitu?",
+    "triggers": {
+      "lidskost_min": 32,
+      "apertura_min": 48,
+      "tilt_min": 4,
+      "tilt_max": 22
+    },
+    "metrics_flavor": {
+      "apertura": "APERTURA: {value}% // VÍČKA TURBO",
+      "gravitace": "GRAVITACE: {value}° // MIXÉR BĚŽÍ",
+      "asymetrie": "ASYMETRIE: {value} // MOTOR HÁZÍ",
+      "hydratace": "H₂O: -{value}% // POT MÍSTO VODY",
+      "lidskost": "LIDSKOST: {value}% // MOZEK POZPÁTKU"
+    }
   },
   {
+    "id": "pikovej_princ",
     "category": "Pikovej princ",
-    "description": "Kráčíš po hraně mezi tancem a epilepsií. Koruna z hliníku, srdce z extáze."
+    "description": "Kráčíš po hraně mezi tancem a epilepsií. Koruna z hliníku, srdce z extáze.",
+    "triggers": {
+      "lidskost_max": 55,
+      "apertura_max": 48,
+      "tilt_min": 8,
+      "asymetrie": "střední"
+    },
+    "metrics_flavor": {
+      "apertura": "APERTURA: {value}% // KORUNA KŘIVÁ",
+      "gravitace": "GRAVITACE: {value}° // TRŮN SE KLOPÍ",
+      "asymetrie": "ASYMETRIE: {value} // PRINC CUKÁ",
+      "hydratace": "H₂O: -{value}% // POHÁR JE SUCHÝ",
+      "lidskost": "LIDSKOST: {value}% // ŠLECHTIC VYPÍNÁ"
+    }
   },
   {
+    "id": "varic_snu",
     "category": "Vařič snů",
-    "description": "Z kuchyně jde pára, ale tohle není guláš. Alchymie paneláku."
+    "description": "Z kuchyně jde pára, ale tohle není guláš. Alchymie paneláku.",
+    "triggers": {
+      "lidskost_max": 48,
+      "apertura_max": 44,
+      "tilt_min": 8
+    },
+    "metrics_flavor": {
+      "apertura": "APERTURA: {value}% // PÁRA V OČÍCH",
+      "gravitace": "GRAVITACE: {value}° // HRNEC SE KLOPÍ",
+      "asymetrie": "ASYMETRIE: {value} // RECEPT UJEL",
+      "hydratace": "H₂O: -{value}% // VODA SE VAŘÍ",
+      "lidskost": "LIDSKOST: {value}% // KUCHAŘ ODPOJEN"
+    }
   },
   {
+    "id": "zrcadlovej_demon",
     "category": "Zrcadlovej démon",
-    "description": "Koukáš do zrcadla a ono se kouká zpátky. Asi má taky lajnu."
+    "description": "Koukáš do zrcadla a ono se kouká zpátky. Asi má taky lajnu.",
+    "triggers": {
+      "lidskost_max": 50,
+      "apertura_max": 42,
+      "tilt_min": 6,
+      "asymetrie": "vysoká"
+    },
+    "metrics_flavor": {
+      "apertura": "APERTURA: {value}% // ODRAZ MRKÁ",
+      "gravitace": "GRAVITACE: {value}° // ZRCADLO PADÁ",
+      "asymetrie": "ASYMETRIE: {value} // DÉMON KŘIVÍ",
+      "hydratace": "H₂O: -{value}% // SLZY NENALEZENY",
+      "lidskost": "LIDSKOST: {value}% // ODRAZ JE ČLOVĚK"
+    }
   },
   {
+    "id": "ticha_noc",
     "category": "Tichá noc",
-    "description": "Všichni spí. Jen ty a perník máte směnu."
+    "description": "Všichni spí. Jen ty a perník máte směnu.",
+    "triggers": {
+      "lidskost_max": 45,
+      "apertura_max": 35,
+      "tilt_max": 18
+    },
+    "metrics_flavor": {
+      "apertura": "APERTURA: {value}% // NOČNÍ ŠTĚRBINY",
+      "gravitace": "GRAVITACE: {value}° // HLAVA DŘÍME",
+      "asymetrie": "ASYMETRIE: {value} // TICHO NAKŘIVO",
+      "hydratace": "H₂O: -{value}% // ROSENÍ NULA",
+      "lidskost": "LIDSKOST: {value}% // SMĚNA BEZ LIDÍ"
+    }
   },
   {
+    "id": "spina_v_zilach",
     "category": "Špína v žilách",
-    "description": "Srdce buší jak policejní beranidlo. Hrdina čtvrté dávky."
+    "description": "Srdce buší jak policejní beranidlo. Hrdina čtvrté dávky.",
+    "triggers": {
+      "lidskost_max": 38,
+      "apertura_max": 34,
+      "tilt_min": 10,
+      "asymetrie": "vysoká"
+    },
+    "metrics_flavor": {
+      "apertura": "APERTURA: {value}% // OČI Z REZERVY",
+      "gravitace": "GRAVITACE: {value}° // ŽÍLY TÁHNOU",
+      "asymetrie": "ASYMETRIE: {value} // TĚLO HÁZÍ",
+      "hydratace": "H₂O: -{value}% // KREV BEZ VODY",
+      "lidskost": "LIDSKOST: {value}% // HRDINA DOŠEL"
+    }
   },
   {
+    "id": "ztracenej_trip",
     "category": "Ztracenej trip",
-    "description": "Když se realita rozpadne, zůstane jen hluk a úsměv bez důvodu."
+    "description": "Když se realita rozpadne, zůstane jen hluk a úsměv bez důvodu.",
+    "triggers": {
+      "lidskost_max": 45,
+      "apertura_max": 45,
+      "tilt_min": 12,
+      "asymetrie": "vysoká"
+    },
+    "metrics_flavor": {
+      "apertura": "APERTURA: {value}% // TRIP NEVIDÍ",
+      "gravitace": "GRAVITACE: {value}° // REALITA PADÁ",
+      "asymetrie": "ASYMETRIE: {value} // ÚSMĚV UJEL",
+      "hydratace": "H₂O: -{value}% // ŽÍZEŇ BLBNE",
+      "lidskost": "LIDSKOST: {value}% // SIGNÁL ZTRACEN"
+    }
   },
   {
+    "id": "prach_v_nose",
     "category": "Prach v nose",
-    "description": "Nosíš si prach z nebe. Jen není z nebe."
+    "description": "Nosíš si prach z nebe. Jen není z nebe.",
+    "triggers": {
+      "lidskost_max": 50,
+      "apertura_max": 40,
+      "tilt_min": 6
+    },
+    "metrics_flavor": {
+      "apertura": "APERTURA: {value}% // PRACH V ZORNICI",
+      "gravitace": "GRAVITACE: {value}° // NOS MÍŘÍ DOLŮ",
+      "asymetrie": "ASYMETRIE: {value} // DÍRKA UJELA",
+      "hydratace": "H₂O: -{value}% // SUCHO V NOSE",
+      "lidskost": "LIDSKOST: {value}% // NEBE JE BLÍZKO"
+    }
   },
   {
+    "id": "nocni_varna",
     "category": "Noční varna",
-    "description": "Sirky, hliník a ticho. Chemie má svoje kouzlo i prokletí."
+    "description": "Sirky, hliník a ticho. Chemie má svoje kouzlo i prokletí.",
+    "triggers": {
+      "lidskost_max": 30,
+      "apertura_max": 25,
+      "tilt_min": 12
+    },
+    "metrics_flavor": {
+      "apertura": "APERTURA: {value}% // KRITICKÁ ZÓNA",
+      "gravitace": "GRAVITACE: {value}° // NEBEZP. NÁKLON",
+      "asymetrie": "ASYMETRIE: {value} // VARNA KŘIVÍ",
+      "hydratace": "H₂O: -{value}% // PIVO DETEKOVÁNO",
+      "lidskost": "LIDSKOST: {value}% // POD PRAHEM"
+    }
   },
   {
+    "id": "extazovy_mnich",
     "category": "Extázový mnich",
-    "description": "Osvícení nalezeno uprostřed parketu. Nirvána vibruje v 160 BPM."
+    "description": "Osvícení nalezeno uprostřed parketu. Nirvána vibruje v 160 BPM.",
+    "triggers": {
+      "lidskost_min": 30,
+      "lidskost_max": 65,
+      "apertura_min": 35,
+      "tilt_max": 18
+    },
+    "metrics_flavor": {
+      "apertura": "APERTURA: {value}% // NIRVÁNA MRKÁ",
+      "gravitace": "GRAVITACE: {value}° // MNICH LEVITUJE",
+      "asymetrie": "ASYMETRIE: {value} // ČAKRA UJELA",
+      "hydratace": "H₂O: -{value}% // POT JE SVATÝ",
+      "lidskost": "LIDSKOST: {value}% // OSVÍCENÍ BĚŽÍ"
+    }
   },
   {
+    "id": "fetboy_deluxe",
     "category": "Fetboy deluxe",
-    "description": "Ztratil jsi klíče, soudnost i ponětí o čase. Ale beat držíš."
+    "description": "Ztratil jsi klíče, soudnost i ponětí o čase. Ale beat držíš.",
+    "triggers": {
+      "lidskost_max": 45,
+      "apertura_max": 42,
+      "tilt_min": 8,
+      "asymetrie": "střední"
+    },
+    "metrics_flavor": {
+      "apertura": "APERTURA: {value}% // LUXUSNÍ ŠTĚRBINY",
+      "gravitace": "GRAVITACE: {value}° // RYTMUS KLOPÍ",
+      "asymetrie": "ASYMETRIE: {value} // RYTMUS KŘIVÍ",
+      "hydratace": "H₂O: -{value}% // BAR JE SUCHÝ",
+      "lidskost": "LIDSKOST: {value}% // SOUDNOST FUČ"
+    }
   },
   {
+    "id": "lajna_pravdy",
     "category": "Lajna pravdy",
-    "description": "Každej má tu svoji cestu. Ty ji máš vysypanou na stole."
+    "description": "Každej má tu svoji cestu. Ty ji máš vysypanou na stole.",
+    "triggers": {
+      "lidskost_max": 55,
+      "apertura_max": 50,
+      "tilt_min": 5
+    },
+    "metrics_flavor": {
+      "apertura": "APERTURA: {value}% // PRAVDA PÁLÍ",
+      "gravitace": "GRAVITACE: {value}° // CESTA SE SYPE",
+      "asymetrie": "ASYMETRIE: {value} // STŮL JE KŘIVÝ",
+      "hydratace": "H₂O: -{value}% // PRACH VYSOUŠÍ",
+      "lidskost": "LIDSKOST: {value}% // LEŽ NENALEZENA"
+    }
   },
   {
+    "id": "rozklepanej_buh",
     "category": "Rozklepanej bůh",
-    "description": "Vládneš vesmíru, ale ruce máš jak vibrační křeslo."
+    "description": "Vládneš vesmíru, ale ruce máš jak vibrační křeslo.",
+    "triggers": {
+      "lidskost_max": 40,
+      "apertura_max": 42,
+      "tilt_min": 14,
+      "asymetrie": "vysoká"
+    },
+    "metrics_flavor": {
+      "apertura": "APERTURA: {value}% // BŮH NEMRKÁ",
+      "gravitace": "GRAVITACE: {value}° // VESMÍR SE TŘESE",
+      "asymetrie": "ASYMETRIE: {value} // RUCE KŘIVÍ",
+      "hydratace": "H₂O: -{value}% // OLYMP BEZ VODY",
+      "lidskost": "LIDSKOST: {value}% // BOŽSTVÍ CUKÁ"
+    }
   },
   {
+    "id": "zimni_pika",
     "category": "Zimní pika",
-    "description": "Zuby ti cvakaj jak kastaněty. Tělo topí na nouzovej režim."
+    "description": "Zuby ti cvakaj jak kastaněty. Tělo topí na nouzovej režim.",
+    "triggers": {
+      "lidskost_max": 42,
+      "apertura_max": 35,
+      "tilt_min": 8,
+      "asymetrie": "střední"
+    },
+    "metrics_flavor": {
+      "apertura": "APERTURA: {value}% // MRÁZ VE VÍČKU",
+      "gravitace": "GRAVITACE: {value}° // TĚLO SE LÁME",
+      "asymetrie": "ASYMETRIE: {value} // ZUBY CVAKAJÍ",
+      "hydratace": "H₂O: -{value}% // LED MÍSTO H₂O",
+      "lidskost": "LIDSKOST: {value}% // TOPENÍ NOUZOVÉ"
+    }
   },
   {
+    "id": "dealer_poezie",
     "category": "Dealer poezie",
-    "description": "Slova ti tečou z pusy jak sirup z laboratorní skleničky."
+    "description": "Slova ti tečou z pusy jak sirup z laboratorní skleničky.",
+    "triggers": {
+      "lidskost_min": 25,
+      "lidskost_max": 60,
+      "apertura_min": 30,
+      "asymetrie": "střední"
+    },
+    "metrics_flavor": {
+      "apertura": "APERTURA: {value}% // VERŠ VE VÍČKU",
+      "gravitace": "GRAVITACE: {value}° // METAFORA PADÁ",
+      "asymetrie": "ASYMETRIE: {value} // RÝM JE KŘIVÝ",
+      "hydratace": "H₂O: -{value}% // INKOUST VYSCHL",
+      "lidskost": "LIDSKOST: {value}% // BÁSNÍK MLUVÍ"
+    }
   },
   {
+    "id": "turbo_vecirek",
     "category": "Turbo večírek",
-    "description": "Tři dny, nula spánku, jeden mozek. A ten to vzdal včera."
+    "description": "Tři dny, nula spánku, jeden mozek. A ten to vzdal včera.",
+    "triggers": {
+      "lidskost_max": 32,
+      "apertura_max": 30,
+      "tilt_min": 14,
+      "asymetrie": "vysoká"
+    },
+    "metrics_flavor": {
+      "apertura": "APERTURA: {value}% // TŘETÍ RÁNO",
+      "gravitace": "GRAVITACE: {value}° // PARKET PADÁ",
+      "asymetrie": "ASYMETRIE: {value} // RYTMUS UJEL",
+      "hydratace": "H₂O: -{value}% // BAR VYPUŠTĚN",
+      "lidskost": "LIDSKOST: {value}% // MOZEK ODEŠEL"
+    }
   },
   {
+    "id": "prepaleny_andel",
     "category": "Přepálenej anděl",
-    "description": "Křídla z igelitu a hlava z cukru. Lítáš, dokud se neroztopíš."
+    "description": "Křídla z igelitu a hlava z cukru. Lítáš, dokud se neroztopíš.",
+    "triggers": {
+      "lidskost_max": 38,
+      "apertura_max": 35,
+      "tilt_min": 12
+    },
+    "metrics_flavor": {
+      "apertura": "APERTURA: {value}% // SVATOZÁŘ TÁLÁ",
+      "gravitace": "GRAVITACE: {value}° // KŘÍDLO PADÁ",
+      "asymetrie": "ASYMETRIE: {value} // ANDĚL KŘIVÍ",
+      "hydratace": "H₂O: -{value}% // MRÁČEK VYSCHL",
+      "lidskost": "LIDSKOST: {value}% // NEBE ZAVŘENO"
+    }
   },
   {
+    "id": "davkovaci_omyl",
     "category": "Dávkovací omyl",
-    "description": "Říkal jsi 'jen trochu'. Tělo slyšelo 'všechno'."
+    "description": "Říkal jsi 'jen trochu'. Tělo slyšelo 'všechno'.",
+    "triggers": {
+      "lidskost_max": 24,
+      "apertura_max": 24,
+      "tilt_min": 16,
+      "asymetrie": "vysoká"
+    },
+    "metrics_flavor": {
+      "apertura": "APERTURA: {value}% // VŠECHNO UVNITŘ",
+      "gravitace": "GRAVITACE: {value}° // DÁVKA NAKLÁNÍ",
+      "asymetrie": "ASYMETRIE: {value} // ODMĚRKA UJELA",
+      "hydratace": "H₂O: -{value}% // KOHOUTEK ODPOJEN",
+      "lidskost": "LIDSKOST: {value}% // TĚLO ŘEKLO DOST"
+    }
   },
   {
+    "id": "tovarni_nastaveni",
     "category": "Tovární nastavení",
-    "description": "Resetuješ se vodkou a cigárama. Windows by tě neunesly."
+    "description": "Resetuješ se vodkou a cigárama. Windows by tě neunesly.",
+    "triggers": {
+      "lidskost_min": 32,
+      "lidskost_max": 65,
+      "apertura_min": 32,
+      "tilt_max": 22
+    },
+    "metrics_flavor": {
+      "apertura": "APERTURA: {value}% // OČI STARTUJÍ",
+      "gravitace": "GRAVITACE: {value}° // SYSTÉM SE KLOPÍ",
+      "asymetrie": "ASYMETRIE: {value} // OKNA SE KŘIVÍ",
+      "hydratace": "H₂O: -{value}% // RESET VODKOU",
+      "lidskost": "LIDSKOST: {value}% // BIOS JE ČLOVĚK"
+    }
   },
   {
+    "id": "ocni_glitch",
     "category": "Oční glitch",
-    "description": "Zorničky ti píšou Morseovku. Asi zpráva z pekla."
+    "description": "Zorničky ti píšou Morseovku. Asi zpráva z pekla.",
+    "triggers": {
+      "lidskost_max": 50,
+      "apertura_max": 28,
+      "asymetrie": "vysoká"
+    },
+    "metrics_flavor": {
+      "apertura": "APERTURA: {value}% // MORSEOVKA BLIKÁ",
+      "gravitace": "GRAVITACE: {value}° // SIGNÁL PADÁ",
+      "asymetrie": "ASYMETRIE: {value} // PIXEL UJEL",
+      "hydratace": "H₂O: -{value}% // DISPLEJ VYSCHL",
+      "lidskost": "LIDSKOST: {value}% // CHYBA: ČLOVĚK"
+    }
   },
   {
+    "id": "prachovej_rytir",
     "category": "Prachovej rytíř",
-    "description": "Nosíš bílý brnění a temnej výraz. Klasika sobotní směny."
+    "description": "Nosíš bílý brnění a temnej výraz. Klasika sobotní směny.",
+    "triggers": {
+      "lidskost_max": 45,
+      "apertura_max": 38,
+      "tilt_min": 8,
+      "asymetrie": "střední"
+    },
+    "metrics_flavor": {
+      "apertura": "APERTURA: {value}% // HELMICE PADÁ",
+      "gravitace": "GRAVITACE: {value}° // RYTÍŘ SE KLOPÍ",
+      "asymetrie": "ASYMETRIE: {value} // ŠTÍT JE KŘIVÝ",
+      "hydratace": "H₂O: -{value}% // BRNĚNÍ VYSCHLO",
+      "lidskost": "LIDSKOST: {value}% // ČEST NA SMĚNĚ"
+    }
   },
   {
+    "id": "elektrickej_kriz",
     "category": "Elektrickej kříž",
-    "description": "Tělo napnutý jak drát, duše visí na zásuvce. Amen."
+    "description": "Tělo napnutý jak drát, duše visí na zásuvce. Amen.",
+    "triggers": {
+      "lidskost_max": 36,
+      "apertura_max": 34,
+      "tilt_min": 15,
+      "asymetrie": "vysoká"
+    },
+    "metrics_flavor": {
+      "apertura": "APERTURA: {value}% // JISKRA V OČÍCH",
+      "gravitace": "GRAVITACE: {value}° // DRÁT SE KLOPÍ",
+      "asymetrie": "ASYMETRIE: {value} // PROUD UJEL",
+      "hydratace": "H₂O: -{value}% // ZÁSUVKA NEPIJE",
+      "lidskost": "LIDSKOST: {value}% // DUŠE NA 230 V"
+    }
   },
   {
+    "id": "cukrovej_reset",
     "category": "Cukrovej reset",
-    "description": "Lízátko, pika a paranoia. Ideální trojkombinace pro úterý."
+    "description": "Lízátko, pika a paranoia. Ideální trojkombinace pro úterý.",
+    "triggers": {
+      "lidskost_min": 28,
+      "lidskost_max": 58,
+      "apertura_min": 30,
+      "tilt_max": 20
+    },
+    "metrics_flavor": {
+      "apertura": "APERTURA: {value}% // CUKR V OČÍCH",
+      "gravitace": "GRAVITACE: {value}° // RESET SE KLOPÍ",
+      "asymetrie": "ASYMETRIE: {value} // CUKR UJÍŽDÍ",
+      "hydratace": "H₂O: -{value}% // SIRUP BEZ VODY",
+      "lidskost": "LIDSKOST: {value}% // ÚTERÝ JE ČLOVĚK"
+    }
   },
   {
+    "id": "vecirek_404",
     "category": "Večírek 404",
-    "description": "Lidi zmizeli, hudba hraje dál. Ty taky možná neexistuješ."
+    "description": "Lidi zmizeli, hudba hraje dál. Ty taky možná neexistuješ.",
+    "triggers": {
+      "lidskost_max": 30,
+      "apertura_max": 32,
+      "tilt_min": 13,
+      "asymetrie": "vysoká"
+    },
+    "metrics_flavor": {
+      "apertura": "APERTURA: {value}% // OČI 404",
+      "gravitace": "GRAVITACE: {value}° // PARKET 404",
+      "asymetrie": "ASYMETRIE: {value} // HOSTÉ UJELI",
+      "hydratace": "H₂O: -{value}% // BAR 404",
+      "lidskost": "LIDSKOST: {value}% // ČLOVĚK NENALEZEN"
+    }
   },
   {
+    "id": "mazanec_z_varny",
     "category": "Mazanec z varny",
-    "description": "Voníš jak chemickej experiment, ale srdce ti ještě tiká."
+    "description": "Voníš jak chemickej experiment, ale srdce ti ještě tiká.",
+    "triggers": {
+      "lidskost_max": 42,
+      "apertura_max": 38,
+      "tilt_min": 9
+    },
+    "metrics_flavor": {
+      "apertura": "APERTURA: {value}% // TĚSTO VE VÍČKU",
+      "gravitace": "GRAVITACE: {value}° // PLECH SE KLOPÍ",
+      "asymetrie": "ASYMETRIE: {value} // TĚSTO PRASKLO",
+      "hydratace": "H₂O: -{value}% // DROŽDÍ VYSCHLO",
+      "lidskost": "LIDSKOST: {value}% // SRDCE JEŠTĚ TIKÁ"
+    }
   },
   {
+    "id": "nespaci_zona",
     "category": "Nespací zóna",
-    "description": "Už dávno nespíš, jen blikáš. Tvoje sny běží na loopu."
+    "description": "Už dávno nespíš, jen blikáš. Tvoje sny běží na loopu.",
+    "triggers": {
+      "lidskost_max": 34,
+      "apertura_max": 26,
+      "tilt_min": 8,
+      "asymetrie": "střední"
+    },
+    "metrics_flavor": {
+      "apertura": "APERTURA: {value}% // SPÁNEK 0 BODŮ",
+      "gravitace": "GRAVITACE: {value}° // HORIZONT PLAVE",
+      "asymetrie": "ASYMETRIE: {value} // VÍČKO UJÍŽDÍ",
+      "hydratace": "H₂O: -{value}% // KAFE NENÍ VODA",
+      "lidskost": "LIDSKOST: {value}% // SNY VE SMYČCE"
+    }
   },
   {
+    "id": "tresavej_romantik",
     "category": "Třesavej romantik",
-    "description": "Objímáš radiátor a přemýšlíš o lásce. Nikdo tě nechce, ani teplo."
+    "description": "Objímáš radiátor a přemýšlíš o lásce. Nikdo tě nechce, ani teplo.",
+    "triggers": {
+      "lidskost_max": 45,
+      "apertura_max": 35,
+      "tilt_min": 15,
+      "asymetrie": "vysoká"
+    },
+    "metrics_flavor": {
+      "apertura": "APERTURA: {value}% // SLZY SE TŘESOU",
+      "gravitace": "GRAVITACE: {value}° // RADIÁTOR PADÁ",
+      "asymetrie": "ASYMETRIE: {value} // SRDCE NAKŘIVO",
+      "hydratace": "H₂O: -{value}% // TEPLO VYSCHLO",
+      "lidskost": "LIDSKOST: {value}% // LÁSKA ODPOJENA"
+    }
   },
   {
+    "id": "duch_nonstopu",
     "category": "Duch nonstopu",
-    "description": "Nejsi vidět, jen cítit. A to dost silně."
+    "description": "Nejsi vidět, jen cítit. A to dost silně.",
+    "triggers": {
+      "lidskost_max": 28,
+      "apertura_max": 24,
+      "tilt_min": 12
+    },
+    "metrics_flavor": {
+      "apertura": "APERTURA: {value}% // DUCH NEMRKÁ",
+      "gravitace": "GRAVITACE: {value}° // NONSTOP PADÁ",
+      "asymetrie": "ASYMETRIE: {value} // STÍN UJEL",
+      "hydratace": "H₂O: -{value}% // MLHA JE SUCHÁ",
+      "lidskost": "LIDSKOST: {value}% // TĚLO NENALEZENO"
+    }
   },
   {
+    "id": "falesnej_klid",
     "category": "Falešnej klid",
-    "description": "Tvůj tep hraje drum’n’bass. Venku ticho. Uvnitř válka."
+    "description": "Tvůj tep hraje drum’n’bass. Venku ticho. Uvnitř válka.",
+    "triggers": {
+      "lidskost_max": 50,
+      "apertura_min": 38,
+      "tilt_max": 15,
+      "asymetrie": "střední"
+    },
+    "metrics_flavor": {
+      "apertura": "APERTURA: {value}% // KLID PŘEDSTÍRÁ",
+      "gravitace": "GRAVITACE: {value}° // BUBEN SE KLOPÍ",
+      "asymetrie": "ASYMETRIE: {value} // TEP HÁZÍ",
+      "hydratace": "H₂O: -{value}% // TICHO NEPIJE",
+      "lidskost": "LIDSKOST: {value}% // UVNITŘ VÁLKA"
+    }
   },
   {
+    "id": "kysely_prorok",
     "category": "Kyselý prorok",
-    "description": "Vidíš budoucnost ve světlech lamp. A mluvíš s asfaltkou."
+    "description": "Vidíš budoucnost ve světlech lamp. A mluvíš s asfaltkou.",
+    "triggers": {
+      "lidskost_max": 42,
+      "apertura_min": 40,
+      "tilt_min": 12,
+      "asymetrie": "vysoká"
+    },
+    "metrics_flavor": {
+      "apertura": "APERTURA: {value}% // PROROK VIDÍ VŠE",
+      "gravitace": "GRAVITACE: {value}° // ASFALT SE KLOPÍ",
+      "asymetrie": "ASYMETRIE: {value} // VIZE UJELA",
+      "hydratace": "H₂O: -{value}% // KYSELÝ PRAMEN",
+      "lidskost": "LIDSKOST: {value}% // ZÍTŘEK BEZ LIDÍ"
+    }
   },
   {
+    "id": "pernikovej_saman",
     "category": "Perníkovej šaman",
-    "description": "Znáš všechny tvary kouře. Ale už ne svoje jméno."
+    "description": "Znáš všechny tvary kouře. Ale už ne svoje jméno.",
+    "triggers": {
+      "lidskost_max": 30,
+      "apertura_max": 30,
+      "tilt_min": 10,
+      "asymetrie": "vysoká"
+    },
+    "metrics_flavor": {
+      "apertura": "APERTURA: {value}% // KOUŘ VE VÍČKU",
+      "gravitace": "GRAVITACE: {value}° // TOTEM PADÁ",
+      "asymetrie": "ASYMETRIE: {value} // ŠAMAN KŘIVÍ",
+      "hydratace": "H₂O: -{value}% // LEKTVAR VYSCHL",
+      "lidskost": "LIDSKOST: {value}% // JMÉNO NENALEZENO"
+    }
   },
   {
+    "id": "socialni_glitch",
     "category": "Sociální glitch",
-    "description": "Pokusíš se promluvit, ale vyjde z tebe jen šum a sliny."
+    "description": "Pokusíš se promluvit, ale vyjde z tebe jen šum a sliny.",
+    "triggers": {
+      "lidskost_max": 38,
+      "apertura_max": 36,
+      "tilt_min": 8,
+      "asymetrie": "vysoká"
+    },
+    "metrics_flavor": {
+      "apertura": "APERTURA: {value}% // ŘEČ SE SEKÁ",
+      "gravitace": "GRAVITACE: {value}° // SPOJENÍ PADÁ",
+      "asymetrie": "ASYMETRIE: {value} // PUSA UJELA",
+      "hydratace": "H₂O: -{value}% // SLINY BEZ VODY",
+      "lidskost": "LIDSKOST: {value}% // PAKET: ČLOVĚK 0"
+    }
   },
   {
+    "id": "cerveny_oci",
     "category": "Červený oči",
-    "description": "Zíráš jak démon z plakátu. A plakát ti odpovídá."
+    "description": "Zíráš jak démon z plakátu. A plakát ti odpovídá.",
+    "triggers": {
+      "lidskost_max": 48,
+      "apertura_max": 32,
+      "asymetrie": "střední"
+    },
+    "metrics_flavor": {
+      "apertura": "APERTURA: {value}% // DÉMON KOUKÁ",
+      "gravitace": "GRAVITACE: {value}° // PLAKÁT SE KLOPÍ",
+      "asymetrie": "ASYMETRIE: {value} // POHLED UJEL",
+      "hydratace": "H₂O: -{value}% // SLZY ČERVENÉ",
+      "lidskost": "LIDSKOST: {value}% // DÉMON ODPOVÍDÁ"
+    }
   },
   {
+    "id": "ultrarychlej_upadek",
     "category": "Ultrarychlej úpadek",
-    "description": "Ráno hrdina, večer legenda, ráno zase troska. Rychlej koloběh."
+    "description": "Ráno hrdina, večer legenda, ráno zase troska. Rychlej koloběh.",
+    "triggers": {
+      "lidskost_max": 25,
+      "apertura_max": 25,
+      "tilt_min": 16,
+      "asymetrie": "vysoká"
+    },
+    "metrics_flavor": {
+      "apertura": "APERTURA: {value}% // VÍČKA KAPUT",
+      "gravitace": "GRAVITACE: {value}° // PÁD ZRYCHLUJE",
+      "asymetrie": "ASYMETRIE: {value} // OBLIČEJ UJEL",
+      "hydratace": "H₂O: -{value}% // NÁDRŽ PRÁZDNÁ",
+      "lidskost": "LIDSKOST: {value}% // LEGENDA PADÁ"
+    }
   },
   {
+    "id": "drzak_z_pekla",
     "category": "Držák z pekla",
-    "description": "Všichni padli, ty jedeš dál. Pika místo víry."
+    "description": "Všichni padli, ty jedeš dál. Pika místo víry.",
+    "triggers": {
+      "lidskost_max": 30,
+      "apertura_min": 35,
+      "tilt_min": 14,
+      "asymetrie": "vysoká"
+    },
+    "metrics_flavor": {
+      "apertura": "APERTURA: {value}% // PEKLO NEMRKÁ",
+      "gravitace": "GRAVITACE: {value}° // DRŽÁK SE KLOPÍ",
+      "asymetrie": "ASYMETRIE: {value} // VÍRA UJELA",
+      "hydratace": "H₂O: -{value}% // OHEŇ VYSUŠIL",
+      "lidskost": "LIDSKOST: {value}% // POSLEDNÍ ČLOVĚK"
+    }
   },
   {
+    "id": "zfetovanej_basnik",
     "category": "Zfetovanej básník",
-    "description": "Každý slovo tě stojí dech. Poezie z roztřesený ruky."
+    "description": "Každý slovo tě stojí dech. Poezie z roztřesený ruky.",
+    "triggers": {
+      "lidskost_max": 42,
+      "apertura_max": 34,
+      "tilt_min": 10,
+      "asymetrie": "střední"
+    },
+    "metrics_flavor": {
+      "apertura": "APERTURA: {value}% // VERŠE PADAJÍ",
+      "gravitace": "GRAVITACE: {value}° // RUKA SE KLOPÍ",
+      "asymetrie": "ASYMETRIE: {value} // PÍSMO UJÍŽDÍ",
+      "hydratace": "H₂O: -{value}% // PAPÍR VYSCHL",
+      "lidskost": "LIDSKOST: {value}% // DECH STOJÍ SLOVO"
+    }
   },
   {
+    "id": "vypnutej_hrac",
     "category": "Vypnutej hráč",
-    "description": "Game over. Dýcháš jen setrvačností."
+    "description": "Game over. Dýcháš jen setrvačností.",
+    "triggers": {
+      "lidskost_max": 20,
+      "apertura_max": 18,
+      "tilt_min": 12,
+      "asymetrie": "vysoká"
+    },
+    "metrics_flavor": {
+      "apertura": "APERTURA: {value}% // KONEC HRY OČÍ",
+      "gravitace": "GRAVITACE: {value}° // OVLADAČ PADÁ",
+      "asymetrie": "ASYMETRIE: {value} // AVATAR UJEL",
+      "hydratace": "H₂O: -{value}% // LEKTVAR PRÁZDNÝ",
+      "lidskost": "LIDSKOST: {value}% // HRÁČ NENALEZEN"
+    }
   },
   {
+    "id": "ztracenej_v_beate",
     "category": "Ztracenej v beatě",
-    "description": "Srdce ti hraje BPM 180. Tělo čeká, kdy se zhroutí stage."
+    "description": "Srdce ti hraje BPM 180. Tělo čeká, kdy se zhroutí stage.",
+    "triggers": {
+      "lidskost_max": 38,
+      "apertura_min": 42,
+      "tilt_min": 12,
+      "asymetrie": "střední"
+    },
+    "metrics_flavor": {
+      "apertura": "APERTURA: {value}% // BPM V OČÍCH",
+      "gravitace": "GRAVITACE: {value}° // PÓDIUM PADÁ",
+      "asymetrie": "ASYMETRIE: {value} // MIMO RYTMUS",
+      "hydratace": "H₂O: -{value}% // PARKET VYSCHL",
+      "lidskost": "LIDSKOST: {value}% // SRDCE HRAJE 180"
+    }
   },
   {
+    "id": "prazska_mlha",
     "category": "Pražská mlha",
-    "description": "Nevidíš tři metry před sebe. Ale poznáš vůni speedu na dálku."
+    "description": "Nevidíš tři metry před sebe. Ale poznáš vůni speedu na dálku.",
+    "triggers": {
+      "lidskost_max": 45,
+      "apertura_max": 28,
+      "tilt_max": 18
+    },
+    "metrics_flavor": {
+      "apertura": "APERTURA: {value}% // MLHA VE VÍČKU",
+      "gravitace": "GRAVITACE: {value}° // PRAHA SE KLOPÍ",
+      "asymetrie": "ASYMETRIE: {value} // TRAMVA UJELA",
+      "hydratace": "H₂O: -{value}% // VLTAVA VYSCHLA",
+      "lidskost": "LIDSKOST: {value}% // SIGNÁL V MLZE"
+    }
   },
   {
+    "id": "kyselina_v_zilach",
     "category": "Kyselina v žilách",
-    "description": "Krvácíš barvy a směješ se asfaltu. To je ten vibe."
+    "description": "Krvácíš barvy a směješ se asfaltu. To je ten vibe.",
+    "triggers": {
+      "lidskost_max": 32,
+      "apertura_min": 45,
+      "tilt_min": 15,
+      "asymetrie": "vysoká"
+    },
+    "metrics_flavor": {
+      "apertura": "APERTURA: {value}% // BARVY KRVÁCEJÍ",
+      "gravitace": "GRAVITACE: {value}° // ASFALT PADÁ",
+      "asymetrie": "ASYMETRIE: {value} // ŽÍLY UJELY",
+      "hydratace": "H₂O: -{value}% // KYSELINA NEPIJE",
+      "lidskost": "LIDSKOST: {value}% // NÁLADA SNĚDLA"
+    }
   },
   {
+    "id": "rozbitej_kompas",
     "category": "Rozbitej kompas",
-    "description": "Jdeš domů, ale domov už dávno neexistuje."
+    "description": "Jdeš domů, ale domov už dávno neexistuje.",
+    "triggers": {
+      "lidskost_max": 35,
+      "apertura_max": 38,
+      "tilt_min": 17,
+      "asymetrie": "vysoká"
+    },
+    "metrics_flavor": {
+      "apertura": "APERTURA: {value}% // SEVER NEMRKÁ",
+      "gravitace": "GRAVITACE: {value}° // KOMPAS PADÁ",
+      "asymetrie": "ASYMETRIE: {value} // STŘELKA UJELA",
+      "hydratace": "H₂O: -{value}% // MAPA VYSCHLA",
+      "lidskost": "LIDSKOST: {value}% // DOMOV NENALEZEN"
+    }
   },
   {
+    "id": "zpomalenej_vesmir",
     "category": "Zpomalenej vesmír",
-    "description": "Všechno se hýbe jak v želé. Možná jsi v čase, možná v tripu."
+    "description": "Všechno se hýbe jak v želé. Možná jsi v čase, možná v tripu.",
+    "triggers": {
+      "lidskost_max": 40,
+      "apertura_max": 24,
+      "tilt_max": 18,
+      "asymetrie": "střední"
+    },
+    "metrics_flavor": {
+      "apertura": "APERTURA: {value}% // VÍČKA V ŽELÉ",
+      "gravitace": "GRAVITACE: {value}° // ČAS SE KLOPÍ",
+      "asymetrie": "ASYMETRIE: {value} // VESMÍR UJEL",
+      "hydratace": "H₂O: -{value}% // ŽELÉ BEZ VODY",
+      "lidskost": "LIDSKOST: {value}% // ČLOVĚK NA 0.5×"
+    }
   },
   {
+    "id": "mesicni_fetak",
     "category": "Měsíční feťák",
-    "description": "Stojíš na balkoně a koukáš na měsíc. On kouká zpátky a směje se."
+    "description": "Stojíš na balkoně a koukáš na měsíc. On kouká zpátky a směje se.",
+    "triggers": {
+      "lidskost_max": 48,
+      "apertura_min": 35,
+      "tilt_min": 10,
+      "asymetrie": "střední"
+    },
+    "metrics_flavor": {
+      "apertura": "APERTURA: {value}% // MĚSÍC MRKÁ",
+      "gravitace": "GRAVITACE: {value}° // BALKON SE KLOPÍ",
+      "asymetrie": "ASYMETRIE: {value} // KRÁTER UJEL",
+      "hydratace": "H₂O: -{value}% // MOŘE VYSCHLO",
+      "lidskost": "LIDSKOST: {value}% // MĚSÍC SE SMĚJE"
+    }
   },
   {
+    "id": "elektronickej_lazar",
     "category": "Elektronickej Lazar",
-    "description": "Vstal jsi z mrtvých, ale jen proto, že hraje techno."
+    "description": "Vstal jsi z mrtvých, ale jen proto, že hraje techno.",
+    "triggers": {
+      "lidskost_min": 25,
+      "lidskost_max": 50,
+      "apertura_min": 38,
+      "tilt_min": 12
+    },
+    "metrics_flavor": {
+      "apertura": "APERTURA: {value}% // OČI SE RESETUJÍ",
+      "gravitace": "GRAVITACE: {value}° // LAZAR SE ZVEDÁ",
+      "asymetrie": "ASYMETRIE: {value} // MRTVÝ RYTMUS",
+      "hydratace": "H₂O: -{value}% // TECHNO MÍSTO H₂O",
+      "lidskost": "LIDSKOST: {value}% // ČLOVĚK STARTUJE"
+    }
   },
   {
+    "id": "prachovej_restart",
     "category": "Prachovej restart",
-    "description": "Každá lajna je nový začátek. I konec zároveň."
+    "description": "Každá lajna je nový začátek. I konec zároveň.",
+    "triggers": {
+      "lidskost_max": 35,
+      "apertura_max": 32,
+      "tilt_min": 10,
+      "asymetrie": "vysoká"
+    },
+    "metrics_flavor": {
+      "apertura": "APERTURA: {value}% // NOVÁ LAJNA",
+      "gravitace": "GRAVITACE: {value}° // ZAČÁTEK PADÁ",
+      "asymetrie": "ASYMETRIE: {value} // KONEC UJEL",
+      "hydratace": "H₂O: -{value}% // PÍSEK VYSCHL",
+      "lidskost": "LIDSKOST: {value}% // ZAČÁTEK ≠ ŽIVOT"
+    }
   }
 ]

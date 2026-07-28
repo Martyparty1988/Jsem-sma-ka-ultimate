@@ -1,4 +1,4 @@
-/* Junky Verdict Engine v40. Local satirical visual scoring; not medical or drug-use detection. */
+/* Junky Verdict Engine v60. Local satirical visual scoring; not medical or drug-use detection. */
 (() => {
   'use strict';
   const app = window.SmazkaApp;
@@ -7,12 +7,17 @@
   const { state, elements } = app;
   const originalRunAnalysis = app.runAnalysis.bind(app);
   const PACK_URL = 'responses-pernik.json?v=40';
+  const MATCHER_URL = './verdict-matcher.js?v=60';
+  const TERMINAL_URL = './terminal-readout.js?v=60';
   const RECENT_LIMIT = 5;
   const LIBRARY_SIZE = 101;
   const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
   const tierFor = (score) => score < 35 ? 'low' : score < 58 ? 'worn' : score < 78 ? 'junky' : 'critical';
   let engineBusy = false;
   let packPromise;
+  let matcherPromise;
+  let terminalPromise;
+  let terminalObserver;
   let microcopyQueued = false;
 
   function hashText(text) {
@@ -29,6 +34,80 @@
     const value = new Uint32Array(1);
     window.crypto.getRandomValues(value);
     return value[0] / 0xffffffff;
+  }
+
+  function normalizeDevastationMetrics(metrics) {
+    if (!metrics || typeof metrics !== 'object') return null;
+
+    const apertura = Number(metrics.apertura);
+    const lidskost = Number(metrics.lidskost);
+    const gravitace = Number(metrics.gravitace);
+    const hydratace = Number(metrics.hydratace);
+    const asymetrie = String(metrics.asymetrie || '').trim().toLocaleLowerCase('cs-CZ');
+
+    if (
+      !Number.isFinite(apertura)
+      || !Number.isFinite(lidskost)
+      || !Number.isFinite(gravitace)
+      || !Number.isFinite(hydratace)
+      || !['nízká', 'střední', 'vysoká'].includes(asymetrie)
+    ) return null;
+
+    return Object.freeze({
+      apertura: clamp(apertura, 0, 100),
+      lidskost: clamp(lidskost, 0, 100),
+      gravitace: clamp(gravitace, 0, 45),
+      asymetrie,
+      hydratace: clamp(hydratace, 0, 100)
+    });
+  }
+
+  function loadMatcher() {
+    matcherPromise ||= import(MATCHER_URL);
+    return matcherPromise;
+  }
+
+  function loadTerminal() {
+    terminalPromise ||= import(TERMINAL_URL);
+    return terminalPromise;
+  }
+
+  function scheduleTerminalReadout(metrics, verdict) {
+    terminalObserver?.disconnect();
+    let observer;
+
+    const reveal = async () => {
+      if (
+        elements.result.classList.contains('hidden')
+        || !elements.result.querySelector('.result-content')
+      ) return false;
+
+      observer?.disconnect();
+      if (terminalObserver === observer) terminalObserver = null;
+      try {
+        const { animateTerminalReadout } = await loadTerminal();
+        await animateTerminalReadout(metrics, verdict, elements.result);
+      } catch (error) {
+        console.warn('Biometrický terminál se nepovedlo vykreslit:', error);
+      }
+      return true;
+    };
+
+    observer = new MutationObserver(() => {
+      void reveal();
+    });
+    terminalObserver = observer;
+    observer.observe(elements.result, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      attributeFilter: ['class']
+    });
+    window.setTimeout(() => {
+      observer.disconnect();
+      if (terminalObserver === observer) terminalObserver = null;
+    }, 12000);
+    void reveal();
   }
 
   function loadImage(source) {
@@ -287,18 +366,33 @@
     try {
       await loadPack();
       await waitForStableLibrary(900);
-      const severity = await computeSeverity(state.currentImageData).catch((error) => {
-        console.warn('Vizuální damage skóre selhalo, používám fallback:', error);
-        return 36 + (hashText(String(state.currentImageData).slice(-220)) % 48);
-      });
-      const selected = selectVerdict(severity);
+      const metrics = normalizeDevastationMetrics(options.metrics);
+      let severity;
+      let selected;
+
+      if (metrics) {
+        const { matchVerdict } = await loadMatcher();
+        const triggerResponses = state.responseLibrary.filter((item) => item?.triggers);
+        selected = matchVerdict(metrics, triggerResponses, randomUnit);
+        severity = clamp(Math.round(100 - metrics.lidskost), 16, 94);
+      } else {
+        severity = await computeSeverity(state.currentImageData).catch((error) => {
+          console.warn('Vizuální damage skóre selhalo, používám fallback:', error);
+          return 36 + (hashText(String(state.currentImageData).slice(-220)) % 48);
+        });
+        selected = selectVerdict(severity);
+      }
+
+      if (!selected) throw new Error('Knihovna verdiktů je prázdná');
       const original = state.responseLibrary;
       const locked = lockedLibrary(selected, severity);
       state.visualDamageSeverity = severity;
       state.visualDamageTier = tierFor(severity);
+      state.lastDevastationMetrics = metrics;
       state.responseLibrary = locked;
       restoreLibrary(original, locked);
       app.setBusy(false);
+      if (metrics) scheduleTerminalReadout(metrics, selected);
       originalRunAnalysis(options);
     } finally {
       engineBusy = false;

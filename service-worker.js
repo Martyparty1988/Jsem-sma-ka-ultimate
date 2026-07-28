@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'v59';
+const CACHE_VERSION = 'v60';
 const CACHE_NAME = `jsem-smazka-${CACHE_VERSION}`;
 
 const CORE_ASSETS = [
@@ -13,7 +13,8 @@ const CORE_ASSETS = [
 const STYLE_ASSETS = [
   './bundle-base.css?v=59',
   './bundle-scanner.css?v=59',
-  './bundle-results.css?v=59'
+  './bundle-results.css?v=59',
+  './terminal-readout.css'
 ];
 
 const SCRIPT_ASSETS = [
@@ -22,7 +23,9 @@ const SCRIPT_ASSETS = [
   './face-scan.js?v=31',
   './face-warp.js?v=27',
   './hard-responses.js?v=31',
-  './junky-verdict-engine.js?v=40',
+  './junky-verdict-engine.js?v=60',
+  './verdict-matcher.js?v=60',
+  './terminal-readout.js?v=60',
   './experience-upgrades.js?v=31',
   './diagnostic-upgrades.js?v=33',
   './privacy-hardening.js?v=20',
