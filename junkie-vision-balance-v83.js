@@ -187,7 +187,7 @@
     const active = scanIsActive();
     if (active && !previousScanActive) armWatchdog();
     if (!active && previousScanActive) {
-      scanSequence += 1;
+      if (!fallbackRunning) scanSequence += 1;
       cancelWatchdog();
     }
     previousScanActive = active;
