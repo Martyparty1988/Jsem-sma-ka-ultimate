@@ -1,9 +1,10 @@
-/* Smažka v71 — single mobile result composition for Safari and installed PWA. */
+/* Smažka v73 — single tested mobile result composition for Safari and installed PWA. */
 (() => {
   'use strict';
 
   const mobileQuery = window.matchMedia('(max-width: 640px)');
   const app = window.SmazkaApp;
+  const frameGeometry = window.SmazkaResultFrameGeometry;
   if (!app?.elements?.result || !app?.elements?.cameraStage) return;
 
   const { result, cameraStage } = app.elements;
@@ -129,8 +130,7 @@
     const actions = content.querySelector(':scope > .result-actions');
 
     // One full-height flex composition: the image absorbs remaining space while
-    // verdict copy stays directly below it. Legacy translateX(-50%) is cancelled
-    // on every canvas/image so the media cannot slide halfway out of the frame.
+    // verdict copy stays directly below it. Legacy canvas translation stays off.
     setImportant(content, 'height', '100%');
     setImportant(content, 'min-height', '0');
     setImportant(content, 'max-height', '100%');
@@ -169,16 +169,33 @@
     setImportant(actions, 'margin-top', '0');
 
     result.querySelector(':scope > .in-frame-result-gradient')?.remove();
-    result.dataset.resultLayout = 'v71';
+    result.dataset.resultLayout = 'v73';
+    result.dataset.resultViewportHeight = String(Math.round(viewportHeight));
   }
 
   function viewportMetrics() {
     const viewport = window.visualViewport;
     return {
-      top: viewport?.offsetTop || 0,
-      left: viewport?.offsetLeft || 0,
+      offsetTop: viewport?.offsetTop || 0,
+      offsetLeft: viewport?.offsetLeft || 0,
       height: viewport?.height || window.innerHeight,
       width: viewport?.width || window.innerWidth
+    };
+  }
+
+  function calculateFrame(viewport) {
+    if (typeof frameGeometry?.calculateResultFrame === 'function') {
+      return frameGeometry.calculateResultFrame({
+        ...viewport,
+        gap: FRAME_GAP
+      });
+    }
+
+    return {
+      top: viewport.offsetTop + FRAME_GAP,
+      left: viewport.offsetLeft + FRAME_GAP,
+      width: Math.max(1, viewport.width - FRAME_GAP * 2),
+      height: Math.max(1, viewport.height - FRAME_GAP * 2)
     };
   }
 
@@ -186,27 +203,24 @@
     if (!mobileQuery.matches || !resultVisible()) return;
 
     const viewport = viewportMetrics();
-    const top = viewport.top + FRAME_GAP;
-    const left = viewport.left + FRAME_GAP;
-    const width = Math.max(1, viewport.width - FRAME_GAP * 2);
-    const maxHeight = Math.max(1, viewport.height - FRAME_GAP * 2);
+    const frame = calculateFrame(viewport);
 
     setImportant(result, 'position', 'fixed');
     setImportant(result, 'z-index', String(TOP_LAYER_Z));
-    setImportant(result, 'top', `${Math.round(top)}px`);
+    setImportant(result, 'top', `${Math.round(frame.top)}px`);
     setImportant(result, 'right', 'auto');
     setImportant(result, 'bottom', 'auto');
-    setImportant(result, 'left', `${Math.round(left)}px`);
-    setImportant(result, 'width', `${Math.round(width)}px`);
-    setImportant(result, 'height', `${Math.round(maxHeight)}px`);
+    setImportant(result, 'left', `${Math.round(frame.left)}px`);
+    setImportant(result, 'width', `${Math.round(frame.width)}px`);
+    setImportant(result, 'height', `${Math.round(frame.height)}px`);
     setImportant(result, 'max-width', 'none');
-    setImportant(result, 'max-height', `${Math.round(maxHeight)}px`);
+    setImportant(result, 'max-height', `${Math.round(frame.height)}px`);
     setImportant(result, 'margin', '0');
     setImportant(result, 'overflow', 'hidden');
     setImportant(result, 'pointer-events', 'auto');
     setImportant(result, 'isolation', 'isolate');
 
-    syncResultComposition(maxHeight);
+    syncResultComposition(frame.height);
 
     if (resultBackdrop) {
       setImportant(resultBackdrop, 'position', 'fixed');
@@ -276,6 +290,7 @@
       setDetailsOpen(false);
       result.removeAttribute('data-in-frame-ready');
       result.removeAttribute('data-result-layout');
+      result.removeAttribute('data-result-viewport-height');
       clearTopLayerStyles();
       return;
     }
