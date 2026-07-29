@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'v80';
+const CACHE_VERSION = 'v81';
 const CACHE_NAME = `jsem-smazka-${CACHE_VERSION}`;
 const FACE_MODEL_CACHE = 'jsem-smazka-face-model-v1';
 
