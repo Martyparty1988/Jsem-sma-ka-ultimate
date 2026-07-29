@@ -28,11 +28,11 @@ globalThis.__PWA_TEST__ = { CACHE_NAME, APP_SHELL };`;
   return context.__PWA_TEST__;
 }
 
-test('PWA v74 caches every current runtime, style and data dependency', () => {
+test('PWA v75 caches every current runtime, style and data dependency', () => {
   const { CACHE_NAME, APP_SHELL } = serviceWorkerContract();
   const assets = new Set(APP_SHELL);
 
-  assert.equal(CACHE_NAME, 'jsem-smazka-v74');
+  assert.equal(CACHE_NAME, 'jsem-smazka-v75');
   [
     './app.js?v=64',
     './face-aware-crop.js?v=72',
@@ -41,7 +41,7 @@ test('PWA v74 caches every current runtime, style and data dependency', () => {
     './devastation-metrics.js?v=64',
     './face-warp.js?v=64',
     './hard-responses.js?v=64',
-    './junky-verdict-engine.js?v=64',
+    './junky-verdict-engine.js?v=75',
     './verdict-matcher.js?v=64',
     './privacy-hardening.js?v=72',
     './share-cover.js?v=72',
@@ -53,6 +53,8 @@ test('PWA v74 caches every current runtime, style and data dependency', () => {
     './responses-pernik.json?v=64'
   ].forEach((asset) => assert.equal(assets.has(asset), true, asset));
 
+  assert.equal(assets.has('./terminal-readout.js?v=60'), false);
+  assert.equal(assets.has('./junky-verdict-engine.js?v=64'), false);
   assert.equal(assets.has('./in-frame-result.js?v=71'), false);
   assert.equal(assets.has('./result-mobile-v70.css?v=70'), false);
   assert.equal(assets.has('./result-layout-fix-v69.js?v=69'), false);
@@ -63,7 +65,7 @@ test('PWA v74 caches every current runtime, style and data dependency', () => {
   });
 });
 
-test('HTML and dynamic module URLs agree with the v74 cache graph', () => {
+test('HTML and dynamic module URLs agree with the v75 cache graph', () => {
   const { APP_SHELL } = serviceWorkerContract();
   const assets = new Set(APP_SHELL);
   const index = read('index.html');
@@ -80,11 +82,21 @@ test('HTML and dynamic module URLs agree with the v74 cache graph', () => {
     read('face-scan.js').match(/METRICS_MODULE_URL = '([^']+)'/)?.[1],
     read('face-warp.js').match(/GEOMETRY_MODULE_URL = '([^']+)'/)?.[1],
     read('junky-verdict-engine.js').match(/MATCHER_URL = '([^']+)'/)?.[1],
-    read('junky-verdict-engine.js').match(/TERMINAL_URL = '([^']+)'/)?.[1],
     read('junky-verdict-engine.js').match(/PACK_URL = '([^']+)'/)?.[1]
   ].filter(Boolean).map((asset) => asset.startsWith('./') ? asset : `./${asset}`);
 
   dynamicAssets.forEach((asset) => assert.equal(assets.has(asset), true, asset));
+});
+
+test('retired biometric terminal cannot return to the result pipeline', () => {
+  const engine = read('junky-verdict-engine.js');
+  const serviceWorker = read('service-worker.js');
+
+  assert.doesNotMatch(engine, /TERMINAL_URL/);
+  assert.doesNotMatch(engine, /scheduleTerminalReadout/);
+  assert.doesNotMatch(engine, /animateTerminalReadout/);
+  assert.doesNotMatch(serviceWorker, /terminal-readout/);
+  assert.equal(fs.existsSync(new URL('terminal-readout.js', root)), false);
 });
 
 test('mobile result v73 remains the single viewport runtime authority', () => {
