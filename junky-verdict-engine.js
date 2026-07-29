@@ -1,4 +1,4 @@
-/* Junky Verdict Engine v64. Metadata-driven local satire; not medical or drug-use detection. */
+/* Junky Verdict Engine v75. Metadata-driven local satire; not medical or drug-use detection. */
 (() => {
   'use strict';
   const app = window.SmazkaApp;
@@ -8,15 +8,12 @@
   const originalRunAnalysis = app.runAnalysis.bind(app);
   const PACK_URL = 'responses-pernik.json?v=64';
   const MATCHER_URL = './verdict-matcher.js?v=64';
-  const TERMINAL_URL = './terminal-readout.js?v=60';
   const RECENT_LIMIT = 5;
   const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
   const tierFor = (score) => score < 35 ? 'low' : score < 58 ? 'worn' : score < 78 ? 'junky' : 'critical';
   let engineBusy = false;
   let packPromise;
   let matcherPromise;
-  let terminalPromise;
-  let terminalObserver;
   let microcopyQueued = false;
   let metadataWarningIssued = false;
 
@@ -73,49 +70,6 @@
   function loadMatcher() {
     matcherPromise ||= import(MATCHER_URL);
     return matcherPromise;
-  }
-
-  function loadTerminal() {
-    terminalPromise ||= import(TERMINAL_URL);
-    return terminalPromise;
-  }
-
-  function scheduleTerminalReadout(metrics, verdict) {
-    terminalObserver?.disconnect();
-    let observer;
-
-    const reveal = async () => {
-      if (
-        elements.result.classList.contains('hidden')
-        || !elements.result.querySelector('.result-content')
-      ) return false;
-
-      observer?.disconnect();
-      if (terminalObserver === observer) terminalObserver = null;
-      try {
-        const { animateTerminalReadout } = await loadTerminal();
-        await animateTerminalReadout(metrics, verdict, elements.result);
-      } catch (error) {
-        console.warn('Biometrický terminál se nepovedlo vykreslit:', error);
-      }
-      return true;
-    };
-
-    observer = new MutationObserver(() => {
-      void reveal();
-    });
-    terminalObserver = observer;
-    observer.observe(elements.result, {
-      childList: true,
-      subtree: true,
-      attributes: true,
-      attributeFilter: ['class']
-    });
-    window.setTimeout(() => {
-      observer.disconnect();
-      if (terminalObserver === observer) terminalObserver = null;
-    }, 12000);
-    void reveal();
   }
 
   function loadImage(source) {
@@ -359,7 +313,6 @@
       state.lastDevastationMetrics = metrics;
       state.faceAnalysis = selectedFaceAnalysis;
       app.setBusy(false);
-      if (metrics) scheduleTerminalReadout(metrics, selected);
       originalRunAnalysis({
         ...options,
         severity,
