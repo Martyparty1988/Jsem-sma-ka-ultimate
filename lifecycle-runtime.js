@@ -743,12 +743,13 @@
     if (!content || !visual) return;
 
     const detailsOpen = result.classList.contains('details-open');
-    const meta = content.querySelector(':scope > .result-effect-meta');
-    const title = content.querySelector(':scope > h2');
+    const summary = content.querySelector(':scope > .result-summary');
+    const meta = summary?.querySelector('.result-effect-meta') || content.querySelector(':scope > .result-effect-meta');
+    const title = summary?.querySelector('h2') || content.querySelector(':scope > h2');
     const actions = content.querySelector(':scope > .result-actions');
 
-    // One full-height flex composition: the image absorbs remaining space while
-    // verdict copy stays directly below it. Legacy canvas translation stays off.
+    // Keep a deliberate result hero. The photograph must not absorb the whole
+    // viewport because the verdict and primary actions belong above the fold.
     setImportant(content, 'height', '100%');
     setImportant(content, 'min-height', '0');
     setImportant(content, 'max-height', '100%');
@@ -770,17 +771,21 @@
     setImportant(visual, 'bottom', 'auto');
     setImportant(visual, 'left', 'auto');
     setImportant(visual, 'width', 'calc(100% + 28px)');
-    setImportant(visual, 'height', detailsOpen ? 'clamp(142px, 20dvh, 174px)' : 'auto');
-    setImportant(visual, 'min-height', detailsOpen ? '0' : 'clamp(260px, 34dvh, 360px)');
-    setImportant(visual, 'max-height', 'none');
-    setImportant(visual, 'flex', detailsOpen ? '0 0 auto' : '1 1 auto');
+    setImportant(visual, 'height', detailsOpen ? 'clamp(128px, 17dvh, 154px)' : 'clamp(280px, 44dvh, 410px)');
+    setImportant(visual, 'min-height', '0');
+    setImportant(visual, 'max-height', detailsOpen ? '154px' : '410px');
+    setImportant(visual, 'flex', '0 0 auto');
     setImportant(visual, 'aspect-ratio', 'auto');
-    setImportant(visual, 'margin', '0 -14px 5px');
+    setImportant(visual, 'margin', '0 -14px');
     setImportant(visual, 'overflow', 'hidden');
     setImportant(visual, 'border-radius', '0');
 
     syncResultMedia(visual);
 
+    setImportant(summary, 'position', 'relative');
+    setImportant(summary, 'z-index', '4');
+    setImportant(summary, 'margin', detailsOpen ? '0' : '-92px 0 0');
+    setImportant(summary, 'padding', detailsOpen ? '0 2px' : '32px 2px 7px');
     setImportant(meta, 'margin-top', '0');
     setImportant(meta, 'margin-bottom', '0');
     setImportant(title, 'margin-top', '0');
@@ -855,7 +860,7 @@
     if (detailsButton) {
       detailsButton.setAttribute('aria-expanded', String(open));
       const label = detailsButton.querySelector('.in-frame-details-label');
-      if (label) label.textContent = open ? 'Skrýt detailní rozbor' : 'Zobrazit detailní rozbor';
+      if (label) label.textContent = open ? 'Skrýt toxikologický protokol' : 'Otevřít toxikologický protokol';
     }
 
     window.requestAnimationFrame(() => {
@@ -886,7 +891,7 @@
       detailsButton.type = 'button';
       detailsButton.className = 'in-frame-details-toggle';
       detailsButton.setAttribute('aria-expanded', 'false');
-      detailsButton.innerHTML = '<svg class="ui-icon" aria-hidden="true"><use href="#icon-zap"></use></svg><span class="in-frame-details-label">Zobrazit detailní rozbor</span><i aria-hidden="true">⌄</i>';
+      detailsButton.innerHTML = '<svg class="ui-icon" aria-hidden="true"><use href="#icon-zap"></use></svg><span class="in-frame-details-label">Otevřít toxikologický protokol</span><i aria-hidden="true">⌄</i>';
       detailsButton.addEventListener('click', () => {
         setDetailsOpen(!result.classList.contains('details-open'));
       });
@@ -2169,6 +2174,8 @@
   }
 
   function diagnosticValue(row) {
+    const storedScore = Number.parseFloat(row.dataset.score || '');
+    if (Number.isFinite(storedScore)) return storedScore;
     const meter = row.querySelector('.diagnostic-meter i');
     const width = Number.parseFloat(meter?.style.width || meter?.getAttribute('data-value') || '');
     if (Number.isFinite(width)) return width;
@@ -2177,7 +2184,7 @@
     return Number.isFinite(parsed) ? parsed : 0;
   }
 
-  function keepOnlyWorstDiagnosticRed(root) {
+  function classifyDiagnosticSeverity(root) {
     const rows = Array.from(root.querySelectorAll('.diagnostic-row'));
     if (!rows.length) return;
     const worst = rows.reduce((current, row) => (
@@ -2185,8 +2192,13 @@
     ), rows[0]);
 
     rows.forEach((row) => {
+      const score = diagnosticValue(row);
+      row.classList.toggle('is-low', score < 35);
+      row.classList.toggle('is-medium', score >= 35 && score < 65);
+      row.classList.toggle('is-high', score >= 65 && score < 82);
+      row.classList.toggle('is-critical', score >= 82);
       row.classList.toggle('is-worst', row === worst);
-      row.classList.toggle('is-danger', row === worst);
+      row.classList.toggle('is-danger', score >= 65);
     });
   }
 
@@ -2216,7 +2228,23 @@
       effectName?.remove();
     }
 
-    keepOnlyWorstDiagnosticRed(result);
+    const content = result.querySelector('.result-content');
+    const title = result.querySelector('#resultTitle');
+    const meta = result.querySelector('.result-effect-meta');
+    const effectButton = result.querySelector('.effect-reroll-button');
+    let summary = result.querySelector('.result-summary');
+    if (content && visual && title) {
+      if (!summary) {
+        summary = document.createElement('div');
+        summary.className = 'result-summary';
+        visual.insertAdjacentElement('afterend', summary);
+      }
+      if (meta && meta.parentElement !== summary) summary.appendChild(meta);
+      if (effectButton && effectButton.parentElement !== summary) summary.appendChild(effectButton);
+      if (title.parentElement !== summary) summary.appendChild(title);
+    }
+
+    classifyDiagnosticSeverity(result);
   }
 
   function clearRevealTimers() {
