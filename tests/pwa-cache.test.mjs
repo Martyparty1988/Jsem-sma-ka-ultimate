@@ -28,11 +28,11 @@ globalThis.__PWA_TEST__ = { CACHE_NAME, APP_SHELL };`;
   return context.__PWA_TEST__;
 }
 
-test('PWA v75 caches every current runtime, style and data dependency', () => {
+test('PWA v76 caches every current runtime, style and data dependency', () => {
   const { CACHE_NAME, APP_SHELL } = serviceWorkerContract();
   const assets = new Set(APP_SHELL);
 
-  assert.equal(CACHE_NAME, 'jsem-smazka-v75');
+  assert.equal(CACHE_NAME, 'jsem-smazka-v76');
   [
     './app.js?v=64',
     './face-aware-crop.js?v=72',
@@ -47,6 +47,7 @@ test('PWA v75 caches every current runtime, style and data dependency', () => {
     './share-cover.js?v=72',
     './result-frame-geometry.js?v=73',
     './in-frame-result.js?v=73',
+    './single-pass-result-v76.js?v=76',
     './result-mobile-v71.css?v=71',
     './responses.json',
     './responses-hard.json?v=64',
@@ -65,7 +66,7 @@ test('PWA v75 caches every current runtime, style and data dependency', () => {
   });
 });
 
-test('HTML and dynamic module URLs agree with the v75 cache graph', () => {
+test('HTML and dynamic module URLs agree with the v76 cache graph', () => {
   const { APP_SHELL } = serviceWorkerContract();
   const assets = new Set(APP_SHELL);
   const index = read('index.html');
@@ -119,7 +120,7 @@ test('mobile result v73 remains the single viewport runtime authority', () => {
   assert.doesNotMatch(index, /result-layout-fix-v69/);
 });
 
-test('crop runtime loads after viewport runtime and owns final image focus', () => {
+test('crop focus and single-pass lock run after viewport composition', () => {
   const { APP_SHELL } = serviceWorkerContract();
   const index = read('index.html');
   const cropIndex = index.indexOf('face-aware-crop.js?v=72');
@@ -127,6 +128,7 @@ test('crop runtime loads after viewport runtime and owns final image focus', () 
   const frameGeometryIndex = index.indexOf('result-frame-geometry.js?v=73');
   const resultRuntimeIndex = index.indexOf('in-frame-result.js?v=73');
   const cropRuntimeIndex = index.indexOf('face-aware-crop-runtime.js?v=72');
+  const singlePassIndex = index.indexOf('single-pass-result-v76.js?v=76');
   const shareIndex = index.indexOf('share-cover.js?v=72');
 
   assert.ok(cropIndex > -1);
@@ -134,9 +136,14 @@ test('crop runtime loads after viewport runtime and owns final image focus', () 
   assert.ok(frameGeometryIndex > warpIndex);
   assert.ok(resultRuntimeIndex > frameGeometryIndex);
   assert.ok(cropRuntimeIndex > resultRuntimeIndex);
-  assert.ok(shareIndex > cropRuntimeIndex);
+  assert.ok(singlePassIndex > cropRuntimeIndex);
+  assert.ok(shareIndex > singlePassIndex);
 
-  const shellCropRuntimeIndex = APP_SHELL.indexOf('./face-aware-crop-runtime.js?v=72');
   const shellResultRuntimeIndex = APP_SHELL.indexOf('./in-frame-result.js?v=73');
+  const shellCropRuntimeIndex = APP_SHELL.indexOf('./face-aware-crop-runtime.js?v=72');
+  const shellSinglePassIndex = APP_SHELL.indexOf('./single-pass-result-v76.js?v=76');
+  const shellShareIndex = APP_SHELL.indexOf('./share-cover.js?v=72');
   assert.ok(shellCropRuntimeIndex > shellResultRuntimeIndex);
+  assert.ok(shellSinglePassIndex > shellCropRuntimeIndex);
+  assert.ok(shellShareIndex > shellSinglePassIndex);
 });
