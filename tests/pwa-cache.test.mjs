@@ -28,16 +28,21 @@ globalThis.__PWA_TEST__ = { CACHE_NAME, FACE_MODEL_CACHE, APP_SHELL, FACE_MODEL_
   return context.__PWA_TEST__;
 }
 
-test('PWA v80 caches every current runtime, style and data dependency', () => {
+test('PWA v81 caches every current runtime, style and data dependency', () => {
   const { CACHE_NAME, APP_SHELL } = serviceWorkerContract();
   const assets = new Set(APP_SHELL);
 
-  assert.equal(CACHE_NAME, 'jsem-smazka-v80');
+  assert.equal(CACHE_NAME, 'jsem-smazka-v81');
   [
     './app.js?v=64',
     './legacy-share-bypass-v79.js?v=79',
     './face-aware-crop.js?v=72',
     './face-input-optimizer-v80.js?v=80',
+    './face-landmark-bridge-v81.js?v=81',
+    './hud-junkie-themes.js?v=81',
+    './junkie-vision-hud-v81.js?v=81',
+    './junkie-vision-photo-v81.js?v=81',
+    './junkie-vision-hud-v81.css?v=81',
     './face-aware-crop-runtime.js?v=72',
     './face-scan.js?v=64',
     './devastation-metrics.js?v=64',
@@ -79,7 +84,7 @@ test('MediaPipe model files use one stable cache instead of every app cache vers
   assert.ok(FACE_MODEL_ASSETS.includes('./vendor/mediapipe-face-mesh/face_mesh.js?v=0.4.1633559619'));
 
   FACE_MODEL_ASSETS.forEach((asset) => {
-    assert.equal(appAssets.has(asset), false, `${asset} must not be tied to v80`);
+    assert.equal(appAssets.has(asset), false, `${asset} must not be tied to v81`);
     const pathname = asset.replace(/^\.\//, '').split('?')[0];
     assert.equal(fs.existsSync(new URL(pathname, root)), true, asset);
   });
@@ -90,7 +95,7 @@ test('MediaPipe model files use one stable cache instead of every app cache vers
   assert.doesNotMatch(serviceWorker, /const APP_SHELL = \[[\s\S]*\.\.\.FACE_MODEL_ASSETS/);
 });
 
-test('HTML and dynamic module URLs agree with the v80 cache graph', () => {
+test('HTML and dynamic module URLs agree with the v81 cache graph', () => {
   const { APP_SHELL, FACE_MODEL_ASSETS } = serviceWorkerContract();
   const appAssets = new Set(APP_SHELL);
   const allCachedAssets = new Set([...APP_SHELL, ...FACE_MODEL_ASSETS]);
@@ -108,7 +113,8 @@ test('HTML and dynamic module URLs agree with the v80 cache graph', () => {
     read('face-scan.js').match(/METRICS_MODULE_URL = '([^']+)'/)?.[1],
     read('face-warp.js').match(/GEOMETRY_MODULE_URL = '([^']+)'/)?.[1],
     read('junky-verdict-engine.js').match(/MATCHER_URL = '([^']+)'/)?.[1],
-    read('junky-verdict-engine.js').match(/PACK_URL = '([^']+)'/)?.[1]
+    read('junky-verdict-engine.js').match(/PACK_URL = '([^']+)'/)?.[1],
+    read('hud-junkie-themes.js').match(/photoRuntimeUrl = '([^']+)'/)?.[1]
   ].filter(Boolean).map((asset) => asset.startsWith('./') ? asset : `./${asset}`);
 
   dynamicAssets.forEach((asset) => assert.equal(appAssets.has(asset), true, asset));
@@ -163,21 +169,33 @@ test('eager share bypass loads immediately after app bootstrap', () => {
   assert.ok(shellCropIndex > shellBypassIndex);
 });
 
-test('Face Mesh input optimizer loads after the model loader and before face scanning', () => {
+test('Face Mesh input optimizer and Junkie Vision bridge load before face scanning', () => {
   const { APP_SHELL } = serviceWorkerContract();
   const index = read('index.html');
   const loaderIndex = index.indexOf('vendor/mediapipe-face-mesh/face_mesh.js?v=0.4.1633559619');
   const optimizerIndex = index.indexOf('face-input-optimizer-v80.js?v=80');
+  const bridgeIndex = index.indexOf('face-landmark-bridge-v81.js?v=81');
+  const themeIndex = index.indexOf('hud-junkie-themes.js?v=81');
   const scanIndex = index.indexOf('face-scan.js?v=64');
+  const hudIndex = index.indexOf('junkie-vision-hud-v81.js?v=81');
 
   assert.ok(loaderIndex > -1);
   assert.ok(optimizerIndex > loaderIndex);
-  assert.ok(scanIndex > optimizerIndex);
+  assert.ok(bridgeIndex > optimizerIndex);
+  assert.ok(themeIndex > bridgeIndex);
+  assert.ok(scanIndex > themeIndex);
+  assert.ok(hudIndex > scanIndex);
 
   const shellOptimizerIndex = APP_SHELL.indexOf('./face-input-optimizer-v80.js?v=80');
+  const shellBridgeIndex = APP_SHELL.indexOf('./face-landmark-bridge-v81.js?v=81');
+  const shellThemeIndex = APP_SHELL.indexOf('./hud-junkie-themes.js?v=81');
   const shellScanIndex = APP_SHELL.indexOf('./face-scan.js?v=64');
+  const shellHudIndex = APP_SHELL.indexOf('./junkie-vision-hud-v81.js?v=81');
   assert.ok(shellOptimizerIndex > -1);
-  assert.ok(shellScanIndex > shellOptimizerIndex);
+  assert.ok(shellBridgeIndex > shellOptimizerIndex);
+  assert.ok(shellThemeIndex > shellBridgeIndex);
+  assert.ok(shellScanIndex > shellThemeIndex);
+  assert.ok(shellHudIndex > shellScanIndex);
 });
 
 test('crop, single-pass and lazy share runtimes load in authoritative order', () => {
