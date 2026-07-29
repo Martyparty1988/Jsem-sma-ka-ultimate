@@ -262,15 +262,16 @@
 
     cachedToken = token;
     cachedBlob = null;
-    pendingBlob = renderCoverBlob(verdict)
+    const task = renderCoverBlob(verdict)
       .then((blob) => {
-        cachedBlob = blob;
+        if (cachedToken === token) cachedBlob = blob;
         return blob;
       })
       .finally(() => {
-        pendingBlob = null;
+        if (pendingBlob === task) pendingBlob = null;
       });
-    return pendingBlob;
+    pendingBlob = task;
+    return task;
   }
 
   function clearCoverCache() {
@@ -361,10 +362,19 @@
     attributeFilter: ['class', 'src']
   });
 
+  const legacyCanvasObserver = new MutationObserver(releaseLegacyCanvasBuffer);
+  if (legacyCanvas) {
+    legacyCanvasObserver.observe(legacyCanvas, {
+      attributes: true,
+      attributeFilter: ['width', 'height']
+    });
+  }
+
   window.addEventListener('pagehide', () => {
     clearCoverCache();
     releaseLegacyCanvasBuffer();
     resultObserver.disconnect();
+    legacyCanvasObserver.disconnect();
   }, { once: true });
 
   window.SmazkaShareCover = Object.freeze({
