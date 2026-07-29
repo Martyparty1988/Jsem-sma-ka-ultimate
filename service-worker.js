@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'v79';
+const CACHE_VERSION = 'v80';
 const CACHE_NAME = `jsem-smazka-${CACHE_VERSION}`;
 const FACE_MODEL_CACHE = 'jsem-smazka-face-model-v1';
 
@@ -23,6 +23,7 @@ const SCRIPT_ASSETS = [
   './app.js?v=64',
   './legacy-share-bypass-v79.js?v=79',
   './face-aware-crop.js?v=72',
+  './face-input-optimizer-v80.js?v=80',
   './face-scan.js?v=64',
   './devastation-metrics.js?v=64',
   './face-warp.js?v=64',
