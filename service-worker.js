@@ -16,7 +16,8 @@ const STYLE_ASSETS = [
   './bundle-scanner.css?v=60',
   './bundle-results.css?v=60',
   './scan-theme.css?v=65',
-  './result-mobile-v71.css?v=71'
+  './result-mobile-v71.css?v=71',
+  './junkie-vision-hud-v81.css?v=81'
 ];
 
 const SCRIPT_ASSETS = [
@@ -24,7 +25,10 @@ const SCRIPT_ASSETS = [
   './legacy-share-bypass-v79.js?v=79',
   './face-aware-crop.js?v=72',
   './face-input-optimizer-v80.js?v=80',
+  './face-landmark-bridge-v81.js?v=81',
+  './hud-junkie-themes.js?v=81',
   './face-scan.js?v=64',
+  './junkie-vision-hud-v81.js?v=81',
   './devastation-metrics.js?v=64',
   './face-warp.js?v=64',
   './face-warp-geometry.js?v=63',
