@@ -17,6 +17,7 @@
   const RIGHT_EYE = [33, 7, 163, 144, 145, 153, 154, 155, 133, 173, 157, 158, 159, 160, 161, 246];
   const LEFT_EYE = [263, 249, 390, 373, 374, 380, 381, 382, 362, 398, 384, 385, 386, 387, 388, 466];
   const MOUTH = [61, 146, 91, 181, 84, 17, 314, 405, 321, 375, 291, 409, 270, 269, 267, 0, 37, 39, 40, 185];
+  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 
   let lastToken = '';
   let scheduledFrame = 0;
@@ -165,9 +166,12 @@
 
   function createSlice(effect, top, direction, delay) {
     const slice = document.createElement('div');
+    const shift = direction * (20 + top / 3);
     slice.className = 'impact-glitch-slice';
     slice.style.setProperty('--impact-slice-top', `${top}%`);
-    slice.style.setProperty('--impact-slice-shift', `${direction * (20 + top / 3)}px`);
+    slice.style.setProperty('--impact-slice-shift', `${shift}px`);
+    slice.style.setProperty('--impact-slice-reverse', `${shift * -0.5}px`);
+    slice.style.setProperty('--impact-slice-return', `${shift * 0.35}px`);
     slice.style.setProperty('--impact-slice-delay', `${delay}ms`);
     const image = document.createElement('img');
     image.alt = '';
@@ -230,15 +234,24 @@
 
   function installSeal(severity) {
     const visual = result.querySelector('.result-visual');
-    if (!visual) return;
-    visual.querySelector('.impact-verdict-seal')?.remove();
+    if (!visual) return null;
+    const level = severity >= 80 ? 'critical' : severity >= 50 ? 'disturbed' : 'calm';
+    const existing = visual.querySelector('.impact-verdict-seal');
+    if (
+      existing
+      && existing.dataset.level === level
+      && existing.dataset.severity === String(severity)
+    ) return existing;
 
+    existing?.remove();
     const seal = document.createElement('div');
     seal.className = 'impact-verdict-seal';
-    seal.dataset.level = severity >= 80 ? 'critical' : severity >= 50 ? 'disturbed' : 'calm';
+    seal.dataset.level = level;
+    seal.dataset.severity = String(severity);
     seal.innerHTML = `<span>VOID IMPACT</span><strong>${severity}%</strong><small>REKLAMACE PŘIJATA</small>`;
     visual.appendChild(seal);
     window.requestAnimationFrame(() => seal.classList.add('is-mounted'));
+    return seal;
   }
 
   function vibrate(severity) {
@@ -276,13 +289,15 @@
     window.requestAnimationFrame(() => {
       window.requestAnimationFrame(() => overlay.classList.add('is-running'));
     });
-    vibrate(severity);
+    if (!reducedMotion.matches) vibrate(severity);
 
+    const revealDuration = reducedMotion.matches ? 120 : REVEAL_MS;
+    const exitDuration = reducedMotion.matches ? 40 : EXIT_MS;
     window.setTimeout(() => {
       if (runId !== activeRun) return;
       overlay.classList.add('is-finishing');
       installSeal(severity);
-    }, REVEAL_MS);
+    }, revealDuration);
 
     window.setTimeout(() => {
       if (runId !== activeRun) return;
@@ -291,7 +306,7 @@
       window.dispatchEvent(new CustomEvent('smazka:impact-reveal-complete', {
         detail: { severity, token }
       }));
-    }, REVEAL_MS + EXIT_MS);
+    }, revealDuration + exitDuration);
   }
 
   function schedule() {
@@ -300,7 +315,9 @@
       if (!resultIsVisible() || !state.currentImageData) return;
       const token = resultToken();
       if (!token || token === lastToken) {
-        if (token) installSeal(severityValue());
+        if (token && !result.querySelector('.critical-impact-reveal')) {
+          installSeal(severityValue());
+        }
         return;
       }
       runReveal(token);
