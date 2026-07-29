@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'v74';
+const CACHE_VERSION = 'v75';
 const CACHE_NAME = `jsem-smazka-${CACHE_VERSION}`;
 
 const CORE_ASSETS = [
@@ -27,9 +27,8 @@ const SCRIPT_ASSETS = [
   './face-warp.js?v=64',
   './face-warp-geometry.js?v=63',
   './hard-responses.js?v=64',
-  './junky-verdict-engine.js?v=64',
+  './junky-verdict-engine.js?v=75',
   './verdict-matcher.js?v=64',
-  './terminal-readout.js?v=60',
   './experience-upgrades.js?v=60',
   './diagnostic-upgrades.js?v=60',
   './pwa-update-fix.js?v=68',
