@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { readRoot } from './bundle-source.mjs';
 
-test('v88 scanner hides chrome through one explicit busy-state contract', () => {
+test('v89 scanner hides chrome through one explicit busy-state contract', () => {
   const app = readRoot('app.js');
   const screens = readRoot('screens.css');
 
@@ -15,7 +15,7 @@ test('v88 scanner hides chrome through one explicit busy-state contract', () => 
   assert.match(screens, /env\(safe-area-inset-left\)/);
 });
 
-test('v88 result keeps verdict above the fold and shrinks for the protocol', () => {
+test('v89 result keeps verdict above the fold and shrinks for the protocol', () => {
   const lifecycle = readRoot('lifecycle-runtime.js');
   const screens = readRoot('screens.css');
 
@@ -27,11 +27,14 @@ test('v88 result keeps verdict above the fold and shrinks for the protocol', () 
   assert.match(screens, /position:\s*sticky\s*!important/);
 });
 
-test('v88 exposes one Smažka-native protocol and compact result tools', () => {
+test('v89 exposes one Smažka-native protocol and compact result tools', () => {
   const result = readRoot('result-runtime.js');
   const lifecycle = readRoot('lifecycle-runtime.js');
 
-  assert.match(result, /TOXIKOLOGICKÝ PROTOKOL/);
+  assert.match(result, /Toxikologický protokol/);
+  assert.match(result, /VOID LAB · 468 BODŮ · 0 % VĚDY/);
+  assert.match(result, /diagnostic-count/);
+  assert.match(result, /dataset\.marker/);
   assert.match(lifecycle, /Otevřít toxikologický protokol/);
   assert.doesNotMatch(`${result}\n${lifecycle}`, /PITEVNÍ|pitevní zprávu|detailní rozbor/);
   assert.match(result, /className = 'effect-reroll-button'/);
@@ -41,16 +44,26 @@ test('v88 exposes one Smažka-native protocol and compact result tools', () => {
   assert.match(result, /panel\.appendChild\(box\)/);
 });
 
-test('v88 diagnostics preserve exact scores and four visual severity tiers', () => {
+test('v89 diagnostics preserve exact values but colors them by actual risk', () => {
   const result = readRoot('result-runtime.js');
   const lifecycle = readRoot('lifecycle-runtime.js');
   const screens = readRoot('screens.css');
 
   assert.match(result, /row\.dataset\.score = String\(score\)/);
+  assert.match(result, /row\.dataset\.risk = String\(risk\)/);
+  assert.match(result, /risk: 100 - pupils/);
+  assert.match(result, /risk: keys/);
   assert.match(result, /is-\$\{tier\}/);
+  assert.match(lifecycle, /function diagnosticRisk/);
+  assert.match(lifecycle, /row\.dataset\.risk/);
   assert.match(lifecycle, /classifyDiagnosticSeverity/);
   ['is-low', 'is-medium', 'is-high', 'is-critical'].forEach((tier) => {
     assert.equal(screens.includes(`.${tier}`), true, tier);
   });
+  assert.match(screens, /grid-template-columns:\s*28px minmax\(0,\s*1fr\)/);
+  assert.match(screens, /content:\s*attr\(data-marker\)/);
+  assert.match(screens, /diagnostic-heading-copy/);
+  assert.match(screens, /secondary-diagnosis-heading/);
   assert.match(result, /is-long-value/);
+  assert.match(result, /is-status-value/);
 });
