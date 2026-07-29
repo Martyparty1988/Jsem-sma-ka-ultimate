@@ -746,7 +746,12 @@
     const summary = content.querySelector(':scope > .result-summary');
     const meta = summary?.querySelector('.result-effect-meta') || content.querySelector(':scope > .result-effect-meta');
     const title = summary?.querySelector('h2') || content.querySelector(':scope > h2');
-    const actions = content.querySelector(':scope > .result-actions');
+    const actions = result.querySelector(':scope > .result-actions')
+      || content.querySelector(':scope > .result-actions');
+
+    if (actions?.parentElement === content) {
+      result.appendChild(actions);
+    }
 
     // Keep a deliberate result hero. The photograph must not absorb the whole
     // viewport because the verdict and primary actions belong above the fold.
@@ -756,8 +761,8 @@
     setImportant(content, 'justify-content', 'flex-start');
     setImportant(content, 'align-items', 'stretch');
     setImportant(content, 'padding-top', '0');
-    setImportant(content, 'padding-bottom', 'max(14px, env(safe-area-inset-bottom))');
-    setImportant(content, 'gap', detailsOpen ? '8px' : '9px');
+    setImportant(content, 'padding-bottom', '12px');
+    setImportant(content, 'gap', detailsOpen ? '7px' : '9px');
     setImportant(content, 'overflow-x', 'hidden');
     setImportant(content, 'overflow-y', 'auto');
 
@@ -785,14 +790,14 @@
     setImportant(summary, 'position', 'relative');
     setImportant(summary, 'z-index', '4');
     setImportant(summary, 'margin', detailsOpen ? '0' : '-92px 0 0');
-    setImportant(summary, 'padding', detailsOpen ? '0 2px' : '32px 2px 7px');
+    setImportant(summary, 'padding', detailsOpen ? '0 2px 2px' : '32px 2px 7px');
     setImportant(meta, 'margin-top', '0');
     setImportant(meta, 'margin-bottom', '0');
     setImportant(title, 'margin-top', '0');
     setImportant(actions, 'margin-top', '0');
 
     result.querySelector(':scope > .in-frame-result-gradient')?.remove();
-    result.dataset.resultLayout = 'v73';
+    result.dataset.resultLayout = 'v90';
     result.dataset.resultViewportHeight = String(Math.round(viewportHeight));
   }
 
@@ -860,7 +865,7 @@
     if (detailsButton) {
       detailsButton.setAttribute('aria-expanded', String(open));
       const label = detailsButton.querySelector('.in-frame-details-label');
-      if (label) label.textContent = open ? 'Skrýt toxikologický protokol' : 'Otevřít toxikologický protokol';
+      if (label) label.textContent = open ? 'Zavřít protokol' : 'Otevřít toxikologický protokol';
     }
 
     window.requestAnimationFrame(() => {
@@ -915,6 +920,9 @@
       result.removeAttribute('data-result-layout');
       result.removeAttribute('data-result-viewport-height');
       clearTopLayerStyles();
+      const content = result.querySelector('.result-content');
+      const actions = result.querySelector(':scope > .result-actions');
+      if (content && actions) content.appendChild(actions);
       return;
     }
 

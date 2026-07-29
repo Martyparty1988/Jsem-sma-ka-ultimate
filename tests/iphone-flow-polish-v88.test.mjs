@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { readRoot } from './bundle-source.mjs';
 
-test('v89 scanner hides chrome through one explicit busy-state contract', () => {
+test('v90 scanner hides chrome through one explicit busy-state contract', () => {
   const app = readRoot('app.js');
   const screens = readRoot('screens.css');
 
@@ -15,7 +15,7 @@ test('v89 scanner hides chrome through one explicit busy-state contract', () => 
   assert.match(screens, /env\(safe-area-inset-left\)/);
 });
 
-test('v89 result keeps verdict above the fold and shrinks for the protocol', () => {
+test('v90 result keeps verdict above the fold and shrinks for the protocol', () => {
   const lifecycle = readRoot('lifecycle-runtime.js');
   const screens = readRoot('screens.css');
 
@@ -27,7 +27,7 @@ test('v89 result keeps verdict above the fold and shrinks for the protocol', () 
   assert.match(screens, /position:\s*sticky\s*!important/);
 });
 
-test('v89 exposes one Smažka-native protocol and compact result tools', () => {
+test('v90 exposes one Smažka-native protocol and compact result tools', () => {
   const result = readRoot('result-runtime.js');
   const lifecycle = readRoot('lifecycle-runtime.js');
 
@@ -44,7 +44,7 @@ test('v89 exposes one Smažka-native protocol and compact result tools', () => {
   assert.match(result, /panel\.appendChild\(box\)/);
 });
 
-test('v89 diagnostics preserve exact values but colors them by actual risk', () => {
+test('v90 diagnostics preserve exact values but colors them by actual risk', () => {
   const result = readRoot('result-runtime.js');
   const lifecycle = readRoot('lifecycle-runtime.js');
   const screens = readRoot('screens.css');
@@ -66,4 +66,26 @@ test('v89 diagnostics preserve exact values but colors them by actual risk', () 
   assert.match(screens, /secondary-diagnosis-heading/);
   assert.match(result, /is-long-value/);
   assert.match(result, /is-status-value/);
+});
+
+test('v90 keeps protocol content clear of the isolated action dock', () => {
+  const app = readRoot('app.js');
+  const result = readRoot('result-runtime.js');
+  const lifecycle = readRoot('lifecycle-runtime.js');
+  const screens = readRoot('screens.css');
+
+  assert.match(lifecycle, /Zavřít protokol/);
+  assert.match(lifecycle, /resultLayout = 'v90'/);
+  assert.match(app, /content\.append\(resultVisual, title, text, actions\)/);
+  assert.match(lifecycle, /actions\?\.parentElement === content/);
+  assert.match(lifecycle, /result\.appendChild\(actions\)/);
+  assert.match(lifecycle, /if \(content && actions\) content\.appendChild\(actions\)/);
+  assert.match(result, /elements\.result\.querySelector\(':scope > \.result-actions'\)/);
+  assert.match(screens, /grid-template-rows:\s*minmax\(0,\s*1fr\) auto/);
+  assert.match(screens, /result\.details-open:not\(\.hidden\) \.result-actions[\s\S]*grid-row:\s*2/);
+  assert.match(screens, /result\.details-open:not\(\.hidden\) \.result-actions[\s\S]*position:\s*relative/);
+  assert.match(screens, /--diagnostic-panel-background/);
+  assert.match(screens, /--polish-control-background/);
+  assert.match(screens, /\.diagnostic-row\.is-status-value:not\(\.is-long-value\) \.diagnostic-copy/);
+  assert.match(screens, /\.diagnostic-panel::before/);
 });

@@ -2043,7 +2043,8 @@
     if (isHidden(elements.result) || !state.currentImageData) return;
     const content = elements.result.querySelector('.result-content');
     const description = content?.querySelector('.description');
-    const actions = content?.querySelector('.result-actions');
+    const actions = elements.result.querySelector(':scope > .result-actions')
+      || content?.querySelector('.result-actions');
     if (!content || !description || !actions) return;
 
     const token = resultToken();
@@ -2059,7 +2060,7 @@
     content.querySelector('.effect-reroll-button')?.remove();
     description.insertAdjacentElement('afterend', buildDiagnostics(diagnostics));
     description.insertAdjacentElement('beforebegin', buildEffectRerollButton());
-    actions.insertAdjacentElement('beforebegin', buildToolButtons());
+    content.appendChild(buildToolButtons());
 
     if (token !== lastResultToken) {
       lastResultToken = token;

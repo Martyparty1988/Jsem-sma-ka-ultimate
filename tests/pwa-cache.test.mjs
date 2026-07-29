@@ -25,19 +25,19 @@ globalThis.__PWA_TEST__ = { CACHE_NAME, FACE_MODEL_CACHE, APP_SHELL };`;
   return context.__PWA_TEST__;
 }
 
-test('PWA v89 precaches one compact production shell with no retired entries', () => {
+test('PWA v90 precaches one compact production shell with no retired entries', () => {
   const { CACHE_NAME, APP_SHELL } = serviceWorkerContract();
   const assets = new Set(APP_SHELL);
 
-  assert.equal(CACHE_NAME, 'jsem-smazka-v89');
+  assert.equal(CACHE_NAME, 'jsem-smazka-v90');
   [
-    './foundation.css?v=89',
-    './components.css?v=89',
-    './screens.css?v=89',
-    './app.js?v=89',
-    './scanner-runtime.js?v=89',
-    './result-runtime.js?v=89',
-    './lifecycle-runtime.js?v=89',
+    './foundation.css?v=90',
+    './components.css?v=90',
+    './screens.css?v=90',
+    './app.js?v=90',
+    './scanner-runtime.js?v=90',
+    './result-runtime.js?v=90',
+    './lifecycle-runtime.js?v=90',
     './responses.json',
     './responses-hard.json?v=64',
     './responses-pernik.json?v=64'
@@ -71,7 +71,7 @@ test('MediaPipe uses a stable request-driven cache and never install-precaches W
   assert.match(serviceWorker, /key !== CACHE_NAME && key !== FACE_MODEL_CACHE/);
 });
 
-test('HTML entries, bundle sections and dynamic files agree with the v89 cache graph', () => {
+test('HTML entries, bundle sections and dynamic files agree with the v90 cache graph', () => {
   const { APP_SHELL } = serviceWorkerContract();
   const appAssets = new Set(APP_SHELL);
   const index = readRoot('index.html');
@@ -106,7 +106,7 @@ test('HTML entries, bundle sections and dynamic files agree with the v89 cache g
 test('result, crop, recovery, single-pass, impact and share keep authoritative order', () => {
   const index = readRoot('index.html');
   const lifecycle = readRoot('lifecycle-runtime.js');
-  const indexOrder = ['app.js?v=89', 'scanner-runtime.js?v=89', 'result-runtime.js?v=89', 'lifecycle-runtime.js?v=89'];
+  const indexOrder = ['app.js?v=90', 'scanner-runtime.js?v=90', 'result-runtime.js?v=90', 'lifecycle-runtime.js?v=90'];
   const lifecycleOrder = [
     'result-frame-geometry.js',
     'in-frame-result.js',
