@@ -28,15 +28,16 @@ globalThis.__PWA_TEST__ = { CACHE_NAME, FACE_MODEL_CACHE, APP_SHELL, FACE_MODEL_
   return context.__PWA_TEST__;
 }
 
-test('PWA v79 caches every current runtime, style and data dependency', () => {
+test('PWA v80 caches every current runtime, style and data dependency', () => {
   const { CACHE_NAME, APP_SHELL } = serviceWorkerContract();
   const assets = new Set(APP_SHELL);
 
-  assert.equal(CACHE_NAME, 'jsem-smazka-v79');
+  assert.equal(CACHE_NAME, 'jsem-smazka-v80');
   [
     './app.js?v=64',
     './legacy-share-bypass-v79.js?v=79',
     './face-aware-crop.js?v=72',
+    './face-input-optimizer-v80.js?v=80',
     './face-aware-crop-runtime.js?v=72',
     './face-scan.js?v=64',
     './devastation-metrics.js?v=64',
@@ -78,7 +79,7 @@ test('MediaPipe model files use one stable cache instead of every app cache vers
   assert.ok(FACE_MODEL_ASSETS.includes('./vendor/mediapipe-face-mesh/face_mesh.js?v=0.4.1633559619'));
 
   FACE_MODEL_ASSETS.forEach((asset) => {
-    assert.equal(appAssets.has(asset), false, `${asset} must not be tied to v79`);
+    assert.equal(appAssets.has(asset), false, `${asset} must not be tied to v80`);
     const pathname = asset.replace(/^\.\//, '').split('?')[0];
     assert.equal(fs.existsSync(new URL(pathname, root)), true, asset);
   });
@@ -89,7 +90,7 @@ test('MediaPipe model files use one stable cache instead of every app cache vers
   assert.doesNotMatch(serviceWorker, /const APP_SHELL = \[[\s\S]*\.\.\.FACE_MODEL_ASSETS/);
 });
 
-test('HTML and dynamic module URLs agree with the v79 cache graph', () => {
+test('HTML and dynamic module URLs agree with the v80 cache graph', () => {
   const { APP_SHELL, FACE_MODEL_ASSETS } = serviceWorkerContract();
   const appAssets = new Set(APP_SHELL);
   const allCachedAssets = new Set([...APP_SHELL, ...FACE_MODEL_ASSETS]);
@@ -162,6 +163,23 @@ test('eager share bypass loads immediately after app bootstrap', () => {
   assert.ok(shellCropIndex > shellBypassIndex);
 });
 
+test('Face Mesh input optimizer loads after the model loader and before face scanning', () => {
+  const { APP_SHELL } = serviceWorkerContract();
+  const index = read('index.html');
+  const loaderIndex = index.indexOf('vendor/mediapipe-face-mesh/face_mesh.js?v=0.4.1633559619');
+  const optimizerIndex = index.indexOf('face-input-optimizer-v80.js?v=80');
+  const scanIndex = index.indexOf('face-scan.js?v=64');
+
+  assert.ok(loaderIndex > -1);
+  assert.ok(optimizerIndex > loaderIndex);
+  assert.ok(scanIndex > optimizerIndex);
+
+  const shellOptimizerIndex = APP_SHELL.indexOf('./face-input-optimizer-v80.js?v=80');
+  const shellScanIndex = APP_SHELL.indexOf('./face-scan.js?v=64');
+  assert.ok(shellOptimizerIndex > -1);
+  assert.ok(shellScanIndex > shellOptimizerIndex);
+});
+
 test('crop, single-pass and lazy share runtimes load in authoritative order', () => {
   const { APP_SHELL } = serviceWorkerContract();
   const index = read('index.html');
@@ -220,4 +238,21 @@ test('v79 suppresses only the retired 1080 by 1350 eager share canvas', () => {
   assert.match(bypass, /if \(!bypassActive\) Reflect\.set/);
   assert.match(bypass, /canvas\.dataset\.legacyShareBypass = 'v79'/);
   assert.match(serviceWorker, /\.\/legacy-share-bypass-v79\.js\?v=79/);
+});
+
+test('v80 downsizes only live video input and preserves still image analysis', () => {
+  const optimizer = read('face-input-optimizer-v80.js');
+  const serviceWorker = read('service-worker.js');
+
+  assert.match(optimizer, /const IDLE_MAX_EDGE = 512/);
+  assert.match(optimizer, /const SCAN_MAX_EDGE = 640/);
+  assert.match(optimizer, /source instanceof HTMLVideoElement/);
+  assert.match(optimizer, /if \(!isVideoSource\(source\)\)/);
+  assert.match(optimizer, /return nativeSend\.call\(this, packet\)/);
+  assert.match(optimizer, /state\.context\.drawImage\(video, 0, 0, width, height\)/);
+  assert.match(optimizer, /key === state\.lastFrameKey/);
+  assert.match(optimizer, /return Promise\.resolve\(undefined\)/);
+  assert.match(optimizer, /buffers\.forEach/);
+  assert.match(optimizer, /averagePreparationMs/);
+  assert.match(serviceWorker, /\.\/face-input-optimizer-v80\.js\?v=80/);
 });
