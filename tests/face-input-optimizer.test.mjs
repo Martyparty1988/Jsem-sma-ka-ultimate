@@ -1,9 +1,9 @@
 import assert from 'node:assert/strict';
-import fs from 'node:fs';
 import test from 'node:test';
 import vm from 'node:vm';
+import { readBundleSection } from './bundle-source.mjs';
 
-const source = fs.readFileSync(new URL('../face-input-optimizer-v80.js', import.meta.url), 'utf8');
+const source = readBundleSection('face-input-optimizer-v80.js');
 
 class MockVideo {
   constructor() {

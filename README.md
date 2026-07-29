@@ -17,35 +17,32 @@ Satirická mobilní webová aplikace, která lokálně změří MediaPipe Face M
 
 ### UI
 
-- `bundle-base.css` – základ aplikace, typografie a společné komponenty.
-- `bundle-scanner.css` – kamera, skenovací HUD a mobilní ovládání.
-- `bundle-results.css` – výsledkové komponenty a diagnostika.
-- `scan-theme.css` – finální VOID vizuální polish.
-- `result-mobile-v71.css` – jediná mobilní autorita pro rozměry výsledkové karty.
+- `foundation.css` – tokeny, reset, typografie, přístupnost a společné prvky.
+- `components.css` – kamera, skenovací HUD, ovládání a sdílené komponenty.
+- `screens.css` – výsledek, responzivní/iPhone geometrie a finální VOID kaskáda.
 
 ### Detekce a verdikt
 
-- `app.js` – stav aplikace, kamera, výsledek a základní share fallback.
-- `face-scan.js` – MediaPipe Face Mesh, zachycení a měření fotografie.
+- `app.js` – stav aplikace, uživatelské spuštění kamery a sdílený DOM observer.
+- `scanner-runtime.js` – lazy Face Mesh loader, landmarky, HUD a skenovací watchdog.
+- `result-runtime.js` – deformace, metadata-driven verdikt a diagnostika.
+- `lifecycle-runtime.js` – výsledkový lifecycle, recovery, share cover a PWA update UI.
 - `devastation-metrics.js` – normalizované landmarky, bounds, anchors, metriky a 70/30 severity kontrakt.
 - `verdict-matcher.js` – metadata-driven výběr verdiktu.
-- `junky-verdict-engine.js` – propojení biometrických metrik s knihovnami hlášek.
 - `responses.json`, `responses-hard.json`, `responses-pernik.json` – knihovny verdiktů.
 
 ### Výřez, deformace a export
 
-- `face-aware-crop.js` – společný výpočet cover cropu, object-position a přepočtu landmarků.
-- `face-aware-crop-runtime.js` – připraví face-aware zdroj pro renderer a synchronizuje crop výsledkové fotografie.
 - `face-warp-geometry.js` – převod landmarků na oblasti deformace.
-- `face-warp.js` – WebGL/canvas deformace a finální PNG.
-- `share-cover.js` – sdílená 1080 × 1920 karta používající stejnou crop geometrii.
-- `privacy-hardening.js` – lokální scrub citlivých dat; původní a pracovní oříznutá fotka jsou vedené odděleně.
+- `result-runtime.js` obsahuje WebGL/canvas renderer a verdikt.
+- `lifecycle-runtime.js` obsahuje společný face-aware crop, lokální scrub citlivých dat a sdílenou kartu 1080 × 1920.
 
 ### PWA
 
 - `manifest.json` – instalační metadata.
-- `service-worker.js` – verzovaná offline cache a update lifecycle.
-- `pwa-update-fix.js` – spolehlivé kliknutí na aktualizaci v iOS PWA.
+- `service-worker.js` – malý verzovaný app shell a oddělená stabilní runtime cache.
+- MediaPipe/WASM se nestahuje při instalaci. Načte se až po klepnutí uživatele a cache uchová jen variantu, kterou prohlížeč skutečně vyžádal.
+- První offline spuštění bez dříve načteného modelu zobrazí srozumitelnou výzvu k jednorázovému připojení.
 
 ## Lokální spuštění
 

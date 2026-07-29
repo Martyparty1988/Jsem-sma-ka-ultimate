@@ -1,9 +1,9 @@
 import assert from 'node:assert/strict';
-import fs from 'node:fs';
 import test from 'node:test';
 import vm from 'node:vm';
+import { readBundleSection, readRoot } from './bundle-source.mjs';
 
-const source = fs.readFileSync(new URL('../analysis-state-stability-v84.js', import.meta.url), 'utf8');
+const source = readBundleSection('analysis-state-stability-v84.js');
 
 test('v84 busy state wrapper ignores duplicate writes but preserves real transitions', () => {
   const attributes = new Map([['aria-busy', 'false']]);
@@ -44,13 +44,12 @@ test('v84 busy state wrapper ignores duplicate writes but preserves real transit
 });
 
 test('v84 busy state runtime loads before the completion observer and is cached', () => {
-  const root = new URL('../', import.meta.url);
-  const index = fs.readFileSync(new URL('index.html', root), 'utf8');
-  const serviceWorker = fs.readFileSync(new URL('service-worker.js', root), 'utf8');
+  const lifecycle = readRoot('lifecycle-runtime.js');
+  const serviceWorker = readRoot('service-worker.js');
 
-  const stability = index.indexOf('analysis-state-stability-v84.js?v=84');
-  const guard = index.indexOf('analysis-completion-guard-v84.js?v=84');
+  const stability = lifecycle.indexOf('/* === analysis-state-stability-v84.js === */');
+  const guard = lifecycle.indexOf('/* === analysis-completion-guard-v84.js === */');
   assert.ok(stability > -1);
   assert.ok(guard > stability);
-  assert.match(serviceWorker, /\.\/analysis-state-stability-v84\.js\?v=84/);
+  assert.match(serviceWorker, /\.\/lifecycle-runtime\.js\?v=87/);
 });

@@ -1,10 +1,9 @@
 import assert from 'node:assert/strict';
-import fs from 'node:fs';
 import test from 'node:test';
 import vm from 'node:vm';
+import { readBundleSection } from './bundle-source.mjs';
 
-const root = new URL('../', import.meta.url);
-const source = fs.readFileSync(new URL('face-aware-crop.js', root), 'utf8');
+const source = readBundleSection('face-aware-crop.js');
 const context = {};
 context.globalThis = context;
 vm.runInNewContext(source, context);

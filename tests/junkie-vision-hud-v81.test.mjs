@@ -1,10 +1,7 @@
 import assert from 'node:assert/strict';
-import fs from 'node:fs';
 import test from 'node:test';
 import vm from 'node:vm';
-
-const root = new URL('../', import.meta.url);
-const read = (path) => fs.readFileSync(new URL(path, root), 'utf8');
+import { readBundleSection, readRoot } from './bundle-source.mjs';
 
 test('Junkie Vision v81 keeps theme copy separate from renderers', () => {
   const appendedScripts = [];
@@ -20,7 +17,7 @@ test('Junkie Vision v81 keeps theme copy separate from renderers', () => {
   };
   const context = { window: {}, document, Object };
   context.globalThis = context;
-  vm.runInNewContext(read('hud-junkie-themes.js'), context);
+  vm.runInNewContext(readBundleSection('hud-junkie-themes.js'), context);
   const theme = context.window.SmazkaJunkieHudTheme;
 
   assert.equal(theme.version, 81);
@@ -45,10 +42,10 @@ test('Junkie Vision v81 keeps theme copy separate from renderers', () => {
 });
 
 test('Junkie Vision v81 uses dedicated canvases, real landmarks and throttled animation', () => {
-  const runtime = read('junkie-vision-hud-v81.js');
-  const photoRuntime = read('junkie-vision-photo-v81.js');
-  const noiseRuntime = read('junkie-vision-noise-v81.js');
-  const css = read('junkie-vision-hud-v81.css');
+  const runtime = readBundleSection('junkie-vision-hud-v81.js');
+  const photoRuntime = readRoot('junkie-vision-photo-v81.js');
+  const noiseRuntime = readRoot('junkie-vision-noise-v81.js');
+  const css = readRoot('screens.css');
 
   assert.match(runtime, /canvas\.dataset\.hudCanvas = 'v81'/);
   assert.match(runtime, /window\.FACEMESH_TESSELATION/);
@@ -82,32 +79,30 @@ test('Junkie Vision v81 uses dedicated canvases, real landmarks and throttled an
   assert.match(css, /prefers-reduced-motion/);
 });
 
-test('Junkie Vision loads between MediaPipe and the result pipeline and is cached offline', () => {
-  const index = read('index.html');
-  const serviceWorker = read('service-worker.js');
+test('Junkie Vision keeps patch order while Face Mesh stays lazy in PWA v87', () => {
+  const index = readRoot('index.html');
+  const scanner = readRoot('scanner-runtime.js');
+  const serviceWorker = readRoot('service-worker.js');
 
-  const loader = index.indexOf('vendor/mediapipe-face-mesh/face_mesh.js?v=0.4.1633559619');
-  const optimizer = index.indexOf('face-input-optimizer-v80.js?v=80');
-  const bridge = index.indexOf('face-landmark-bridge-v81.js?v=81');
-  const theme = index.indexOf('hud-junkie-themes.js?v=81');
-  const scan = index.indexOf('face-scan.js?v=64');
-  const hud = index.indexOf('junkie-vision-hud-v81.js?v=81');
-  const warp = index.indexOf('face-warp.js?v=64');
+  const optimizer = scanner.indexOf('/* === face-input-optimizer-v80.js === */');
+  const bridge = scanner.indexOf('/* === face-landmark-bridge-v81.js === */');
+  const theme = scanner.indexOf('/* === hud-junkie-themes.js === */');
+  const scan = scanner.indexOf('/* === face-scan.js === */');
+  const hud = scanner.indexOf('/* === junkie-vision-hud-v81.js === */');
+  const balance = scanner.indexOf('/* === junkie-vision-balance-v83.js === */');
 
-  assert.ok(loader > -1);
-  assert.ok(optimizer > loader);
+  assert.ok(optimizer > -1);
   assert.ok(bridge > optimizer);
   assert.ok(theme > bridge);
   assert.ok(scan > theme);
   assert.ok(hud > scan);
-  assert.ok(warp > hud);
+  assert.ok(balance > hud);
 
-  [
-    './junkie-vision-hud-v81.css?v=81',
-    './face-landmark-bridge-v81.js?v=81',
-    './hud-junkie-themes.js?v=81',
-    './junkie-vision-hud-v81.js?v=81',
-    './junkie-vision-photo-v81.js?v=81',
-    './junkie-vision-noise-v81.js?v=81'
-  ].forEach((asset) => assert.ok(serviceWorker.includes(asset), asset));
+  assert.doesNotMatch(index, /vendor\/mediapipe-face-mesh\/face_mesh\.js/);
+  assert.match(scanner, /FACE_RUNTIME_URL = `\$\{MODEL_ROOT\}face_mesh\.js\?v=0\.4\.1633559619`/);
+  assert.match(scanner, /photoRuntimeUrl = 'junkie-vision-photo-v81\.js\?v=81'/);
+  assert.match(scanner, /noiseRuntimeUrl = 'junkie-vision-noise-v81\.js\?v=81'/);
+  assert.match(serviceWorker, /\.\/scanner-runtime\.js\?v=87/);
+  assert.match(serviceWorker, /requestUrl\.pathname\.includes\('\/vendor\/mediapipe-face-mesh\/'\)/);
+  assert.doesNotMatch(serviceWorker, /face_mesh_solution_.*\.wasm/);
 });

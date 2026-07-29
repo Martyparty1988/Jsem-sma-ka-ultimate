@@ -1,116 +1,34 @@
-const CACHE_VERSION = 'v85';
+const CACHE_VERSION = 'v87';
 const CACHE_NAME = `jsem-smazka-${CACHE_VERSION}`;
 const FACE_MODEL_CACHE = 'jsem-smazka-face-model-v1';
 
-const CORE_ASSETS = [
+const APP_SHELL = [
   './',
   './index.html',
   './manifest.json',
   './icon-192.png',
   './icon-512.png',
-  './icon.svg'
-];
-
-const STYLE_ASSETS = [
-  './bundle-base.css?v=60',
-  './bundle-scanner.css?v=60',
-  './bundle-results.css?v=60',
-  './scan-theme.css?v=65',
-  './result-mobile-v71.css?v=71',
-  './junkie-vision-hud-v81.css?v=81',
-  './junkie-vision-balance-v83.css?v=83',
-  './critical-impact-reveal-v82.css?v=82',
-  './analysis-completion-guard-v84.css?v=84',
-  './analysis-rescue-v85.css?v=85'
-];
-
-const SCRIPT_ASSETS = [
-  './app.js?v=64',
-  './legacy-share-bypass-v79.js?v=79',
-  './face-aware-crop.js?v=72',
-  './face-input-optimizer-v80.js?v=80',
-  './face-landmark-bridge-v81.js?v=81',
-  './hud-junkie-themes.js?v=81',
-  './face-scan.js?v=64',
-  './junkie-vision-hud-v81.js?v=81',
-  './junkie-vision-balance-v83.js?v=83',
-  './junkie-vision-photo-v81.js?v=81',
-  './junkie-vision-noise-v81.js?v=81',
-  './devastation-metrics.js?v=64',
-  './face-warp.js?v=64',
-  './face-warp-geometry.js?v=63',
-  './hard-responses.js?v=64',
-  './junky-verdict-engine.js?v=75',
-  './verdict-matcher.js?v=64',
-  './experience-upgrades.js?v=60',
-  './diagnostic-upgrades.js?v=60',
-  './pwa-update-fix.js?v=68',
-  './privacy-hardening.js?v=72',
-  './ios-one-screen.js?v=60',
-  './result-frame-geometry.js?v=73',
-  './in-frame-result.js?v=73',
-  './face-aware-crop-runtime.js?v=72',
-  './analysis-state-stability-v84.js?v=84',
-  './analysis-completion-guard-v84.js?v=84',
-  './analysis-rescue-v85.js?v=85',
-  './single-pass-result-v76.js?v=76',
-  './critical-impact-reveal-v82.js?v=82',
-  './scanner-focus.js?v=60',
-  './face-guidance.js?v=60',
-  './share-cover-v77.js?v=77',
-  './result-intensity.js?v=60',
-  './junkie-polish-v55.js?v=60',
-  './boot-message-v54.js?v=60',
-  './result-close-reset-v58.js?v=60'
-];
-
-const DATA_ASSETS = [
+  './icon.svg',
+  './foundation.css?v=87',
+  './components.css?v=87',
+  './screens.css?v=87',
+  './app.js?v=87',
+  './scanner-runtime.js?v=87',
+  './result-runtime.js?v=87',
+  './lifecycle-runtime.js?v=87',
   './responses.json',
   './responses-hard.json?v=64',
   './responses-pernik.json?v=64'
 ];
 
-const FACE_MODEL_ASSETS = [
-  './vendor/mediapipe-face-mesh/face_mesh.js?v=0.4.1633559619',
-  './vendor/mediapipe-face-mesh/face_mesh.binarypb',
-  './vendor/mediapipe-face-mesh/face_mesh_solution_packed_assets_loader.js',
-  './vendor/mediapipe-face-mesh/face_mesh_solution_packed_assets.data',
-  './vendor/mediapipe-face-mesh/face_mesh_solution_simd_wasm_bin.data',
-  './vendor/mediapipe-face-mesh/face_mesh_solution_simd_wasm_bin.js',
-  './vendor/mediapipe-face-mesh/face_mesh_solution_simd_wasm_bin.wasm',
-  './vendor/mediapipe-face-mesh/face_mesh_solution_wasm_bin.js',
-  './vendor/mediapipe-face-mesh/face_mesh_solution_wasm_bin.wasm'
-];
-
-const APP_SHELL = [
-  ...CORE_ASSETS,
-  ...STYLE_ASSETS,
-  ...SCRIPT_ASSETS,
-  ...DATA_ASSETS
-];
-
-async function ensureFaceModelCache() {
-  const cache = await caches.open(FACE_MODEL_CACHE);
-  await Promise.all(FACE_MODEL_ASSETS.map(async (asset) => {
-    const request = new Request(asset, { cache: 'reload' });
-    if (await cache.match(request)) return;
-    const response = await fetch(request);
-    if (!response.ok) throw new Error(`MediaPipe asset ${asset} selhal: HTTP ${response.status}`);
-    await cache.put(request, response);
-  }));
-}
-
-self.addEventListener('install', (event) => {
-  event.waitUntil(Promise.all([
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(APP_SHELL)),
-    ensureFaceModelCache()
-  ]));
-  // Do not activate automatically. The visible update button decides when the
-  // new worker takes control, which avoids the iOS race where `waiting`
-  // disappears before the tap handler runs.
+self.addEventListener(`install`, (event) => {
+  event.waitUntil(
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(APP_SHELL))
+  );
+  // Activation remains user-controlled through the visible update action.
 });
 
-self.addEventListener('activate', (event) => {
+self.addEventListener(`activate`, (event) => {
   event.waitUntil(
     caches.keys()
       .then((keys) => Promise.all(
@@ -122,61 +40,68 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-self.addEventListener('message', (event) => {
-  if (event.data?.type === 'SKIP_WAITING') {
+self.addEventListener(`message`, (event) => {
+  if (event.data?.type === `SKIP_WAITING`) {
     event.waitUntil(self.skipWaiting());
   }
 });
 
-self.addEventListener('fetch', (event) => {
+self.addEventListener(`fetch`, (event) => {
   if (event.request.method !== 'GET') return;
 
   const requestUrl = new URL(event.request.url);
   if (requestUrl.origin !== self.location.origin) return;
 
-  // Navigation: network-first, fallback to cache.
   if (event.request.mode === 'navigate') {
-    event.respondWith(
-      fetch(event.request)
-        .then((networkResponse) => {
-          const responseClone = networkResponse.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put('./index.html', responseClone));
-          return networkResponse;
-        })
-        .catch(() => caches.match('./index.html'))
-    );
-    return;
-  }
-
-  // Heavy MediaPipe binaries live in a stable cache that survives app updates.
-  if (requestUrl.pathname.includes('/vendor/mediapipe-face-mesh/')) {
-    event.respondWith(
-      caches.open(FACE_MODEL_CACHE).then(async (cache) => {
-        const cachedResponse = await cache.match(event.request);
-        if (cachedResponse) return cachedResponse;
-
+    event.respondWith((async () => {
+      try {
         const networkResponse = await fetch(event.request);
-        if (networkResponse.ok) await cache.put(event.request, networkResponse.clone());
+        if (networkResponse.ok) {
+          const cache = await caches.open(CACHE_NAME);
+          await cache.put('./index.html', networkResponse.clone());
+        }
         return networkResponse;
-      })
-    );
+      } catch {
+        return (await caches.match('./index.html'))
+          || new Response('Offline', { status: 503, statusText: 'Offline' });
+      }
+    })());
     return;
   }
 
-  // Everything else: stale-while-revalidate in the versioned app cache.
-  event.respondWith(
-    caches.open(CACHE_NAME).then(async (cache) => {
+  /*
+   * MediaPipe is intentionally absent from APP_SHELL. Only files requested by
+   * the compatible browser path are retained, so install never downloads both
+   * WASM variants and UI releases do not evict the large model cache.
+   */
+  if (requestUrl.pathname.includes('/vendor/mediapipe-face-mesh/')) {
+    event.respondWith((async () => {
+      const cache = await caches.open(FACE_MODEL_CACHE);
       const cachedResponse = await cache.match(event.request);
-      const networkPromise = fetch(event.request)
-        .then(async (networkResponse) => {
-          if (networkResponse.ok) await cache.put(event.request, networkResponse.clone());
-          return networkResponse;
-        })
-        .catch(() => null);
+      if (cachedResponse) return cachedResponse;
 
-      return cachedResponse || networkPromise.then((networkResponse) => (
-        networkResponse || new Response('Offline', { status: 503, statusText: 'Offline' })
-      ));
-    })
-  );
+      const networkResponse = await fetch(event.request);
+      if (networkResponse.ok) {
+        await cache.put(event.request, networkResponse.clone());
+      }
+      return networkResponse;
+    })());
+    return;
+  }
+
+  event.respondWith((async () => {
+    const cache = await caches.open(CACHE_NAME);
+    const cachedResponse = await cache.match(event.request);
+    if (cachedResponse) return cachedResponse;
+
+    try {
+      const networkResponse = await fetch(event.request);
+      if (networkResponse.ok) {
+        await cache.put(event.request, networkResponse.clone());
+      }
+      return networkResponse;
+    } catch {
+      return new Response('Offline', { status: 503, statusText: 'Offline' });
+    }
+  })());
 });

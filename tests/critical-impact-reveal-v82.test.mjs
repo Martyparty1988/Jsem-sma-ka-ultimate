@@ -1,12 +1,9 @@
 import assert from 'node:assert/strict';
-import fs from 'node:fs';
 import test from 'node:test';
-
-const root = new URL('../', import.meta.url);
-const read = (path) => fs.readFileSync(new URL(path, root), 'utf8');
+import { readBundleSection, readRoot } from './bundle-source.mjs';
 
 test('Critical Impact Reveal reuses the single-pass result without another face warp', () => {
-  const runtime = read('critical-impact-reveal-v82.js');
+  const runtime = readBundleSection('critical-impact-reveal-v82.js');
 
   assert.match(runtime, /cropApi\.cropImageData\(source, CROP_WIDTH, CROP_HEIGHT/);
   assert.match(runtime, /state\.effectImageData \|\| state\.currentImageData/);
@@ -21,7 +18,7 @@ test('Critical Impact Reveal reuses the single-pass result without another face 
 });
 
 test('Critical Impact Reveal seal is idempotent and reduced motion is short', () => {
-  const runtime = read('critical-impact-reveal-v82.js');
+  const runtime = readBundleSection('critical-impact-reveal-v82.js');
 
   assert.match(runtime, /existing\.dataset\.level === level/);
   assert.match(runtime, /existing\.dataset\.severity === String\(severity\)/);
@@ -31,7 +28,7 @@ test('Critical Impact Reveal seal is idempotent and reduced motion is short', ()
 });
 
 test('Critical Impact Reveal presentation contains the full impact sequence and Safari-safe slices', () => {
-  const css = read('critical-impact-reveal-v82.css');
+  const css = readRoot('screens.css');
 
   assert.match(css, /impact-negative-flash-v82/);
   assert.match(css, /impact-wipe-image-v82/);
@@ -46,19 +43,18 @@ test('Critical Impact Reveal presentation contains the full impact sequence and 
   assert.match(css, /prefers-reduced-motion/);
 });
 
-test('Critical Impact Reveal loads after single-pass and before lazy share in PWA v82', () => {
-  const index = read('index.html');
-  const serviceWorker = read('service-worker.js');
+test('Critical Impact Reveal keeps authoritative order inside the v87 lifecycle bundle', () => {
+  const lifecycle = readRoot('lifecycle-runtime.js');
+  const serviceWorker = readRoot('service-worker.js');
 
-  const singlePass = index.indexOf('single-pass-result-v76.js?v=76');
-  const impact = index.indexOf('critical-impact-reveal-v82.js?v=82');
-  const share = index.indexOf('share-cover-v77.js?v=77');
+  const singlePass = lifecycle.indexOf('/* === single-pass-result-v76.js === */');
+  const impact = lifecycle.indexOf('/* === critical-impact-reveal-v82.js === */');
+  const share = lifecycle.indexOf('/* === share-cover-v77.js === */');
 
   assert.ok(singlePass > -1);
   assert.ok(impact > singlePass);
   assert.ok(share > impact);
-  assert.match(index, /critical-impact-reveal-v82\.css\?v=82/);
-  assert.match(serviceWorker, /const CACHE_VERSION = 'v82'/);
-  assert.match(serviceWorker, /\.\/critical-impact-reveal-v82\.js\?v=82/);
-  assert.match(serviceWorker, /\.\/critical-impact-reveal-v82\.css\?v=82/);
+  assert.match(readRoot('screens.css'), /impact-negative-flash-v82/);
+  assert.match(serviceWorker, /const CACHE_VERSION = 'v87'/);
+  assert.match(serviceWorker, /\.\/lifecycle-runtime\.js\?v=87/);
 });
