@@ -67,4 +67,13 @@
   };
 
   window.SmazkaJunkieHudTheme = deepFreeze(theme);
+
+  const photoRuntimeUrl = 'junkie-vision-photo-v81.js?v=81';
+  if (!document.querySelector(`script[src="${photoRuntimeUrl}"]`)) {
+    const script = document.createElement('script');
+    script.src = photoRuntimeUrl;
+    script.async = false;
+    script.dataset.junkieVisionPhoto = 'v81';
+    document.head.appendChild(script);
+  }
 })();
