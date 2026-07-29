@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'v82';
+const CACHE_VERSION = 'v84';
 const CACHE_NAME = `jsem-smazka-${CACHE_VERSION}`;
 const FACE_MODEL_CACHE = 'jsem-smazka-face-model-v1';
 
@@ -19,7 +19,8 @@ const STYLE_ASSETS = [
   './result-mobile-v71.css?v=71',
   './junkie-vision-hud-v81.css?v=81',
   './junkie-vision-balance-v83.css?v=83',
-  './critical-impact-reveal-v82.css?v=82'
+  './critical-impact-reveal-v82.css?v=82',
+  './analysis-completion-guard-v84.css?v=84'
 ];
 
 const SCRIPT_ASSETS = [
@@ -48,6 +49,7 @@ const SCRIPT_ASSETS = [
   './result-frame-geometry.js?v=73',
   './in-frame-result.js?v=73',
   './face-aware-crop-runtime.js?v=72',
+  './analysis-completion-guard-v84.js?v=84',
   './single-pass-result-v76.js?v=76',
   './critical-impact-reveal-v82.js?v=82',
   './scanner-focus.js?v=60',
