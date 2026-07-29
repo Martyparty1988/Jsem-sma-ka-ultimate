@@ -32,16 +32,22 @@ test('Junkie Vision v81 keeps theme copy separate from renderers', () => {
   assert.equal(theme.timing.totalMs, 3000);
   assert.equal(theme.performance.targetFps, 30);
   assert.equal(theme.performance.maxDevicePixelRatio, 1.5);
+  assert.equal(theme.performance.noiseSampleSize, 24);
+  assert.equal(theme.performance.noiseSampleIntervalMs, 180);
   assert.ok(theme.metrics.length >= 8);
   assert.ok(theme.metrics.some((item) => item.label.includes('POKLESU VÍČEK')));
   assert.ok(theme.metrics.some((item) => item.label.includes('PERNÍKOVÉHO INDEXU')));
-  assert.equal(appendedScripts.length, 1);
-  assert.equal(appendedScripts[0].src, 'junkie-vision-photo-v81.js?v=81');
+  assert.equal(appendedScripts.length, 2);
+  assert.deepEqual(
+    appendedScripts.map((script) => script.src),
+    ['junkie-vision-photo-v81.js?v=81', 'junkie-vision-noise-v81.js?v=81']
+  );
 });
 
 test('Junkie Vision v81 uses dedicated canvases, real landmarks and throttled animation', () => {
   const runtime = read('junkie-vision-hud-v81.js');
   const photoRuntime = read('junkie-vision-photo-v81.js');
+  const noiseRuntime = read('junkie-vision-noise-v81.js');
   const css = read('junkie-vision-hud-v81.css');
 
   assert.match(runtime, /canvas\.dataset\.hudCanvas = 'v81'/);
@@ -63,6 +69,13 @@ test('Junkie Vision v81 uses dedicated canvases, real landmarks and throttled an
   assert.match(photoRuntime, /preview\.naturalWidth/);
   assert.match(photoRuntime, /window\.FACEMESH_TESSELATION/);
   assert.match(photoRuntime, /requestAnimationFrame\(drawFrame\)/);
+
+  assert.match(noiseRuntime, /const SAMPLE_SIZE = 24/);
+  assert.match(noiseRuntime, /const SAMPLE_INTERVAL_MS = 180/);
+  assert.match(noiseRuntime, /drawImage\(source, 0, 0, SAMPLE_SIZE, SAMPLE_SIZE\)/);
+  assert.match(noiseRuntime, /getImageData\(0, 0, SAMPLE_SIZE, SAMPLE_SIZE\)/);
+  assert.match(noiseRuntime, /--jvh-frame-noise/);
+  assert.match(noiseRuntime, /data-frame-noise/);
 
   assert.match(css, /repeating-linear-gradient/);
   assert.match(css, /junkie-crt-init-v81/);
@@ -94,6 +107,7 @@ test('Junkie Vision loads between MediaPipe and the result pipeline and is cache
     './face-landmark-bridge-v81.js?v=81',
     './hud-junkie-themes.js?v=81',
     './junkie-vision-hud-v81.js?v=81',
-    './junkie-vision-photo-v81.js?v=81'
+    './junkie-vision-photo-v81.js?v=81',
+    './junkie-vision-noise-v81.js?v=81'
   ].forEach((asset) => assert.ok(serviceWorker.includes(asset), asset));
 });
