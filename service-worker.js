@@ -30,6 +30,7 @@ const SCRIPT_ASSETS = [
   './face-scan.js?v=64',
   './junkie-vision-hud-v81.js?v=81',
   './junkie-vision-photo-v81.js?v=81',
+  './junkie-vision-noise-v81.js?v=81',
   './devastation-metrics.js?v=64',
   './face-warp.js?v=64',
   './face-warp-geometry.js?v=63',
