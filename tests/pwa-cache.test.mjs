@@ -28,11 +28,11 @@ globalThis.__PWA_TEST__ = { CACHE_NAME, APP_SHELL };`;
   return context.__PWA_TEST__;
 }
 
-test('PWA v72 caches every current runtime, style and data dependency', () => {
+test('PWA v73 caches every current runtime, style and data dependency', () => {
   const { CACHE_NAME, APP_SHELL } = serviceWorkerContract();
   const assets = new Set(APP_SHELL);
 
-  assert.equal(CACHE_NAME, 'jsem-smazka-v72');
+  assert.equal(CACHE_NAME, 'jsem-smazka-v73');
   [
     './app.js?v=64',
     './face-aware-crop.js?v=72',
@@ -45,13 +45,15 @@ test('PWA v72 caches every current runtime, style and data dependency', () => {
     './verdict-matcher.js?v=64',
     './privacy-hardening.js?v=72',
     './share-cover.js?v=72',
-    './in-frame-result.js?v=71',
+    './result-frame-geometry.js?v=73',
+    './in-frame-result.js?v=73',
     './result-mobile-v71.css?v=71',
     './responses.json',
     './responses-hard.json?v=64',
     './responses-pernik.json?v=64'
   ].forEach((asset) => assert.equal(assets.has(asset), true, asset));
 
+  assert.equal(assets.has('./in-frame-result.js?v=71'), false);
   assert.equal(assets.has('./result-mobile-v70.css?v=70'), false);
   assert.equal(assets.has('./result-layout-fix-v69.js?v=69'), false);
 
@@ -61,7 +63,7 @@ test('PWA v72 caches every current runtime, style and data dependency', () => {
   });
 });
 
-test('HTML and dynamic module URLs agree with the v72 cache graph', () => {
+test('HTML and dynamic module URLs agree with the v73 cache graph', () => {
   const { APP_SHELL } = serviceWorkerContract();
   const assets = new Set(APP_SHELL);
   const index = read('index.html');
@@ -85,31 +87,39 @@ test('HTML and dynamic module URLs agree with the v72 cache graph', () => {
   dynamicAssets.forEach((asset) => assert.equal(assets.has(asset), true, asset));
 });
 
-test('mobile result v71 remains the single viewport layout authority', () => {
+test('mobile result v73 remains the single viewport runtime authority', () => {
   const css = read('result-mobile-v71.css');
   const runtime = read('in-frame-result.js');
+  const geometry = read('result-frame-geometry.js');
   const index = read('index.html');
 
   assert.match(css, /result-effect-meta[\s\S]*margin-top:\s*0\s*!important/);
   assert.match(css, /result-actions[\s\S]*margin-top:\s*0\s*!important/);
   assert.match(css, /result-visual[\s\S]*flex:\s*1 1 auto\s*!important/);
   assert.match(css, /transform:\s*none\s*!important/);
+  assert.match(runtime, /frameGeometry\.calculateResultFrame/);
   assert.match(runtime, /setImportant\(media, 'transform', 'none'\)/);
-  assert.match(runtime, /setImportant\(result, 'height', `\$\{Math\.round\(maxHeight\)\}px`\)/);
-  assert.match(runtime, /result\.dataset\.resultLayout = 'v71'/);
+  assert.match(runtime, /setImportant\(result, 'height', `\$\{Math\.round\(frame\.height\)\}px`\)/);
+  assert.match(runtime, /result\.dataset\.resultLayout = 'v73'/);
+  assert.match(geometry, /function calculateResultFrame/);
+  assert.doesNotMatch(index, /in-frame-result\.js\?v=71/);
   assert.doesNotMatch(index, /result-mobile-v70/);
   assert.doesNotMatch(index, /result-layout-fix-v69/);
 });
 
-test('face-aware crop is loaded before the renderer bridge and shared cover', () => {
+test('face-aware crop and viewport geometry load before their runtime bridges', () => {
   const index = read('index.html');
   const cropIndex = index.indexOf('face-aware-crop.js?v=72');
   const warpIndex = index.indexOf('face-warp.js?v=64');
-  const runtimeIndex = index.indexOf('face-aware-crop-runtime.js?v=72');
+  const cropRuntimeIndex = index.indexOf('face-aware-crop-runtime.js?v=72');
+  const frameGeometryIndex = index.indexOf('result-frame-geometry.js?v=73');
+  const resultRuntimeIndex = index.indexOf('in-frame-result.js?v=73');
   const shareIndex = index.indexOf('share-cover.js?v=72');
 
   assert.ok(cropIndex > -1);
   assert.ok(warpIndex > cropIndex);
-  assert.ok(runtimeIndex > warpIndex);
-  assert.ok(shareIndex > runtimeIndex);
+  assert.ok(cropRuntimeIndex > warpIndex);
+  assert.ok(frameGeometryIndex > cropRuntimeIndex);
+  assert.ok(resultRuntimeIndex > frameGeometryIndex);
+  assert.ok(shareIndex > resultRuntimeIndex);
 });
