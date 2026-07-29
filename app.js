@@ -1,6 +1,137 @@
 (() => {
   'use strict';
 
+  /*
+   * Incremental UI layers used to create their own MutationObserver. Keep their
+   * public observer contract, but multiplex every subscription through one
+   * native observer so a result render does not trigger dozens of independent
+   * DOM walks.
+   */
+  (() => {
+    const NativeMutationObserver = window.MutationObserver;
+    if (typeof NativeMutationObserver !== 'function' || window.SmazkaMutationObserver) return;
+
+    const logicalObservers = new Set();
+    let nativeObserver = null;
+
+    function containsTarget(root, target, subtree) {
+      return root === target || Boolean(subtree && root?.contains?.(target));
+    }
+
+    function acceptsRecord(options, record) {
+      if (record.type === 'attributes') {
+        return Boolean(
+          options.attributes
+          && (
+            !Array.isArray(options.attributeFilter)
+            || options.attributeFilter.includes(record.attributeName)
+          )
+        );
+      }
+      if (record.type === 'characterData') return Boolean(options.characterData);
+      return record.type === 'childList' && Boolean(options.childList);
+    }
+
+    function dispatchRecords(records) {
+      logicalObservers.forEach((observer) => {
+        if (!observer.targets.size) return;
+        const relevant = records.filter((record) => (
+          [...observer.targets].some(([target, options]) => (
+            containsTarget(target, record.target, options.subtree)
+            && acceptsRecord(options, record)
+          ))
+        ));
+        if (!relevant.length) return;
+        try {
+          observer.callback(relevant, observer);
+        } catch (error) {
+          window.setTimeout(() => { throw error; }, 0);
+        }
+      });
+    }
+
+    function mergeOptions(entries) {
+      const merged = {
+        attributes: false,
+        characterData: false,
+        childList: false,
+        subtree: false
+      };
+      const filters = new Set();
+      let observeAllAttributes = false;
+
+      entries.forEach((options) => {
+        merged.attributes ||= Boolean(options.attributes);
+        merged.characterData ||= Boolean(options.characterData);
+        merged.childList ||= Boolean(options.childList);
+        merged.subtree ||= Boolean(options.subtree);
+        merged.attributeOldValue ||= Boolean(options.attributeOldValue);
+        merged.characterDataOldValue ||= Boolean(options.characterDataOldValue);
+        if (options.attributes) {
+          if (Array.isArray(options.attributeFilter)) {
+            options.attributeFilter.forEach((name) => filters.add(name));
+          } else {
+            observeAllAttributes = true;
+          }
+        }
+      });
+
+      if (merged.attributes && !observeAllAttributes && filters.size) {
+        merged.attributeFilter = [...filters];
+      }
+      return merged;
+    }
+
+    function rebuildNativeObserver() {
+      nativeObserver?.disconnect();
+      const targetOptions = new Map();
+
+      logicalObservers.forEach((observer) => {
+        observer.targets.forEach((options, target) => {
+          const entries = targetOptions.get(target) || [];
+          entries.push(options);
+          targetOptions.set(target, entries);
+        });
+      });
+
+      if (!targetOptions.size) return;
+      if (!nativeObserver) nativeObserver = new NativeMutationObserver(dispatchRecords);
+      targetOptions.forEach((entries, target) => {
+        nativeObserver.observe(target, mergeOptions(entries));
+      });
+    }
+
+    class SharedMutationObserver {
+      constructor(callback) {
+        if (typeof callback !== 'function') {
+          throw new TypeError('MutationObserver callback musí být funkce.');
+        }
+        this.callback = callback;
+        this.targets = new Map();
+        logicalObservers.add(this);
+      }
+
+      observe(target, options = {}) {
+        if (!target) throw new TypeError('MutationObserver target chybí.');
+        logicalObservers.add(this);
+        this.targets.set(target, { ...options });
+        rebuildNativeObserver();
+      }
+
+      disconnect() {
+        this.targets.clear();
+        logicalObservers.delete(this);
+        rebuildNativeObserver();
+      }
+
+      takeRecords() {
+        return [];
+      }
+    }
+
+    window.SmazkaMutationObserver = SharedMutationObserver;
+  })();
+
   const $ = (id) => document.getElementById(id);
 
   const elements = {
@@ -95,6 +226,8 @@
     effectImageData: null,
     effectSeverity: 0,
     cameraStream: null,
+    cameraActivated: false,
+    cameraInitPromise: null,
     lastAnalysisResult: { title: '', description: '', severity: 0 },
     responseLibrary: [],
     isAnalyzing: false,
@@ -249,7 +382,9 @@
     }
   }
 
-  async function initCamera() {
+  async function performCameraInit({ source = 'user' } = {}) {
+    state.cameraActivated = true;
+    elements.cameraStage?.setAttribute('data-camera-source', source);
     if (!navigator.mediaDevices?.getUserMedia) {
       showError('Tenhle prohlížeč neumí otevřít kameru. Nahraj fotku ručně.', elements.cameraError);
       hide(elements.cameraIdle);
@@ -286,10 +421,13 @@
       elements.video.srcObject = stream;
       await elements.video.play().catch(() => undefined);
       elements.cameraStage?.classList.add('is-live');
+      const buttonText = elements.analyzeButton?.querySelector('.button-text');
+      if (buttonText) buttonText.textContent = 'Spustit sken';
       clearErrors();
       show(elements.uploadButton);
       await updateCameraSwitcher();
       setHint('Portál běží. Ksicht doprostřed a spusť rozsudek.');
+      return stream;
     } catch (error) {
       if (requestId !== state.cameraRequestId) return;
       console.error('Kamera nejde spustit:', error);
@@ -299,6 +437,20 @@
       hide(elements.scanHint);
       show(elements.uploadButton);
     }
+  }
+
+  function initCamera(options = {}) {
+    const force = Boolean(options.force);
+    if (!force && state.cameraStream) return Promise.resolve(state.cameraStream);
+    if (!force && state.cameraInitPromise) return state.cameraInitPromise;
+
+    const operation = performCameraInit(options);
+    state.cameraInitPromise = operation;
+    const clearOperation = () => {
+      if (state.cameraInitPromise === operation) state.cameraInitPromise = null;
+    };
+    operation.then(clearOperation, clearOperation);
+    return operation;
   }
 
   function stopCamera({ invalidateRequest = true } = {}) {
@@ -892,7 +1044,10 @@
     hide(elements.retakeButton);
     show(elements.analyzeButton);
     clearErrors();
-    await initCamera();
+    await Promise.all([
+      initCamera({ source: 'new-scan' }),
+      window.SmazkaFaceScan?.ensureReady?.()?.catch?.(() => undefined)
+    ]);
     elements.analyzeButton.focus({ preventScroll: true });
   }
 
@@ -904,10 +1059,19 @@
     clearCurrentImage();
     hideResult();
     show(elements.analyzeButton);
-    await initCamera();
+    await initCamera({ source: 'switch-camera', force: true });
   });
 
-  elements.analyzeButton.addEventListener('click', () => {
+  elements.analyzeButton.addEventListener('click', async () => {
+    if (!state.currentImageData && !state.cameraStream) {
+      clearErrors();
+      setHint('Probouzím lokální FACE engine. Kamera se otevře jen pro tenhle sken…');
+      await Promise.all([
+        initCamera({ source: 'portal-tap' }),
+        window.SmazkaFaceScan?.ensureReady?.()?.catch?.(() => undefined)
+      ]);
+      return;
+    }
     if (window.SmazkaFaceScan?.start) {
       window.SmazkaFaceScan.start();
       return;
@@ -952,8 +1116,13 @@
       return;
     }
 
-    if (!document.hidden && !state.currentImageData && !state.cameraStream) {
-      initCamera();
+    if (
+      !document.hidden
+      && state.cameraActivated
+      && !state.currentImageData
+      && !state.cameraStream
+    ) {
+      initCamera({ source: 'visibility-resume' });
     }
   });
 
@@ -990,5 +1159,4 @@
   }
 
   loadResponses();
-  initCamera();
 })();

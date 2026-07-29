@@ -318,7 +318,7 @@
     snapshot = next;
     sync();
   });
-  const observer = new MutationObserver(sync);
+  const observer = new (window.SmazkaMutationObserver || window.MutationObserver)(sync);
   observer.observe(appRoot, { attributes: true, attributeFilter: ['aria-busy'] });
   observer.observe(previewContainer, { attributes: true, attributeFilter: ['class'] });
   observer.observe(result, { attributes: true, attributeFilter: ['class', 'open'] });

@@ -1,12 +1,9 @@
 import assert from 'node:assert/strict';
-import fs from 'node:fs';
 import test from 'node:test';
-
-const root = new URL('../', import.meta.url);
-const read = (path) => fs.readFileSync(new URL(path, root), 'utf8');
+import { readBundleSection, readRoot } from './bundle-source.mjs';
 
 test('v85 rescue runtime is valid and stays hidden during the normal scan window', () => {
-  const runtime = read('analysis-rescue-v85.js');
+  const runtime = readBundleSection('analysis-rescue-v85.js');
 
   assert.doesNotThrow(() => new Function(runtime));
   assert.match(runtime, /const SHOW_AFTER_MS = 4300/);
@@ -18,7 +15,7 @@ test('v85 rescue runtime is valid and stays hidden during the normal scan window
 });
 
 test('v85 delegates recovery to the v84 authority without selecting another verdict', () => {
-  const runtime = read('analysis-rescue-v85.js');
+  const runtime = readBundleSection('analysis-rescue-v85.js');
 
   assert.match(runtime, /window\.SmazkaAnalysisCompletionGuard/);
   assert.match(runtime, /typeof guard\?\.recoverNow !== 'function'/);
@@ -28,10 +25,10 @@ test('v85 delegates recovery to the v84 authority without selecting another verd
 });
 
 test('v85 rescue presentation is restrained, accessible and cached after the completion guard', () => {
-  const runtime = read('analysis-rescue-v85.js');
-  const css = read('analysis-rescue-v85.css');
-  const index = read('index.html');
-  const serviceWorker = read('service-worker.js');
+  const runtime = readBundleSection('analysis-rescue-v85.js');
+  const css = readRoot('screens.css');
+  const lifecycle = readRoot('lifecycle-runtime.js');
+  const serviceWorker = readRoot('service-worker.js');
 
   assert.match(runtime, /role', 'group'/);
   assert.match(runtime, /Nouzové dokončení pomalé analýzy/);
@@ -40,15 +37,13 @@ test('v85 rescue presentation is restrained, accessible and cached after the com
   assert.match(css, /grid-template-columns: minmax\(0, 1fr\) auto/);
   assert.match(css, /prefers-reduced-motion/);
 
-  const guardIndex = index.indexOf('analysis-completion-guard-v84.js?v=84');
-  const rescueIndex = index.indexOf('analysis-rescue-v85.js?v=85');
-  const singlePassIndex = index.indexOf('single-pass-result-v76.js?v=76');
+  const guardIndex = lifecycle.indexOf('/* === analysis-completion-guard-v84.js === */');
+  const rescueIndex = lifecycle.indexOf('/* === analysis-rescue-v85.js === */');
+  const singlePassIndex = lifecycle.indexOf('/* === single-pass-result-v76.js === */');
   assert.ok(guardIndex > -1);
   assert.ok(rescueIndex > guardIndex);
   assert.ok(singlePassIndex > rescueIndex);
 
-  assert.match(index, /analysis-rescue-v85\.css\?v=85/);
-  assert.match(serviceWorker, /const CACHE_VERSION = 'v85'/);
-  assert.match(serviceWorker, /\.\/analysis-rescue-v85\.js\?v=85/);
-  assert.match(serviceWorker, /\.\/analysis-rescue-v85\.css\?v=85/);
+  assert.match(serviceWorker, /const CACHE_VERSION = 'v86'/);
+  assert.match(serviceWorker, /\.\/lifecycle-runtime\.js\?v=86/);
 });
