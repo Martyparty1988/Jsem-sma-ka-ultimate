@@ -1,5 +1,6 @@
-const CACHE_VERSION = 'v77';
+const CACHE_VERSION = 'v78';
 const CACHE_NAME = `jsem-smazka-${CACHE_VERSION}`;
+const FACE_MODEL_CACHE = 'jsem-smazka-face-model-v1';
 
 const CORE_ASSETS = [
   './',
@@ -68,14 +69,25 @@ const APP_SHELL = [
   ...CORE_ASSETS,
   ...STYLE_ASSETS,
   ...SCRIPT_ASSETS,
-  ...DATA_ASSETS,
-  ...FACE_MODEL_ASSETS
+  ...DATA_ASSETS
 ];
 
+async function ensureFaceModelCache() {
+  const cache = await caches.open(FACE_MODEL_CACHE);
+  await Promise.all(FACE_MODEL_ASSETS.map(async (asset) => {
+    const request = new Request(asset, { cache: 'reload' });
+    if (await cache.match(request)) return;
+    const response = await fetch(request);
+    if (!response.ok) throw new Error(`MediaPipe asset ${asset} selhal: HTTP ${response.status}`);
+    await cache.put(request, response);
+  }));
+}
+
 self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(APP_SHELL))
-  );
+  event.waitUntil(Promise.all([
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(APP_SHELL)),
+    ensureFaceModelCache()
+  ]));
   // Do not activate automatically. The visible update button decides when the
   // new worker takes control, which avoids the iOS race where `waiting`
   // disappears before the tap handler runs.
@@ -85,7 +97,9 @@ self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys()
       .then((keys) => Promise.all(
-        keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key))
+        keys
+          .filter((key) => key !== CACHE_NAME && key !== FACE_MODEL_CACHE)
+          .map((key) => caches.delete(key))
       ))
       .then(() => self.clients.claim())
   );
@@ -103,7 +117,7 @@ self.addEventListener('fetch', (event) => {
   const requestUrl = new URL(event.request.url);
   if (requestUrl.origin !== self.location.origin) return;
 
-  // Navigation: network-first, fallback to cache
+  // Navigation: network-first, fallback to cache.
   if (event.request.mode === 'navigate') {
     event.respondWith(
       fetch(event.request)
@@ -117,29 +131,28 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // MediaPipe WASM/binary: cache-first (immutable heavy assets)
+  // Heavy MediaPipe binaries live in a stable cache that survives app updates.
   if (requestUrl.pathname.includes('/vendor/mediapipe-face-mesh/')) {
     event.respondWith(
-      caches.match(event.request).then((cachedResponse) => {
-        return cachedResponse || fetch(event.request).then((networkResponse) => {
-          const responseClone = networkResponse.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, responseClone));
-          return networkResponse;
-        });
+      caches.open(FACE_MODEL_CACHE).then(async (cache) => {
+        const cachedResponse = await cache.match(event.request);
+        if (cachedResponse) return cachedResponse;
+
+        const networkResponse = await fetch(event.request);
+        if (networkResponse.ok) await cache.put(event.request, networkResponse.clone());
+        return networkResponse;
       })
     );
     return;
   }
 
-  // Everything else: stale-while-revalidate
+  // Everything else: stale-while-revalidate in the versioned app cache.
   event.respondWith(
-    caches.match(event.request).then((cachedResponse) => {
+    caches.open(CACHE_NAME).then(async (cache) => {
+      const cachedResponse = await cache.match(event.request);
       const networkPromise = fetch(event.request)
-        .then((networkResponse) => {
-          if (networkResponse.ok) {
-            const responseClone = networkResponse.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, responseClone));
-          }
+        .then(async (networkResponse) => {
+          if (networkResponse.ok) await cache.put(event.request, networkResponse.clone());
           return networkResponse;
         })
         .catch(() => null);
