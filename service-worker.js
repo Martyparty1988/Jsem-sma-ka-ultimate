@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'v73';
+const CACHE_VERSION = 'v74';
 const CACHE_NAME = `jsem-smazka-${CACHE_VERSION}`;
 
 const CORE_ASSETS = [
@@ -25,7 +25,6 @@ const SCRIPT_ASSETS = [
   './face-scan.js?v=64',
   './devastation-metrics.js?v=64',
   './face-warp.js?v=64',
-  './face-aware-crop-runtime.js?v=72',
   './face-warp-geometry.js?v=63',
   './hard-responses.js?v=64',
   './junky-verdict-engine.js?v=64',
@@ -38,6 +37,7 @@ const SCRIPT_ASSETS = [
   './ios-one-screen.js?v=60',
   './result-frame-geometry.js?v=73',
   './in-frame-result.js?v=73',
+  './face-aware-crop-runtime.js?v=72',
   './scanner-focus.js?v=60',
   './face-guidance.js?v=60',
   './share-cover.js?v=72',
