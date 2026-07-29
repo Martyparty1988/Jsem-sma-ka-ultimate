@@ -28,11 +28,11 @@ globalThis.__PWA_TEST__ = { CACHE_NAME, APP_SHELL };`;
   return context.__PWA_TEST__;
 }
 
-test('PWA v73 caches every current runtime, style and data dependency', () => {
+test('PWA v74 caches every current runtime, style and data dependency', () => {
   const { CACHE_NAME, APP_SHELL } = serviceWorkerContract();
   const assets = new Set(APP_SHELL);
 
-  assert.equal(CACHE_NAME, 'jsem-smazka-v73');
+  assert.equal(CACHE_NAME, 'jsem-smazka-v74');
   [
     './app.js?v=64',
     './face-aware-crop.js?v=72',
@@ -63,7 +63,7 @@ test('PWA v73 caches every current runtime, style and data dependency', () => {
   });
 });
 
-test('HTML and dynamic module URLs agree with the v73 cache graph', () => {
+test('HTML and dynamic module URLs agree with the v74 cache graph', () => {
   const { APP_SHELL } = serviceWorkerContract();
   const assets = new Set(APP_SHELL);
   const index = read('index.html');
@@ -107,19 +107,24 @@ test('mobile result v73 remains the single viewport runtime authority', () => {
   assert.doesNotMatch(index, /result-layout-fix-v69/);
 });
 
-test('face-aware crop and viewport geometry load before their runtime bridges', () => {
+test('crop runtime loads after viewport runtime and owns final image focus', () => {
+  const { APP_SHELL } = serviceWorkerContract();
   const index = read('index.html');
   const cropIndex = index.indexOf('face-aware-crop.js?v=72');
   const warpIndex = index.indexOf('face-warp.js?v=64');
-  const cropRuntimeIndex = index.indexOf('face-aware-crop-runtime.js?v=72');
   const frameGeometryIndex = index.indexOf('result-frame-geometry.js?v=73');
   const resultRuntimeIndex = index.indexOf('in-frame-result.js?v=73');
+  const cropRuntimeIndex = index.indexOf('face-aware-crop-runtime.js?v=72');
   const shareIndex = index.indexOf('share-cover.js?v=72');
 
   assert.ok(cropIndex > -1);
   assert.ok(warpIndex > cropIndex);
-  assert.ok(cropRuntimeIndex > warpIndex);
-  assert.ok(frameGeometryIndex > cropRuntimeIndex);
+  assert.ok(frameGeometryIndex > warpIndex);
   assert.ok(resultRuntimeIndex > frameGeometryIndex);
-  assert.ok(shareIndex > resultRuntimeIndex);
+  assert.ok(cropRuntimeIndex > resultRuntimeIndex);
+  assert.ok(shareIndex > cropRuntimeIndex);
+
+  const shellCropRuntimeIndex = APP_SHELL.indexOf('./face-aware-crop-runtime.js?v=72');
+  const shellResultRuntimeIndex = APP_SHELL.indexOf('./in-frame-result.js?v=73');
+  assert.ok(shellCropRuntimeIndex > shellResultRuntimeIndex);
 });
