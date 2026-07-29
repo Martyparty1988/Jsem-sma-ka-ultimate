@@ -1127,7 +1127,7 @@
     engineBusy = true;
     app.setBusy(true);
     elements.loading?.classList.remove('hidden');
-    app.setHint('Pitevní algoritmus počítá tiky a zbytky lidskosti…');
+    app.setHint('Toxikologický algoritmus počítá tiky a zbytky lidskosti…');
     try {
       await loadPack();
       await waitForStableLibrary(900);
@@ -1279,7 +1279,7 @@
   function polishMicrocopy() {
     microcopyQueued = false;
     replaceExact(elements.scanHint, {
-      'VOID engine pitvá obraz a hledá zbytky člověka…': 'Pitevní algoritmus počítá tiky a zbytky lidskosti…',
+      'VOID engine pitvá obraz a hledá zbytky člověka…': 'Toxikologický algoritmus počítá tiky a zbytky lidskosti…',
       'Podsvětí tiskne rozsudek přímo do ksichtu…': 'Perníkovej tribunál tiskne rozsudek přímo do ksichtu…',
       'Rozsudek je venku. Sdílej ostudu, nebo přiveď další subjekt.': 'Rozsudek venku. Sdílej důkazní materiál, nebo přiveď další trosku.'
     });
@@ -1298,11 +1298,11 @@
     }[state.visualDamageTier]);
 
     const details = elements.result.querySelector('.in-frame-details-label');
-    if (details) setText(details, elements.result.classList.contains('details-open') ? 'Skrýt pitevní zprávu' : 'Otevřít pitevní zprávu');
+    if (details) setText(details, elements.result.classList.contains('details-open') ? 'Skrýt toxikologický protokol' : 'Otevřít toxikologický protokol');
     const heading = elements.result.querySelector('.diagnostic-heading');
     if (heading) {
-      setText(heading.querySelector('strong'), 'PITEVNÍ AI ROZBOR');
-      setText(heading.querySelector('small'), '100% nevědecký · 0% diagnóza');
+      setText(heading.querySelector('strong'), 'TOXIKOLOGICKÝ PROTOKOL');
+      setText(heading.querySelector('small'), 'VOID LAB · 100% nevědecký');
     }
     const labels = {
       'Stabilita zorniček': 'Zorničky pod dohledem',
@@ -1315,7 +1315,7 @@
     };
     elements.result.querySelectorAll('.diagnostic-copy span').forEach((label) => replaceExact(label, labels));
     elements.result.querySelectorAll('.result-tool-button span').forEach((label) => replaceExact(label, {
-      'Jiná deformace': 'Další porucha',
+      'Jiná deformace': 'Jiný efekt',
       'Ještě víc mě znič': 'Dorazit zbytky'
     }));
     if (!elements.result.classList.contains('hidden')) {
@@ -1622,13 +1622,12 @@
     clearTimeout(diagnosisTimer);
     diagnosisTimer = window.setTimeout(() => {
       if (token !== resultRun || elements.result.classList.contains('hidden')) return;
-      const content = elements.result.querySelector('.result-content');
-      const actions = elements.result.querySelector('.result-actions');
-      if (!content || content.querySelector('.secondary-diagnosis')) return;
+      const panel = elements.result.querySelector('.diagnostic-panel');
+      if (!panel || panel.querySelector('.secondary-diagnosis')) return;
       const box = document.createElement('aside');
       box.className = 'secondary-diagnosis';
       box.innerHTML = `<strong>⚠️ DODATEČNÝ NÁLEZ</strong><p>${secondaryDiagnoses[randomIndex(secondaryDiagnoses.length)]}</p>`;
-      content.insertBefore(box, actions || null);
+      panel.appendChild(box);
     }, reducedMotion() ? 250 : 1750);
   }
 
@@ -1913,24 +1912,25 @@
   async function rerollDeformation(button) {
     if (!state.currentImageData) return app.showError('Fotka už není dostupná. Spusť nový sken.');
 
-    const previousText = button.textContent;
+    const previousMarkup = button.innerHTML;
     const previousKey = state.effectProfile?.key || '';
     const previousSeed = state.effectSeed;
     button.disabled = true;
-    button.textContent = 'Přepočítávám…';
+    const label = button.querySelector('span');
+    if (label) label.textContent = 'Přepočítávám…';
     playReroll();
     vibrate([14, 28, 14]);
 
     try {
       await refreshWarp(previousKey, previousSeed);
-      button.textContent = 'Jiná deformace ✓';
+      if (label) label.textContent = 'Jiný efekt ✓';
     } catch (error) {
       console.warn('Přegenerování deformace selhalo:', error);
-      app.showError('Jiná deformace se teď nepovedla. Zkus to znovu.');
+      app.showError('Jiný efekt se teď nepovedl. Zkus to znovu.');
     } finally {
       window.setTimeout(() => {
         button.disabled = false;
-        button.textContent = previousText;
+        button.innerHTML = previousMarkup;
       }, 650);
     }
   }
@@ -1938,18 +1938,22 @@
   function buildDiagnostics(diagnostics) {
     const section = document.createElement('section');
     section.className = 'diagnostic-panel';
-    section.setAttribute('aria-label', 'Falešný detailní AI rozbor');
+    section.setAttribute('aria-label', 'Satirický toxikologický protokol');
 
     const heading = document.createElement('div');
     heading.className = 'diagnostic-heading';
-    heading.innerHTML = '<span class="diagnostic-pulse" aria-hidden="true"></span><div><strong>AI ROZBOR</strong><small>100% nevědecký</small></div>';
+    heading.innerHTML = '<span class="diagnostic-pulse" aria-hidden="true"></span><div><strong>TOXIKOLOGICKÝ PROTOKOL</strong><small>VOID LAB · 100% nevědecký</small></div>';
 
     const list = document.createElement('div');
     list.className = 'diagnostic-list';
 
     diagnostics.forEach((item, index) => {
       const row = document.createElement('div');
-      row.className = `diagnostic-row${item.danger ? ' is-danger' : ''}`;
+      const score = clamp(item.score, 2, 100);
+      const tier = score >= 82 ? 'critical' : score >= 65 ? 'high' : score >= 35 ? 'medium' : 'low';
+      row.className = `diagnostic-row is-${tier}${item.danger ? ' is-danger' : ''}`;
+      row.dataset.score = String(score);
+      if (String(item.value).length > 17) row.classList.add('is-long-value');
       row.style.setProperty('--diagnostic-delay', `${index * 75}ms`);
 
       const copy = document.createElement('div');
@@ -1964,7 +1968,7 @@
       meter.className = 'diagnostic-meter';
       meter.setAttribute('aria-hidden', 'true');
       const fill = document.createElement('i');
-      fill.style.setProperty('--diagnostic-score', `${clamp(item.score, 2, 100)}%`);
+      fill.style.setProperty('--diagnostic-score', `${score}%`);
       meter.appendChild(fill);
 
       row.append(copy, meter);
@@ -1975,29 +1979,54 @@
     return section;
   }
 
+  function buildEffectRerollButton() {
+    const reroll = document.createElement('button');
+    reroll.type = 'button';
+    reroll.className = 'effect-reroll-button';
+    reroll.innerHTML = '<svg class="ui-icon" aria-hidden="true"><use href="#icon-switch"></use></svg><span>Jiný efekt</span>';
+    reroll.addEventListener('click', () => rerollDeformation(reroll));
+    return reroll;
+  }
+
   function buildToolButtons() {
     const grid = document.createElement('div');
     grid.className = 'result-tool-grid';
 
-    const reroll = document.createElement('button');
-    reroll.type = 'button';
-    reroll.className = 'result-tool-button result-tool-primary';
-    reroll.innerHTML = '<svg class="ui-icon" aria-hidden="true"><use href="#icon-switch"></use></svg><span>Jiná deformace</span>';
-    reroll.addEventListener('click', () => rerollDeformation(reroll));
+    const saveGroup = document.createElement('div');
+    saveGroup.className = 'save-choice';
+
+    const toggle = document.createElement('button');
+    toggle.type = 'button';
+    toggle.className = 'result-tool-button result-save-toggle';
+    toggle.setAttribute('aria-expanded', 'false');
+    toggle.innerHTML = '<svg class="ui-icon" aria-hidden="true"><use href="#icon-download"></use></svg><span>Uložit…</span><i aria-hidden="true">⌄</i>';
+
+    const menu = document.createElement('div');
+    menu.className = 'save-choice-menu';
+    menu.hidden = true;
 
     const saveOriginalButton = document.createElement('button');
     saveOriginalButton.type = 'button';
-    saveOriginalButton.className = 'result-tool-button';
+    saveOriginalButton.className = 'result-tool-button save-choice-button';
     saveOriginalButton.innerHTML = '<svg class="ui-icon" aria-hidden="true"><use href="#icon-photo"></use></svg><span>Uložit originál</span>';
     saveOriginalButton.addEventListener('click', () => saveOriginal(saveOriginalButton));
 
     const saveWarpButton = document.createElement('button');
     saveWarpButton.type = 'button';
-    saveWarpButton.className = 'result-tool-button';
+    saveWarpButton.className = 'result-tool-button save-choice-button';
     saveWarpButton.innerHTML = '<svg class="ui-icon" aria-hidden="true"><use href="#icon-download"></use></svg><span>Uložit deformaci</span>';
     saveWarpButton.addEventListener('click', () => saveDeformed(saveWarpButton));
 
-    grid.append(reroll, saveOriginalButton, saveWarpButton);
+    toggle.addEventListener('click', () => {
+      const open = menu.hidden;
+      menu.hidden = !open;
+      toggle.setAttribute('aria-expanded', String(open));
+      saveGroup.classList.toggle('is-open', open);
+    });
+
+    menu.append(saveOriginalButton, saveWarpButton);
+    saveGroup.append(toggle, menu);
+    grid.append(saveGroup);
     return grid;
   }
 
@@ -2018,7 +2047,9 @@
 
     content.querySelector('.diagnostic-panel')?.remove();
     content.querySelector('.result-tool-grid')?.remove();
+    content.querySelector('.effect-reroll-button')?.remove();
     description.insertAdjacentElement('afterend', buildDiagnostics(diagnostics));
+    description.insertAdjacentElement('beforebegin', buildEffectRerollButton());
     actions.insertAdjacentElement('beforebegin', buildToolButtons());
 
     if (token !== lastResultToken) {
