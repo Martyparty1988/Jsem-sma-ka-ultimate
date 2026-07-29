@@ -22,7 +22,6 @@ const STYLE_ASSETS = [
 const SCRIPT_ASSETS = [
   './app.js?v=64',
   './face-aware-crop.js?v=72',
-  './vendor/mediapipe-face-mesh/face_mesh.js?v=0.4.1633559619',
   './face-scan.js?v=64',
   './devastation-metrics.js?v=64',
   './face-warp.js?v=64',
@@ -55,6 +54,7 @@ const DATA_ASSETS = [
 ];
 
 const FACE_MODEL_ASSETS = [
+  './vendor/mediapipe-face-mesh/face_mesh.js?v=0.4.1633559619',
   './vendor/mediapipe-face-mesh/face_mesh.binarypb',
   './vendor/mediapipe-face-mesh/face_mesh_solution_packed_assets_loader.js',
   './vendor/mediapipe-face-mesh/face_mesh_solution_packed_assets.data',
