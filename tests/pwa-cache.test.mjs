@@ -25,15 +25,16 @@ globalThis.__PWA_TEST__ = { CACHE_NAME, FACE_MODEL_CACHE, APP_SHELL };`;
   return context.__PWA_TEST__;
 }
 
-test('PWA v87 precaches one compact production shell with no retired entries', () => {
+test('PWA v88 precaches one compact production shell with no retired entries', () => {
   const { CACHE_NAME, APP_SHELL } = serviceWorkerContract();
   const assets = new Set(APP_SHELL);
 
-  assert.equal(CACHE_NAME, 'jsem-smazka-v87');
+  assert.equal(CACHE_NAME, 'jsem-smazka-v88');
   [
     './foundation.css?v=87',
     './components.css?v=87',
     './screens.css?v=87',
+    './result-layout.css?v=88',
     './app.js?v=87',
     './scanner-runtime.js?v=87',
     './result-runtime.js?v=87',
@@ -71,7 +72,7 @@ test('MediaPipe uses a stable request-driven cache and never install-precaches W
   assert.match(serviceWorker, /key !== CACHE_NAME && key !== FACE_MODEL_CACHE/);
 });
 
-test('HTML entries, bundle sections and dynamic files agree with the v87 cache graph', () => {
+test('HTML entries, bundle sections and dynamic files agree with the v88 cache graph', () => {
   const { APP_SHELL } = serviceWorkerContract();
   const appAssets = new Set(APP_SHELL);
   const index = readRoot('index.html');
@@ -103,9 +104,29 @@ test('HTML entries, bundle sections and dynamic files agree with the v87 cache g
   });
 });
 
+test('result layout authority loads last and locks mobile geometry', () => {
+  const index = readRoot('index.html');
+  const css = readRoot('result-layout.css');
+
+  assert.ok(index.indexOf('result-layout.css?v=88') > index.indexOf('screens.css?v=87'));
+  assert.match(css, /\.result-close\s*\{/);
+  assert.match(css, /width:\s*44px\s*!important/);
+  assert.match(css, /min-width:\s*44px\s*!important/);
+  assert.match(css, /height:\s*44px\s*!important/);
+  assert.match(css, /min-height:\s*44px\s*!important/);
+  assert.match(css, /@media \(max-width: 640px\)/);
+  assert.match(css, /right:\s*max\(8px, env\(safe-area-inset-right\)\)\s*!important/);
+  assert.match(css, /left:\s*max\(8px, env\(safe-area-inset-left\)\)\s*!important/);
+  assert.match(css, /width:\s*auto\s*!important/);
+  assert.match(css, /\.result:not\(\.hidden\) \.diagnostic-panel/);
+  assert.match(css, /width:\s*100%\s*!important/);
+  assert.match(css, /grid-template-columns:\s*auto minmax\(0, 1fr\)/);
+});
+
 test('result, crop, recovery, single-pass, impact and share keep authoritative order', () => {
   const index = readRoot('index.html');
   const lifecycle = readRoot('lifecycle-runtime.js');
+  const stylesheetOrder = ['foundation.css?v=87', 'components.css?v=87', 'screens.css?v=87', 'result-layout.css?v=88'];
   const indexOrder = ['app.js?v=87', 'scanner-runtime.js?v=87', 'result-runtime.js?v=87', 'lifecycle-runtime.js?v=87'];
   const lifecycleOrder = [
     'result-frame-geometry.js',
@@ -120,6 +141,13 @@ test('result, crop, recovery, single-pass, impact and share keep authoritative o
   ];
 
   let previousIndex = -1;
+  stylesheetOrder.forEach((asset) => {
+    const current = index.indexOf(asset);
+    assert.ok(current > previousIndex, asset);
+    previousIndex = current;
+  });
+
+  previousIndex = -1;
   indexOrder.forEach((asset) => {
     const current = index.indexOf(asset);
     assert.ok(current > previousIndex, asset);
