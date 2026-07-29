@@ -11,7 +11,7 @@ function read(file) {
 
 function serviceWorkerContract() {
   const source = `${read('service-worker.js')}
-globalThis.__PWA_TEST__ = { CACHE_NAME, APP_SHELL };`;
+globalThis.__PWA_TEST__ = { CACHE_NAME, FACE_MODEL_CACHE, APP_SHELL, FACE_MODEL_ASSETS };`;
   const context = {
     URL,
     Response,
@@ -28,11 +28,11 @@ globalThis.__PWA_TEST__ = { CACHE_NAME, APP_SHELL };`;
   return context.__PWA_TEST__;
 }
 
-test('PWA v77 caches every current runtime, style and data dependency', () => {
+test('PWA v78 caches every current runtime, style and data dependency', () => {
   const { CACHE_NAME, APP_SHELL } = serviceWorkerContract();
   const assets = new Set(APP_SHELL);
 
-  assert.equal(CACHE_NAME, 'jsem-smazka-v77');
+  assert.equal(CACHE_NAME, 'jsem-smazka-v78');
   [
     './app.js?v=64',
     './face-aware-crop.js?v=72',
@@ -67,18 +67,40 @@ test('PWA v77 caches every current runtime, style and data dependency', () => {
   });
 });
 
-test('HTML and dynamic module URLs agree with the v77 cache graph', () => {
-  const { APP_SHELL } = serviceWorkerContract();
-  const assets = new Set(APP_SHELL);
+test('MediaPipe model files use one stable cache instead of every app cache version', () => {
+  const { FACE_MODEL_CACHE, APP_SHELL, FACE_MODEL_ASSETS } = serviceWorkerContract();
+  const appAssets = new Set(APP_SHELL);
+  const serviceWorker = read('service-worker.js');
+
+  assert.equal(FACE_MODEL_CACHE, 'jsem-smazka-face-model-v1');
+  assert.ok(FACE_MODEL_ASSETS.length >= 9);
+  assert.ok(FACE_MODEL_ASSETS.includes('./vendor/mediapipe-face-mesh/face_mesh.js?v=0.4.1633559619'));
+
+  FACE_MODEL_ASSETS.forEach((asset) => {
+    assert.equal(appAssets.has(asset), false, `${asset} must not be tied to v78`);
+    const pathname = asset.replace(/^\.\//, '').split('?')[0];
+    assert.equal(fs.existsSync(new URL(pathname, root)), true, asset);
+  });
+
+  assert.match(serviceWorker, /async function ensureFaceModelCache\(\)/);
+  assert.match(serviceWorker, /caches\.open\(FACE_MODEL_CACHE\)/);
+  assert.match(serviceWorker, /key !== CACHE_NAME && key !== FACE_MODEL_CACHE/);
+  assert.doesNotMatch(serviceWorker, /const APP_SHELL = \[[\s\S]*\.\.\.FACE_MODEL_ASSETS/);
+});
+
+test('HTML and dynamic module URLs agree with the v78 cache graph', () => {
+  const { APP_SHELL, FACE_MODEL_ASSETS } = serviceWorkerContract();
+  const appAssets = new Set(APP_SHELL);
+  const allCachedAssets = new Set([...APP_SHELL, ...FACE_MODEL_ASSETS]);
   const index = read('index.html');
 
   const indexScripts = [...index.matchAll(/<script defer src="([^"]+)"/g)]
     .map((match) => `./${match[1]}`);
-  indexScripts.forEach((asset) => assert.equal(assets.has(asset), true, asset));
+  indexScripts.forEach((asset) => assert.equal(allCachedAssets.has(asset), true, asset));
 
   const indexStyles = [...index.matchAll(/<link rel="stylesheet" href="([^"]+)"/g)]
     .map((match) => `./${match[1]}`);
-  indexStyles.forEach((asset) => assert.equal(assets.has(asset), true, asset));
+  indexStyles.forEach((asset) => assert.equal(appAssets.has(asset), true, asset));
 
   const dynamicAssets = [
     read('face-scan.js').match(/METRICS_MODULE_URL = '([^']+)'/)?.[1],
@@ -87,7 +109,7 @@ test('HTML and dynamic module URLs agree with the v77 cache graph', () => {
     read('junky-verdict-engine.js').match(/PACK_URL = '([^']+)'/)?.[1]
   ].filter(Boolean).map((asset) => asset.startsWith('./') ? asset : `./${asset}`);
 
-  dynamicAssets.forEach((asset) => assert.equal(assets.has(asset), true, asset));
+  dynamicAssets.forEach((asset) => assert.equal(appAssets.has(asset), true, asset));
 });
 
 test('retired biometric terminal cannot return to the result pipeline', () => {
