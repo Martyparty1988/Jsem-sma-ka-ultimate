@@ -1,0 +1,117 @@
+/* Smažka v83 — balanced HUD density and one visual authority during scan. */
+
+body.junkie-vision-active #scanOverlay {
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+.junkie-vision-hud.is-balanced-v83 {
+  --jvh-balanced-panel: rgba(2, 8, 6, 0.68);
+}
+
+.junkie-vision-hud.is-balanced-v83 .junkie-vision-canvas {
+  opacity: 0.78;
+  filter: saturate(1.04) contrast(1.03);
+}
+
+.junkie-vision-hud.is-balanced-v83 .junkie-vision-chrome::before {
+  opacity: 0.06 !important;
+}
+
+.junkie-vision-hud.is-balanced-v83 .jvh-system,
+.junkie-vision-hud.is-balanced-v83 .jvh-score {
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.junkie-vision-hud.is-balanced-v83 .jvh-system {
+  max-width: min(62%, 290px);
+  background: linear-gradient(90deg, rgba(2, 8, 6, 0.76), rgba(2, 8, 6, 0.36));
+}
+
+.junkie-vision-hud.is-balanced-v83 .jvh-score {
+  transform: scale(0.93);
+  transform-origin: top right;
+  background: rgba(8, 8, 2, 0.64);
+}
+
+.junkie-vision-hud.is-balanced-v83 .jvh-metrics {
+  right: 18px !important;
+  bottom: 42px !important;
+  left: 18px !important;
+  max-height: 76px !important;
+  padding: 7px 10px !important;
+  overflow: hidden !important;
+  border-top-color: rgba(0, 255, 102, 0.36) !important;
+  background: linear-gradient(180deg, rgba(2, 8, 6, 0.72), rgba(2, 8, 6, 0.58)) !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2) !important;
+}
+
+.junkie-vision-hud.is-balanced-v83 .jvh-metric-row {
+  min-height: 24px;
+  opacity: 0.78;
+}
+
+.junkie-vision-hud.is-balanced-v83 .jvh-metric-row:nth-child(n + 3) {
+  display: none !important;
+}
+
+.junkie-vision-hud.is-balanced-v83 .jvh-metric-row.is-hot {
+  opacity: 1;
+}
+
+.junkie-vision-hud.is-balanced-v83 .jvh-footer {
+  bottom: 10px !important;
+  opacity: 0.48;
+}
+
+.jvh-balanced-progress {
+  position: absolute;
+  z-index: 13;
+  right: 18px;
+  bottom: 30px;
+  left: 18px;
+  height: 2px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(244, 255, 248, 0.12);
+  box-shadow: 0 0 0 1px rgba(0, 255, 102, 0.08);
+}
+
+.jvh-balanced-progress span {
+  display: block;
+  width: var(--scan-progress, 0%);
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #00ff66 0%, #ffcc00 72%, #ff0055 100%);
+  box-shadow: 0 0 9px rgba(0, 255, 102, 0.52);
+  transition: width 90ms linear;
+}
+
+.junkie-vision-hud.is-balanced-v83[data-phase="init"] .jvh-metrics {
+  opacity: 0.58;
+}
+
+.junkie-vision-hud.is-balanced-v83[data-phase="critical"] .jvh-metrics {
+  border-top-color: rgba(255, 0, 85, 0.58) !important;
+}
+
+@media (max-width: 430px) {
+  .junkie-vision-hud.is-balanced-v83 .jvh-metrics {
+    right: 14px !important;
+    left: 14px !important;
+    max-height: 70px !important;
+  }
+
+  .jvh-balanced-progress {
+    right: 14px;
+    left: 14px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .jvh-balanced-progress span {
+    transition: none;
+  }
+}
