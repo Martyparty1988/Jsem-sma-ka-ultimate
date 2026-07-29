@@ -1301,8 +1301,8 @@
     if (details) setText(details, elements.result.classList.contains('details-open') ? 'Skrýt toxikologický protokol' : 'Otevřít toxikologický protokol');
     const heading = elements.result.querySelector('.diagnostic-heading');
     if (heading) {
-      setText(heading.querySelector('strong'), 'TOXIKOLOGICKÝ PROTOKOL');
-      setText(heading.querySelector('small'), 'VOID LAB · 100% nevědecký');
+      setText(heading.querySelector('strong'), 'Toxikologický protokol');
+      setText(heading.querySelector('small'), 'VOID LAB · 468 BODŮ · 0 % VĚDY');
     }
     const labels = {
       'Stabilita zorniček': 'Zorničky pod dohledem',
@@ -1626,7 +1626,8 @@
       if (!panel || panel.querySelector('.secondary-diagnosis')) return;
       const box = document.createElement('aside');
       box.className = 'secondary-diagnosis';
-      box.innerHTML = `<strong>⚠️ DODATEČNÝ NÁLEZ</strong><p>${secondaryDiagnoses[randomIndex(secondaryDiagnoses.length)]}</p>`;
+      box.setAttribute('role', 'note');
+      box.innerHTML = `<div class="secondary-diagnosis-heading"><span aria-hidden="true">!</span><strong>DODATEČNÝ NÁLEZ</strong><em>MIMO LIMIT</em></div><p>${secondaryDiagnoses[randomIndex(secondaryDiagnoses.length)]}</p>`;
       panel.appendChild(box);
     }, reducedMotion() ? 250 : 1750);
   }
@@ -1759,14 +1760,18 @@
           ? 'v nedohlednu'
           : 'nenalezena';
 
+    const realityScore = clamp(100 - severity, 3, 96);
+    const dignityScore = clamp(100 - severity * 1.08, 0, 94);
+    const pingScore = clamp(100 - ping / 13, 4, 82);
+
     return [
-      { label: 'Stabilita zorniček', value: `${pupils} %`, score: pupils },
-      { label: 'Kontakt s realitou', value: reality, score: clamp(100 - severity, 3, 96) },
-      { label: 'Koordinace pohybu', value: `${coordination} %`, score: coordination },
-      { label: 'Pravděpodobnost příchodu domů', value: `${home} %`, score: home },
-      { label: 'Riziko ztráty klíčů', value: `${keys} %`, score: keys, danger: true },
-      { label: 'Zbytková důstojnost', value: dignity, score: clamp(100 - severity * 1.08, 0, 94) },
-      { label: 'Mozkový ping', value: `${ping} ms${severity >= 74 ? '+' : ''}`, score: clamp(100 - ping / 13, 4, 82), danger: true }
+      { label: 'Stabilita zorniček', value: `${pupils} %`, score: pupils, risk: 100 - pupils },
+      { label: 'Kontakt s realitou', value: reality, score: realityScore, risk: 100 - realityScore },
+      { label: 'Koordinace pohybu', value: `${coordination} %`, score: coordination, risk: 100 - coordination },
+      { label: 'Pravděpodobnost příchodu domů', value: `${home} %`, score: home, risk: 100 - home },
+      { label: 'Riziko ztráty klíčů', value: `${keys} %`, score: keys, risk: keys, danger: true },
+      { label: 'Zbytková důstojnost', value: dignity, score: dignityScore, risk: 100 - dignityScore },
+      { label: 'Mozkový ping', value: `${ping} ms${severity >= 74 ? '+' : ''}`, score: pingScore, risk: 100 - pingScore, danger: true }
     ];
   }
 
@@ -1942,7 +1947,7 @@
 
     const heading = document.createElement('div');
     heading.className = 'diagnostic-heading';
-    heading.innerHTML = '<span class="diagnostic-pulse" aria-hidden="true"></span><div><strong>TOXIKOLOGICKÝ PROTOKOL</strong><small>VOID LAB · 100% nevědecký</small></div>';
+    heading.innerHTML = `<span class="diagnostic-pulse" aria-hidden="true"></span><div class="diagnostic-heading-copy"><small>VOID LAB · 468 BODŮ · 0 % VĚDY</small><strong>Toxikologický protokol</strong></div><span class="diagnostic-count"><b>${diagnostics.length}</b> markerů</span>`;
 
     const list = document.createElement('div');
     list.className = 'diagnostic-list';
@@ -1950,9 +1955,13 @@
     diagnostics.forEach((item, index) => {
       const row = document.createElement('div');
       const score = clamp(item.score, 2, 100);
-      const tier = score >= 82 ? 'critical' : score >= 65 ? 'high' : score >= 35 ? 'medium' : 'low';
+      const risk = clamp(Number.isFinite(item.risk) ? item.risk : score, 0, 100);
+      const tier = risk >= 82 ? 'critical' : risk >= 65 ? 'high' : risk >= 35 ? 'medium' : 'low';
       row.className = `diagnostic-row is-${tier}${item.danger ? ' is-danger' : ''}`;
       row.dataset.score = String(score);
+      row.dataset.risk = String(risk);
+      row.dataset.marker = String(index + 1).padStart(2, '0');
+      if (!/^\d+(?:[.,]\d+)?\s*(?:%|ms)\+?$/.test(String(item.value).trim())) row.classList.add('is-status-value');
       if (String(item.value).length > 17) row.classList.add('is-long-value');
       row.style.setProperty('--diagnostic-delay', `${index * 75}ms`);
 
