@@ -5,13 +5,25 @@ import vm from 'node:vm';
 
 const source = fs.readFileSync(new URL('../face-landmark-bridge-v81.js', import.meta.url), 'utf8');
 
+class MockVideo {
+  constructor() {
+    this.videoWidth = 1280;
+    this.videoHeight = 720;
+  }
+}
+
 class MockFaceMesh {
   onResults(callback) {
     this.callback = callback;
   }
+
+  send(packet) {
+    this.lastPacket = packet;
+    return Promise.resolve();
+  }
 }
 
-test('landmark bridge publishes MediaPipe results without replacing the app callback', () => {
+test('landmark bridge publishes MediaPipe results without replacing the app callback', async () => {
   let now = 100;
   const context = {
     console,
@@ -20,6 +32,7 @@ test('landmark bridge publishes MediaPipe results without replacing the app call
     WeakMap,
     Object,
     Array,
+    HTMLVideoElement: MockVideo,
     window: { FaceMesh: MockFaceMesh }
   };
   context.globalThis = context;
@@ -30,6 +43,7 @@ test('landmark bridge publishes MediaPipe results without replacing the app call
   let feedCalls = 0;
   context.window.SmazkaLandmarkFeed.subscribe(() => { feedCalls += 1; });
   detector.onResults(() => { appCalls += 1; });
+  await detector.send({ image: new MockVideo() });
 
   const landmarks = Array.from({ length: 468 }, (_, index) => ({ x: index / 468, y: 0.5, z: 0 }));
   detector.callback({ multiFaceLandmarks: [landmarks] });
@@ -40,4 +54,7 @@ test('landmark bridge publishes MediaPipe results without replacing the app call
   assert.equal(snapshot.landmarks, landmarks);
   assert.equal(snapshot.faceCount, 1);
   assert.equal(snapshot.sequence, 1);
+  assert.equal(snapshot.sourceKind, 'video');
+  assert.equal(snapshot.sourceWidth, 1280);
+  assert.equal(snapshot.sourceHeight, 720);
 });
