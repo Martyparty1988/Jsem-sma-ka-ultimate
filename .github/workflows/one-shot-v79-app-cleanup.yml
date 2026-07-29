@@ -1,0 +1,129 @@
+name: One-shot v79 app cleanup
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/one-shot-v79-app-cleanup.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Remove eager share pipeline
+        run: |
+          python3 <<'PY'
+          from pathlib import Path
+
+          app_path = Path('app.js')
+          app = app_path.read_text(encoding='utf-8')
+
+          listener = "    shareButton.addEventListener('click', shareResult);\n"
+          if listener not in app:
+              raise SystemExit('Legacy share button listener was not found')
+          app = app.replace(listener, '', 1)
+
+          eager_assignment = "    state.shareImagePromise = prepareShareImage(category, description, effectImageData, severity);"
+          lazy_assignment = "    // The v77 share runtime renders the social card only after an explicit tap.\n    state.shareImagePromise = Promise.resolve(effectImageData || state.currentImageData);"
+          if eager_assignment not in app:
+              raise SystemExit('Legacy prepareShareImage assignment was not found')
+          app = app.replace(eager_assignment, lazy_assignment, 1)
+
+          start_marker = "  function drawCoverImage(ctx, image, x, y, width, height) {"
+          end_marker = "  function optimizeUploadedImage(file) {"
+          start = app.find(start_marker)
+          end = app.find(end_marker, start)
+          if start < 0 or end < 0 or end <= start:
+              raise SystemExit('Legacy eager share block boundaries were not found')
+          app = app[:start] + app[end:]
+
+          retired = (
+              'prepareShareImage',
+              'function shareResult',
+              'function drawResultPanel',
+              'function drawCoverImage',
+              "shareButton.addEventListener('click', shareResult)",
+          )
+          for token in retired:
+              if token in app:
+                  raise SystemExit(f'Retired app share token remains: {token}')
+
+          app_path.write_text(app, encoding='utf-8')
+
+          index_path = Path('index.html')
+          index = index_path.read_text(encoding='utf-8')
+          old_index = '<script defer src="app.js?v=64"></script>'
+          new_index = '<script defer src="app.js?v=79"></script>'
+          if old_index not in index:
+              raise SystemExit('Expected app.js v64 reference was not found in index.html')
+          index_path.write_text(index.replace(old_index, new_index, 1), encoding='utf-8')
+
+          sw_path = Path('service-worker.js')
+          sw = sw_path.read_text(encoding='utf-8')
+          replacements = {
+              "const CACHE_VERSION = 'v78';": "const CACHE_VERSION = 'v79';",
+              "  './app.js?v=64',": "  './app.js?v=79',",
+          }
+          for old, new in replacements.items():
+              if old not in sw:
+                  raise SystemExit(f'Expected service worker token was not found: {old}')
+              sw = sw.replace(old, new, 1)
+          sw_path.write_text(sw, encoding='utf-8')
+
+          test_path = Path('tests/pwa-cache.test.mjs')
+          tests = test_path.read_text(encoding='utf-8')
+          test_replacements = {
+              'PWA v78 caches': 'PWA v79 caches',
+              "'jsem-smazka-v78'": "'jsem-smazka-v79'",
+              "'./app.js?v=64'": "'./app.js?v=79'",
+              'must not be tied to v78': 'must not be tied to v79',
+              'v78 cache graph': 'v79 cache graph',
+          }
+          for old, new in test_replacements.items():
+              if old not in tests:
+                  raise SystemExit(f'Expected test token was not found: {old}')
+              tests = tests.replace(old, new)
+
+          cleanup_test = r'''
+
+test('app v79 delegates sharing exclusively to the lazy cover runtime', () => {
+  const app = read('app.js');
+  const index = read('index.html');
+  const serviceWorker = read('service-worker.js');
+
+  assert.match(app, /state\.shareImagePromise = Promise\.resolve\(effectImageData \|\| state\.currentImageData\)/);
+  assert.doesNotMatch(app, /prepareShareImage/);
+  assert.doesNotMatch(app, /function shareResult/);
+  assert.doesNotMatch(app, /function drawResultPanel/);
+  assert.doesNotMatch(app, /function drawCoverImage/);
+  assert.doesNotMatch(app, /shareButton\.addEventListener\('click', shareResult\)/);
+  assert.match(index, /app\.js\?v=79/);
+  assert.match(serviceWorker, /\.\/app\.js\?v=79/);
+});
+'''
+          if "app v79 delegates sharing exclusively" not in tests:
+              tests = tests.rstrip() + cleanup_test
+          test_path.write_text(tests, encoding='utf-8')
+          PY
+
+      - name: Verify JavaScript and regression suite
+        run: |
+          node --check app.js
+          node --check service-worker.js
+          node --test
+
+      - name: Commit cleaned runtime to main
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add app.js index.html service-worker.js tests/pwa-cache.test.mjs
+          git commit -m 'Remove eager share rendering from app v79'
+          git push origin HEAD:main
