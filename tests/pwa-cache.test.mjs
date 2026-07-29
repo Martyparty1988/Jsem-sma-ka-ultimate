@@ -25,11 +25,11 @@ globalThis.__PWA_TEST__ = { CACHE_NAME, FACE_MODEL_CACHE, APP_SHELL, FACE_MODEL_
   return context.__PWA_TEST__;
 }
 
-test('PWA v84 caches every current runtime, style and data dependency', () => {
+test('PWA v85 caches every current runtime, style and data dependency', () => {
   const { CACHE_NAME, APP_SHELL } = serviceWorkerContract();
   const assets = new Set(APP_SHELL);
 
-  assert.equal(CACHE_NAME, 'jsem-smazka-v84');
+  assert.equal(CACHE_NAME, 'jsem-smazka-v85');
   [
     './app.js?v=64',
     './legacy-share-bypass-v79.js?v=79',
@@ -45,8 +45,11 @@ test('PWA v84 caches every current runtime, style and data dependency', () => {
     './junkie-vision-balance-v83.css?v=83',
     './critical-impact-reveal-v82.js?v=82',
     './critical-impact-reveal-v82.css?v=82',
+    './analysis-state-stability-v84.js?v=84',
     './analysis-completion-guard-v84.js?v=84',
     './analysis-completion-guard-v84.css?v=84',
+    './analysis-rescue-v85.js?v=85',
+    './analysis-rescue-v85.css?v=85',
     './face-aware-crop-runtime.js?v=72',
     './face-scan.js?v=64',
     './devastation-metrics.js?v=64',
@@ -80,7 +83,7 @@ test('PWA v84 caches every current runtime, style and data dependency', () => {
   });
 });
 
-test('MediaPipe model files remain in the stable cache across v84 updates', () => {
+test('MediaPipe model files remain in the stable cache across v85 updates', () => {
   const { FACE_MODEL_CACHE, APP_SHELL, FACE_MODEL_ASSETS } = serviceWorkerContract();
   const appAssets = new Set(APP_SHELL);
   const serviceWorker = read('service-worker.js');
@@ -88,7 +91,7 @@ test('MediaPipe model files remain in the stable cache across v84 updates', () =
   assert.equal(FACE_MODEL_CACHE, 'jsem-smazka-face-model-v1');
   assert.ok(FACE_MODEL_ASSETS.length >= 9);
   FACE_MODEL_ASSETS.forEach((asset) => {
-    assert.equal(appAssets.has(asset), false, `${asset} must not be tied to v84`);
+    assert.equal(appAssets.has(asset), false, `${asset} must not be tied to v85`);
     const pathname = asset.replace(/^\.\//, '').split('?')[0];
     assert.equal(fs.existsSync(new URL(pathname, root)), true, asset);
   });
@@ -96,7 +99,7 @@ test('MediaPipe model files remain in the stable cache across v84 updates', () =
   assert.match(serviceWorker, /key !== CACHE_NAME && key !== FACE_MODEL_CACHE/);
 });
 
-test('HTML and dynamic module URLs agree with the v84 cache graph', () => {
+test('HTML and dynamic module URLs agree with the v85 cache graph', () => {
   const { APP_SHELL, FACE_MODEL_ASSETS } = serviceWorkerContract();
   const appAssets = new Set(APP_SHELL);
   const allCachedAssets = new Set([...APP_SHELL, ...FACE_MODEL_ASSETS]);
@@ -124,14 +127,16 @@ test('HTML and dynamic module URLs agree with the v84 cache graph', () => {
   dynamicAssets.forEach((asset) => assert.equal(appAssets.has(asset), true, asset));
 });
 
-test('result, crop, completion guard, single-pass, impact reveal and share runtimes keep authoritative order', () => {
+test('result, crop, completion guard, delayed rescue, single-pass, impact reveal and share runtimes keep authoritative order', () => {
   const { APP_SHELL } = serviceWorkerContract();
   const index = read('index.html');
   const ordered = [
     'result-frame-geometry.js?v=73',
     'in-frame-result.js?v=73',
     'face-aware-crop-runtime.js?v=72',
+    'analysis-state-stability-v84.js?v=84',
     'analysis-completion-guard-v84.js?v=84',
+    'analysis-rescue-v85.js?v=85',
     'single-pass-result-v76.js?v=76',
     'critical-impact-reveal-v82.js?v=82',
     'share-cover-v77.js?v=77'
@@ -163,7 +168,7 @@ test('retired terminal, legacy share render and old mobile layout cannot return'
   assert.equal(fs.existsSync(new URL('terminal-readout.js', root)), false);
 });
 
-test('v79 and v80 performance guards remain active under v84', () => {
+test('v79 and v80 performance guards remain active under v85', () => {
   const bypass = read('legacy-share-bypass-v79.js');
   const optimizer = read('face-input-optimizer-v80.js');
 
