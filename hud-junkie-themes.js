@@ -34,7 +34,9 @@
       maxDevicePixelRatio: 1.5,
       maxMeshConnections: 460,
       connectionStride: 3,
-      scanlineStep: 5
+      scanlineStep: 5,
+      noiseSampleSize: 24,
+      noiseSampleIntervalMs: 180
     },
     labels: {
       init: 'SYSTEM INIT: WARNA READY',
@@ -69,11 +71,17 @@
   window.SmazkaJunkieHudTheme = deepFreeze(theme);
 
   const photoRuntimeUrl = 'junkie-vision-photo-v81.js?v=81';
-  if (!document.querySelector(`script[src="${photoRuntimeUrl}"]`)) {
+  const noiseRuntimeUrl = 'junkie-vision-noise-v81.js?v=81';
+
+  function loadRuntime(url, datasetKey) {
+    if (document.querySelector(`script[src="${url}"]`)) return;
     const script = document.createElement('script');
-    script.src = photoRuntimeUrl;
+    script.src = url;
     script.async = false;
-    script.dataset.junkieVisionPhoto = 'v81';
+    script.dataset[datasetKey] = 'v81';
     document.head.appendChild(script);
   }
+
+  loadRuntime(photoRuntimeUrl, 'junkieVisionPhoto');
+  loadRuntime(noiseRuntimeUrl, 'junkieVisionNoise');
 })();
