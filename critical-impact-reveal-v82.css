@@ -357,8 +357,8 @@ body.critical-impact-active .result-tool-grid {
 @keyframes impact-slice-v82 {
   0% { opacity: 0; transform: translateX(0); }
   18% { opacity: 0.8; transform: translateX(var(--impact-slice-shift)); }
-  46% { opacity: 0.55; transform: translateX(calc(var(--impact-slice-shift) * -0.5)); }
-  72% { opacity: 0.72; transform: translateX(calc(var(--impact-slice-shift) * 0.35)); }
+  46% { opacity: 0.55; transform: translateX(var(--impact-slice-reverse)); }
+  72% { opacity: 0.72; transform: translateX(var(--impact-slice-return)); }
   100% { opacity: 0; transform: translateX(0); }
 }
 
