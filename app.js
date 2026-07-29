@@ -320,6 +320,7 @@
   function setBusy(isBusy) {
     state.isAnalyzing = isBusy;
     elements.app?.setAttribute('aria-busy', String(isBusy));
+    document.body.classList.toggle('analysis-active', Boolean(isBusy));
     elements.analyzeButton.disabled = isBusy;
     elements.retakeButton.disabled = isBusy;
     elements.uploadButton.disabled = isBusy;
