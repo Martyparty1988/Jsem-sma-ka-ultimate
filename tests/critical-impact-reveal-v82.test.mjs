@@ -43,7 +43,7 @@ test('Critical Impact Reveal presentation contains the full impact sequence and 
   assert.match(css, /prefers-reduced-motion/);
 });
 
-test('Critical Impact Reveal keeps authoritative order inside the v86 lifecycle bundle', () => {
+test('Critical Impact Reveal keeps authoritative order inside the v87 lifecycle bundle', () => {
   const lifecycle = readRoot('lifecycle-runtime.js');
   const serviceWorker = readRoot('service-worker.js');
 
@@ -55,6 +55,6 @@ test('Critical Impact Reveal keeps authoritative order inside the v86 lifecycle 
   assert.ok(impact > singlePass);
   assert.ok(share > impact);
   assert.match(readRoot('screens.css'), /impact-negative-flash-v82/);
-  assert.match(serviceWorker, /const CACHE_VERSION = 'v86'/);
-  assert.match(serviceWorker, /\.\/lifecycle-runtime\.js\?v=86/);
+  assert.match(serviceWorker, /const CACHE_VERSION = 'v87'/);
+  assert.match(serviceWorker, /\.\/lifecycle-runtime\.js\?v=87/);
 });

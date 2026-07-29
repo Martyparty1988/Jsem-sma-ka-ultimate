@@ -1196,8 +1196,14 @@
   }
 
   function clearLegacyReveal() {
-    stage.classList.remove(...revealClasses);
-    stage.querySelector('.result-reveal-overlay')?.setAttribute('aria-hidden', 'true');
+    if (revealClasses.some((className) => stage.classList.contains(className))) {
+      stage.classList.remove(...revealClasses);
+    }
+
+    const overlay = stage.querySelector('.result-reveal-overlay');
+    if (overlay && overlay.getAttribute('aria-hidden') !== 'true') {
+      overlay.setAttribute('aria-hidden', 'true');
+    }
   }
 
   function selectedVerdict() {
