@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'v76';
+const CACHE_VERSION = 'v77';
 const CACHE_NAME = `jsem-smazka-${CACHE_VERSION}`;
 
 const CORE_ASSETS = [
@@ -40,7 +40,7 @@ const SCRIPT_ASSETS = [
   './single-pass-result-v76.js?v=76',
   './scanner-focus.js?v=60',
   './face-guidance.js?v=60',
-  './share-cover.js?v=72',
+  './share-cover-v77.js?v=77',
   './result-intensity.js?v=60',
   './junkie-polish-v55.js?v=60',
   './boot-message-v54.js?v=60',
