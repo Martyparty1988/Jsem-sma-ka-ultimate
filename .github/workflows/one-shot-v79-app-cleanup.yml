@@ -1,5 +1,6 @@
 name: One-shot v79 app cleanup
 
+# Second push intentionally triggers this one-shot workflow after it exists on main.
 on:
   push:
     branches: [main]
