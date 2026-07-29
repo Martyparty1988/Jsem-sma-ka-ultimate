@@ -2173,7 +2173,9 @@
     }
   }
 
-  function diagnosticValue(row) {
+  function diagnosticRisk(row) {
+    const storedRisk = Number.parseFloat(row.dataset.risk || '');
+    if (Number.isFinite(storedRisk)) return storedRisk;
     const storedScore = Number.parseFloat(row.dataset.score || '');
     if (Number.isFinite(storedScore)) return storedScore;
     const meter = row.querySelector('.diagnostic-meter i');
@@ -2188,17 +2190,17 @@
     const rows = Array.from(root.querySelectorAll('.diagnostic-row'));
     if (!rows.length) return;
     const worst = rows.reduce((current, row) => (
-      diagnosticValue(row) > diagnosticValue(current) ? row : current
+      diagnosticRisk(row) > diagnosticRisk(current) ? row : current
     ), rows[0]);
 
     rows.forEach((row) => {
-      const score = diagnosticValue(row);
-      row.classList.toggle('is-low', score < 35);
-      row.classList.toggle('is-medium', score >= 35 && score < 65);
-      row.classList.toggle('is-high', score >= 65 && score < 82);
-      row.classList.toggle('is-critical', score >= 82);
+      const risk = diagnosticRisk(row);
+      row.classList.toggle('is-low', risk < 35);
+      row.classList.toggle('is-medium', risk >= 35 && risk < 65);
+      row.classList.toggle('is-high', risk >= 65 && risk < 82);
+      row.classList.toggle('is-critical', risk >= 82);
       row.classList.toggle('is-worst', row === worst);
-      row.classList.toggle('is-danger', score >= 65);
+      row.classList.toggle('is-danger', risk >= 65);
     });
   }
 
