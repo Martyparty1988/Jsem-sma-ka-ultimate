@@ -1,0 +1,37 @@
+/* Smažka v84 — retire the redundant camera-stage reveal; v82 owns the final transition. */
+
+.result-reveal-overlay,
+.video-container.is-revealing-result .result-reveal-overlay {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  animation: none !important;
+  pointer-events: none !important;
+}
+
+.video-container.is-revealing-result::before {
+  display: none !important;
+  content: none !important;
+  animation: none !important;
+}
+
+.video-container.is-revealing-result .preview-container,
+.video-container.is-revealing-result .preview-container img,
+.video-container.is-revealing-result #preview {
+  animation: none !important;
+  transition: none !important;
+  transform: none !important;
+}
+
+.result-visual[data-analysis-recovery="v84"] {
+  box-shadow:
+    0 18px 42px rgba(2, 6, 23, 0.5),
+    0 0 24px rgba(112, 225, 207, 0.16),
+    inset 0 1px rgba(255, 255, 255, 0.1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .result-visual[data-analysis-recovery="v84"] {
+    animation: none !important;
+  }
+}
