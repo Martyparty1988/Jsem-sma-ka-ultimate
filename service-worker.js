@@ -49,6 +49,7 @@ const SCRIPT_ASSETS = [
   './result-frame-geometry.js?v=73',
   './in-frame-result.js?v=73',
   './face-aware-crop-runtime.js?v=72',
+  './analysis-state-stability-v84.js?v=84',
   './analysis-completion-guard-v84.js?v=84',
   './single-pass-result-v76.js?v=76',
   './critical-impact-reveal-v82.js?v=82',
