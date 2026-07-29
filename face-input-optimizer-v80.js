@@ -10,6 +10,7 @@
   const IDLE_MAX_EDGE = 512;
   const SCAN_MAX_EDGE = 640;
   const states = new WeakMap();
+  const buffers = new Set();
   let preparedFrames = 0;
   let duplicateFrames = 0;
   let bypassedFrames = 0;
@@ -28,6 +29,8 @@
     const canvas = document.createElement('canvas');
     canvas.width = 1;
     canvas.height = 1;
+    canvas.dataset.faceInputV80 = 'true';
+    buffers.add(canvas);
     const context = canvas.getContext('2d', {
       alpha: false,
       desynchronized: true
@@ -84,21 +87,33 @@
     return state.canvas;
   }
 
-  Object.defineProperty(prototype, 'send', {
-    configurable: true,
-    writable: true,
-    value: function optimizedSend(packet = {}) {
-      const source = packet?.image;
-      if (!isVideoSource(source)) {
-        bypassedFrames += 1;
-        return nativeSend.call(this, packet);
-      }
-
-      const prepared = prepareVideoFrame(this, source);
-      if (!prepared) return Promise.resolve(undefined);
-      return nativeSend.call(this, { ...packet, image: prepared });
+  function optimizedSend(packet = {}) {
+    const source = packet?.image;
+    if (!isVideoSource(source)) {
+      bypassedFrames += 1;
+      return nativeSend.call(this, packet);
     }
-  });
+
+    const prepared = prepareVideoFrame(this, source);
+    if (!prepared) return Promise.resolve(undefined);
+    return nativeSend.call(this, { ...packet, image: prepared });
+  }
+
+  try {
+    Object.defineProperty(prototype, 'send', {
+      configurable: true,
+      writable: true,
+      value: optimizedSend
+    });
+  } catch (error) {
+    try {
+      prototype.send = optimizedSend;
+    } catch {
+      console.warn('Face Mesh input optimizer se nepodařilo připojit:', error);
+      buffers.clear();
+      return;
+    }
+  }
 
   Object.defineProperty(prototype, '__smazkaInputOptimizerV80', {
     configurable: false,
@@ -107,12 +122,11 @@
   });
 
   window.addEventListener('pagehide', () => {
-    // WeakMap entries disappear with their FaceMesh instances; shrink any canvas
-    // still reachable through an active instance before Safari snapshots the page.
-    document.querySelectorAll('canvas[data-face-input-v80]').forEach((canvas) => {
+    buffers.forEach((canvas) => {
       canvas.width = 1;
       canvas.height = 1;
     });
+    buffers.clear();
   }, { once: true });
 
   window.SmazkaFaceInputOptimizer = Object.freeze({
