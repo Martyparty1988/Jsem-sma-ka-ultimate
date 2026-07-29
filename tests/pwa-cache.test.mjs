@@ -28,13 +28,14 @@ globalThis.__PWA_TEST__ = { CACHE_NAME, FACE_MODEL_CACHE, APP_SHELL, FACE_MODEL_
   return context.__PWA_TEST__;
 }
 
-test('PWA v78 caches every current runtime, style and data dependency', () => {
+test('PWA v79 caches every current runtime, style and data dependency', () => {
   const { CACHE_NAME, APP_SHELL } = serviceWorkerContract();
   const assets = new Set(APP_SHELL);
 
-  assert.equal(CACHE_NAME, 'jsem-smazka-v78');
+  assert.equal(CACHE_NAME, 'jsem-smazka-v79');
   [
     './app.js?v=64',
+    './legacy-share-bypass-v79.js?v=79',
     './face-aware-crop.js?v=72',
     './face-aware-crop-runtime.js?v=72',
     './face-scan.js?v=64',
@@ -77,7 +78,7 @@ test('MediaPipe model files use one stable cache instead of every app cache vers
   assert.ok(FACE_MODEL_ASSETS.includes('./vendor/mediapipe-face-mesh/face_mesh.js?v=0.4.1633559619'));
 
   FACE_MODEL_ASSETS.forEach((asset) => {
-    assert.equal(appAssets.has(asset), false, `${asset} must not be tied to v78`);
+    assert.equal(appAssets.has(asset), false, `${asset} must not be tied to v79`);
     const pathname = asset.replace(/^\.\//, '').split('?')[0];
     assert.equal(fs.existsSync(new URL(pathname, root)), true, asset);
   });
@@ -88,7 +89,7 @@ test('MediaPipe model files use one stable cache instead of every app cache vers
   assert.doesNotMatch(serviceWorker, /const APP_SHELL = \[[\s\S]*\.\.\.FACE_MODEL_ASSETS/);
 });
 
-test('HTML and dynamic module URLs agree with the v78 cache graph', () => {
+test('HTML and dynamic module URLs agree with the v79 cache graph', () => {
   const { APP_SHELL, FACE_MODEL_ASSETS } = serviceWorkerContract();
   const appAssets = new Set(APP_SHELL);
   const allCachedAssets = new Set([...APP_SHELL, ...FACE_MODEL_ASSETS]);
@@ -143,6 +144,24 @@ test('mobile result v73 remains the single viewport runtime authority', () => {
   assert.doesNotMatch(index, /result-layout-fix-v69/);
 });
 
+test('eager share bypass loads immediately after app bootstrap', () => {
+  const { APP_SHELL } = serviceWorkerContract();
+  const index = read('index.html');
+  const appIndex = index.indexOf('app.js?v=64');
+  const bypassIndex = index.indexOf('legacy-share-bypass-v79.js?v=79');
+  const cropIndex = index.indexOf('face-aware-crop.js?v=72');
+
+  assert.ok(appIndex > -1);
+  assert.ok(bypassIndex > appIndex);
+  assert.ok(cropIndex > bypassIndex);
+
+  const shellAppIndex = APP_SHELL.indexOf('./app.js?v=64');
+  const shellBypassIndex = APP_SHELL.indexOf('./legacy-share-bypass-v79.js?v=79');
+  const shellCropIndex = APP_SHELL.indexOf('./face-aware-crop.js?v=72');
+  assert.ok(shellBypassIndex > shellAppIndex);
+  assert.ok(shellCropIndex > shellBypassIndex);
+});
+
 test('crop, single-pass and lazy share runtimes load in authoritative order', () => {
   const { APP_SHELL } = serviceWorkerContract();
   const index = read('index.html');
@@ -185,4 +204,20 @@ test('share v77 renders lazily, deduplicates work and releases legacy canvas mem
   assert.match(share, /canvas\.toBlob/);
   assert.doesNotMatch(index, /share-cover\.js\?v=72/);
   assert.doesNotMatch(serviceWorker, /share-cover\.js\?v=72/);
+});
+
+test('v79 suppresses only the retired 1080 by 1350 eager share canvas', () => {
+  const bypass = read('legacy-share-bypass-v79.js');
+  const serviceWorker = read('service-worker.js');
+
+  assert.match(bypass, /function resultIsOpen\(\)/);
+  assert.match(bypass, /numericValue === 1080/);
+  assert.match(bypass, /numericValue === 1350/);
+  assert.match(bypass, /widthDescriptor\.set\.call\(canvas, 1\)/);
+  assert.match(bypass, /heightDescriptor\.set\.call\(canvas, 1\)/);
+  assert.match(bypass, /property === 'createLinearGradient'/);
+  assert.match(bypass, /property === 'measureText'/);
+  assert.match(bypass, /if \(!bypassActive\) Reflect\.set/);
+  assert.match(bypass, /canvas\.dataset\.legacyShareBypass = 'v79'/);
+  assert.match(serviceWorker, /\.\/legacy-share-bypass-v79\.js\?v=79/);
 });
