@@ -28,11 +28,11 @@ globalThis.__PWA_TEST__ = { CACHE_NAME, APP_SHELL };`;
   return context.__PWA_TEST__;
 }
 
-test('PWA v76 caches every current runtime, style and data dependency', () => {
+test('PWA v77 caches every current runtime, style and data dependency', () => {
   const { CACHE_NAME, APP_SHELL } = serviceWorkerContract();
   const assets = new Set(APP_SHELL);
 
-  assert.equal(CACHE_NAME, 'jsem-smazka-v76');
+  assert.equal(CACHE_NAME, 'jsem-smazka-v77');
   [
     './app.js?v=64',
     './face-aware-crop.js?v=72',
@@ -44,7 +44,7 @@ test('PWA v76 caches every current runtime, style and data dependency', () => {
     './junky-verdict-engine.js?v=75',
     './verdict-matcher.js?v=64',
     './privacy-hardening.js?v=72',
-    './share-cover.js?v=72',
+    './share-cover-v77.js?v=77',
     './result-frame-geometry.js?v=73',
     './in-frame-result.js?v=73',
     './single-pass-result-v76.js?v=76',
@@ -54,6 +54,7 @@ test('PWA v76 caches every current runtime, style and data dependency', () => {
     './responses-pernik.json?v=64'
   ].forEach((asset) => assert.equal(assets.has(asset), true, asset));
 
+  assert.equal(assets.has('./share-cover.js?v=72'), false);
   assert.equal(assets.has('./terminal-readout.js?v=60'), false);
   assert.equal(assets.has('./junky-verdict-engine.js?v=64'), false);
   assert.equal(assets.has('./in-frame-result.js?v=71'), false);
@@ -66,7 +67,7 @@ test('PWA v76 caches every current runtime, style and data dependency', () => {
   });
 });
 
-test('HTML and dynamic module URLs agree with the v76 cache graph', () => {
+test('HTML and dynamic module URLs agree with the v77 cache graph', () => {
   const { APP_SHELL } = serviceWorkerContract();
   const assets = new Set(APP_SHELL);
   const index = read('index.html');
@@ -120,7 +121,7 @@ test('mobile result v73 remains the single viewport runtime authority', () => {
   assert.doesNotMatch(index, /result-layout-fix-v69/);
 });
 
-test('crop focus and single-pass lock run after viewport composition', () => {
+test('crop, single-pass and lazy share runtimes load in authoritative order', () => {
   const { APP_SHELL } = serviceWorkerContract();
   const index = read('index.html');
   const cropIndex = index.indexOf('face-aware-crop.js?v=72');
@@ -129,7 +130,7 @@ test('crop focus and single-pass lock run after viewport composition', () => {
   const resultRuntimeIndex = index.indexOf('in-frame-result.js?v=73');
   const cropRuntimeIndex = index.indexOf('face-aware-crop-runtime.js?v=72');
   const singlePassIndex = index.indexOf('single-pass-result-v76.js?v=76');
-  const shareIndex = index.indexOf('share-cover.js?v=72');
+  const shareIndex = index.indexOf('share-cover-v77.js?v=77');
 
   assert.ok(cropIndex > -1);
   assert.ok(warpIndex > cropIndex);
@@ -142,8 +143,24 @@ test('crop focus and single-pass lock run after viewport composition', () => {
   const shellResultRuntimeIndex = APP_SHELL.indexOf('./in-frame-result.js?v=73');
   const shellCropRuntimeIndex = APP_SHELL.indexOf('./face-aware-crop-runtime.js?v=72');
   const shellSinglePassIndex = APP_SHELL.indexOf('./single-pass-result-v76.js?v=76');
-  const shellShareIndex = APP_SHELL.indexOf('./share-cover.js?v=72');
+  const shellShareIndex = APP_SHELL.indexOf('./share-cover-v77.js?v=77');
   assert.ok(shellCropRuntimeIndex > shellResultRuntimeIndex);
   assert.ok(shellSinglePassIndex > shellCropRuntimeIndex);
   assert.ok(shellShareIndex > shellSinglePassIndex);
+});
+
+test('share v77 renders lazily, deduplicates work and releases legacy canvas memory', () => {
+  const share = read('share-cover-v77.js');
+  const index = read('index.html');
+  const serviceWorker = read('service-worker.js');
+
+  assert.match(share, /function getCoverBlob\(verdict\)/);
+  assert.match(share, /cachedBlob && cachedToken === token/);
+  assert.match(share, /pendingBlob && cachedToken === token/);
+  assert.match(share, /function releaseLegacyCanvasBuffer\(\)/);
+  assert.match(share, /legacyCanvas\.width = 1/);
+  assert.match(share, /legacyCanvas\.height = 1/);
+  assert.match(share, /canvas\.toBlob/);
+  assert.doesNotMatch(index, /share-cover\.js\?v=72/);
+  assert.doesNotMatch(serviceWorker, /share-cover\.js\?v=72/);
 });
