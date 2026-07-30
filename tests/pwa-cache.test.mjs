@@ -136,7 +136,7 @@ test('v96 keeps the photo fixed, promotes score into the grid and labels the fac
   assert.match(runtime, /function promoteScore\(\)/);
   assert.match(runtime, /visual\.insertAdjacentElement\('afterend', score\)/);
   assert.match(runtime, /replacement\.dataset\.posterOwner = VERSION/);
-  assert.match(runtime, /window\.SmazkaResultPoster = Object\.freeze\(\{ version: 95/);
+  assert.match(runtime, /window\.SmazkaResultPoster = Object\.freeze\(\{ version: 96/);
   assert.doesNotMatch(runtime, /setImportant|viewportMetrics|syncClosedComposition|syncDetailsComposition/);
   assert.doesNotMatch(runtime, /padding-top|object-position|100dvh|visualViewport\?\.width/);
 

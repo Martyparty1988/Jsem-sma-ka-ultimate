@@ -147,6 +147,6 @@
     window.cancelAnimationFrame(animationFrame);
   }, { once: true });
 
-  window.SmazkaResultPoster = Object.freeze({ version: 95, sync: scheduleSync });
+  window.SmazkaResultPoster = Object.freeze({ version: 96, sync: scheduleSync });
   scheduleSync();
 })();
