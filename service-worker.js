@@ -1,7 +1,7 @@
-const CACHE_VERSION = 'v89';
+const CACHE_VERSION = 'v90';
 const CACHE_NAME = `jsem-smazka-${CACHE_VERSION}`;
 const FACE_MODEL_CACHE = 'jsem-smazka-face-model-v1';
-const UPDATE_STATE_KEY = './__smazka-update-state-v89';
+const UPDATE_STATE_KEY = './__smazka-update-state-v90';
 
 const APP_SHELL = [
   './',
@@ -13,13 +13,12 @@ const APP_SHELL = [
   './foundation.css?v=87',
   './components.css?v=87',
   './screens.css?v=87',
-  './result-layout.css?v=88',
-  './result-poster.css?v=89',
+  './result-poster.css?v=90',
   './app.js?v=87',
   './scanner-runtime.js?v=87',
   './result-runtime.js?v=87',
   './lifecycle-runtime.js?v=87',
-  './result-poster-runtime.js?v=89',
+  './result-poster-runtime.js?v=90',
   './responses.json',
   './responses-hard.json?v=64',
   './responses-pernik.json?v=64'
@@ -63,16 +62,10 @@ self.addEventListener('activate', (event) => {
         if (url.origin !== self.location.origin) return;
         await client.navigate(url.href);
       } catch {
-        // A closing Safari tab can disappear between matchAll() and navigate().
+        // Safari can close a tab between matchAll() and navigate().
       }
     }));
   })());
-});
-
-self.addEventListener('message', (event) => {
-  if (event.data?.type === 'SKIP_WAITING') {
-    event.waitUntil(self.skipWaiting());
-  }
 });
 
 self.addEventListener('fetch', (event) => {
@@ -98,11 +91,7 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  /*
-   * MediaPipe is intentionally absent from APP_SHELL. Only files requested by
-   * the compatible browser path are retained, so install never downloads both
-   * WASM variants and UI releases do not evict the large model cache.
-   */
+  /* MediaPipe remains in a stable request-driven cache, outside UI releases. */
   if (requestUrl.pathname.includes('/vendor/mediapipe-face-mesh/')) {
     event.respondWith((async () => {
       const cache = await caches.open(FACE_MODEL_CACHE);
@@ -110,9 +99,7 @@ self.addEventListener('fetch', (event) => {
       if (cachedResponse) return cachedResponse;
 
       const networkResponse = await fetch(event.request);
-      if (networkResponse.ok) {
-        await cache.put(event.request, networkResponse.clone());
-      }
+      if (networkResponse.ok) await cache.put(event.request, networkResponse.clone());
       return networkResponse;
     })());
     return;
@@ -125,9 +112,7 @@ self.addEventListener('fetch', (event) => {
 
     try {
       const networkResponse = await fetch(event.request);
-      if (networkResponse.ok) {
-        await cache.put(event.request, networkResponse.clone());
-      }
+      if (networkResponse.ok) await cache.put(event.request, networkResponse.clone());
       return networkResponse;
     } catch {
       return new Response('Offline', { status: 503, statusText: 'Offline' });
