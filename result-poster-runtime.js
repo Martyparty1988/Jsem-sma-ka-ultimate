@@ -1,9 +1,9 @@
-/* Smažka v94 — CSS owns result geometry; runtime only owns identity, badge and detail state. */
+/* Smažka v95 — CSS owns geometry; runtime owns identity, badge and detail state. */
 (() => {
   'use strict';
 
-  const VERSION = 'v94';
-  const POSTER_CLASS = 'result-poster-v94';
+  const VERSION = 'v95';
+  const POSTER_CLASS = 'result-poster-v95';
   const app = window.SmazkaApp;
   const result = app?.elements?.result;
   if (!result) return;
@@ -137,6 +137,6 @@
     window.cancelAnimationFrame(animationFrame);
   }, { once: true });
 
-  window.SmazkaResultPoster = Object.freeze({ version: 94, sync: scheduleSync });
+  window.SmazkaResultPoster = Object.freeze({ version: 95, sync: scheduleSync });
   scheduleSync();
 })();
