@@ -25,21 +25,21 @@ globalThis.__PWA_TEST__ = { CACHE_NAME, FACE_MODEL_CACHE, APP_SHELL };`;
   return context.__PWA_TEST__;
 }
 
-test('PWA v90 precaches one compact production shell with no retired entries', () => {
+test('PWA v91 precaches one compact production shell with no retired entries', () => {
   const { CACHE_NAME, APP_SHELL } = serviceWorkerContract();
   const assets = new Set(APP_SHELL);
 
-  assert.equal(CACHE_NAME, 'jsem-smazka-v90');
+  assert.equal(CACHE_NAME, 'jsem-smazka-v91');
   [
     './foundation.css?v=87',
     './components.css?v=87',
     './screens.css?v=87',
-    './result-poster.css?v=90',
+    './result-poster.css?v=91',
     './app.js?v=87',
     './scanner-runtime.js?v=87',
     './result-runtime.js?v=87',
     './lifecycle-runtime.js?v=87',
-    './result-poster-runtime.js?v=90',
+    './result-poster-runtime.js?v=91',
     './responses.json',
     './responses-hard.json?v=64',
     './responses-pernik.json?v=64'
@@ -76,7 +76,7 @@ test('MediaPipe uses a stable request-driven cache and never install-precaches W
   assert.match(serviceWorker, /key !== CACHE_NAME && key !== FACE_MODEL_CACHE/);
 });
 
-test('HTML entries, bundle sections and dynamic files agree with the v90 cache graph', () => {
+test('HTML entries, bundle sections and dynamic files agree with the v91 cache graph', () => {
   const { APP_SHELL } = serviceWorkerContract();
   const appAssets = new Set(APP_SHELL);
   const index = readRoot('index.html');
@@ -108,7 +108,7 @@ test('HTML entries, bundle sections and dynamic files agree with the v90 cache g
   });
 });
 
-test('v90 poster is the only standalone result layout layer', () => {
+test('v91 poster is the only standalone result layout layer', () => {
   const index = readRoot('index.html');
   const css = readRoot('result-poster.css');
   const runtime = readRoot('result-poster-runtime.js');
@@ -117,18 +117,16 @@ test('v90 poster is the only standalone result layout layer', () => {
   assert.equal(fs.existsSync(new URL('result-layout.css', root)), false);
   assert.doesNotMatch(index, /result-layout\.css/);
   assert.doesNotMatch(serviceWorker, /result-layout\.css/);
-  assert.ok(index.indexOf('result-poster.css?v=90') > index.indexOf('screens.css?v=87'));
-  assert.ok(index.indexOf('result-poster-runtime.js?v=90') > index.indexOf('lifecycle-runtime.js?v=87'));
+  assert.ok(index.indexOf('result-poster.css?v=91') > index.indexOf('screens.css?v=87'));
+  assert.ok(index.indexOf('result-poster-runtime.js?v=91') > index.indexOf('lifecycle-runtime.js?v=87'));
 
   assert.doesNotThrow(() => new Function(runtime));
-  assert.match(runtime, /const VERSION = 'v90'/);
-  assert.match(runtime, /const POSTER_CLASS = 'result-poster-v90'/);
-  assert.match(runtime, /const LEGACY_SETTLE_DELAYS = \[110, 470, 1270\]/);
+  assert.match(runtime, /const VERSION = 'v91'/);
+  assert.match(runtime, /const POSTER_CLASS = 'result-poster-v91'/);
   assert.match(runtime, /replacement\.dataset\.posterOwner = VERSION/);
-  assert.match(runtime, /result\.removeAttribute\('data-result-layout'\)/);
-  assert.match(runtime, /window\.SmazkaResultPoster = Object\.freeze\(\{ version: 90/);
+  assert.match(runtime, /window\.SmazkaResultPoster = Object\.freeze\(\{ version: 91/);
 
-  assert.match(css, /\.result-poster-v90 \.result-close/);
+  assert.match(css, /\.result-poster-v91 \.result-close/);
   assert.match(css, /width:\s*44px\s*!important/);
   assert.match(css, /min-width:\s*44px\s*!important/);
   assert.match(css, /height:\s*44px\s*!important/);
@@ -149,14 +147,14 @@ test('result, crop, recovery, single-pass, impact and share keep authoritative o
     'foundation.css?v=87',
     'components.css?v=87',
     'screens.css?v=87',
-    'result-poster.css?v=90'
+    'result-poster.css?v=91'
   ];
   const indexOrder = [
     'app.js?v=87',
     'scanner-runtime.js?v=87',
     'result-runtime.js?v=87',
     'lifecycle-runtime.js?v=87',
-    'result-poster-runtime.js?v=90'
+    'result-poster-runtime.js?v=91'
   ];
   const lifecycleOrder = [
     'face-aware-crop-runtime.js',

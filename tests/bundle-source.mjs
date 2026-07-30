@@ -21,11 +21,8 @@ const bundleBySource = new Map([
     'diagnostic-upgrades.js'
   ].map((source) => [source, 'result-runtime.js']),
   ...[
-    'pwa-update-fix.js',
     'privacy-hardening.js',
     'ios-one-screen.js',
-    'result-frame-geometry.js',
-    'in-frame-result.js',
     'face-aware-crop-runtime.js',
     'analysis-state-stability-v84.js',
     'analysis-completion-guard-v84.js',
