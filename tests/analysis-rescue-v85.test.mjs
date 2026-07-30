@@ -44,6 +44,7 @@ test('v85 rescue presentation is restrained, accessible and cached after the com
   assert.ok(rescueIndex > guardIndex);
   assert.ok(singlePassIndex > rescueIndex);
 
-  assert.match(serviceWorker, /const CACHE_VERSION = 'v88'/);
+  assert.match(serviceWorker, /const CACHE_VERSION = 'v89'/);
   assert.match(serviceWorker, /\.\/lifecycle-runtime\.js\?v=87/);
+  assert.match(serviceWorker, /\.\/result-poster-runtime\.js\?v=89/);
 });
