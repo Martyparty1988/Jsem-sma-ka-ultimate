@@ -1,9 +1,9 @@
-/* Smažka v95 — CSS owns geometry; runtime owns identity, badge and detail state. */
+/* Smažka v96 — CSS owns geometry; runtime owns identity, badge and detail state. */
 (() => {
   'use strict';
 
-  const VERSION = 'v95';
-  const POSTER_CLASS = 'result-poster-v95';
+  const VERSION = 'v96';
+  const POSTER_CLASS = 'result-poster-v96';
   const app = window.SmazkaApp;
   const result = app?.elements?.result;
   if (!result) return;
@@ -25,10 +25,7 @@
   }
 
   function currentBadgeLabel() {
-    const weekday = new Intl.DateTimeFormat('cs-CZ', { weekday: 'long' })
-      .format(new Date())
-      .toLocaleUpperCase('cs-CZ');
-    return `SCAN • ${weekday}`;
+    return 'SMAŽKA FAKTOR';
   }
 
   function normalizeBadge() {
@@ -36,6 +33,18 @@
     if (!badge) return;
     const label = currentBadgeLabel();
     if (String(badge.textContent || '').trim() !== label) badge.textContent = label;
+  }
+
+  function promoteScore() {
+    const content = result.querySelector('.result-content');
+    const visual = content?.querySelector('.result-visual');
+    const score = result.querySelector('.effect-label');
+    if (!content || !visual || !score) return;
+
+    score.classList.add('result-score');
+    if (score.parentElement !== content || score.previousElementSibling !== visual) {
+      visual.insertAdjacentElement('afterend', score);
+    }
   }
 
   function updateDetailsLabel(button) {
@@ -103,6 +112,7 @@
     document.body.classList.add('result-in-frame');
     cameraStage?.classList.add('has-in-frame-result');
     appRoot?.toggleAttribute('inert', true);
+    promoteScore();
     ensureDetailsButton();
     normalizeBadge();
   }
