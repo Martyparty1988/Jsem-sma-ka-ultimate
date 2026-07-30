@@ -1,11 +1,9 @@
-/* Smažka v90 — single mobile result owner for Safari and installed PWA. */
+/* Smažka v91 — sole mobile result lifecycle and geometry owner. */
 (() => {
   'use strict';
 
-  const VERSION = 'v90';
-  const POSTER_CLASS = 'result-poster-v90';
-  const LEGACY_CLASS = 'result-poster-v89';
-  const LEGACY_SETTLE_DELAYS = [110, 470, 1270];
+  const VERSION = 'v91';
+  const POSTER_CLASS = 'result-poster-v91';
   const MEDIA_SELECTOR = 'img, canvas';
   const app = window.SmazkaApp;
   const result = app?.elements?.result;
@@ -16,8 +14,6 @@
   const Observer = window.SmazkaMutationObserver || window.MutationObserver;
   const mobileQuery = window.matchMedia('(max-width: 640px)');
   let animationFrame = 0;
-  let followupFrame = 0;
-  let settleTimers = [];
 
   function setImportant(element, property, value) {
     element?.style.setProperty(property, value, 'important');
@@ -86,17 +82,15 @@
 
     let button = result.querySelector('.in-frame-details-toggle');
     if (!button || button.dataset.posterOwner !== VERSION) {
-      const replacement = button?.cloneNode(true) || document.createElement('button');
+      const replacement = document.createElement('button');
       replacement.type = 'button';
       replacement.className = 'in-frame-details-toggle';
       replacement.dataset.posterOwner = VERSION;
-      if (!replacement.querySelector('.in-frame-details-label')) {
-        replacement.innerHTML = '<svg class="ui-icon" aria-hidden="true"><use href="#icon-zap"></use></svg><span class="in-frame-details-label">Zobrazit detailní rozbor</span><i aria-hidden="true">⌄</i>';
-      }
+      replacement.innerHTML = '<svg class="ui-icon" aria-hidden="true"><use href="#icon-zap"></use></svg><span class="in-frame-details-label">Zobrazit detailní rozbor</span><i aria-hidden="true">⌄</i>';
       replacement.addEventListener('click', () => {
         setDetailsOpen(!result.classList.contains('details-open'));
       });
-      if (button) button.replaceWith(replacement);
+      button?.replaceWith(replacement);
       button = replacement;
     }
 
@@ -204,11 +198,8 @@
     if (!content || !visual) return;
 
     const viewport = viewportMetrics();
-    result.classList.remove(LEGACY_CLASS);
     result.classList.add(POSTER_CLASS);
     result.dataset.resultPoster = VERSION;
-    result.removeAttribute('data-result-layout');
-    result.removeAttribute('data-result-viewport-height');
     document.body.classList.add('result-in-frame');
     cameraStage?.classList.add('has-in-frame-result');
     appRoot?.toggleAttribute('inert', true);
@@ -238,9 +229,12 @@
   }
 
   function clearPosterState() {
-    if (!result.classList.contains(POSTER_CLASS) && result.dataset.resultPoster !== VERSION) return;
-    result.classList.remove(POSTER_CLASS, LEGACY_CLASS, 'details-open');
+    result.classList.remove(POSTER_CLASS, 'details-open');
     delete result.dataset.resultPoster;
+    document.body.classList.remove('result-in-frame');
+    cameraStage?.classList.remove('has-in-frame-result');
+    if (!resultVisible()) appRoot?.removeAttribute('inert');
+
     clearProperties(result, [
       'position', 'z-index', 'top', 'right', 'bottom', 'left', 'width', 'height',
       'min-width', 'max-width', 'max-height', 'margin', 'overflow', 'pointer-events', 'isolation'
@@ -260,19 +254,9 @@
     ]);
   }
 
-  function clearSettleTimers() {
-    settleTimers.forEach((timer) => window.clearTimeout(timer));
-    settleTimers = [];
-  }
-
   function scheduleSync() {
     window.cancelAnimationFrame(animationFrame);
-    window.cancelAnimationFrame(followupFrame);
-    clearSettleTimers();
-    animationFrame = window.requestAnimationFrame(() => {
-      followupFrame = window.requestAnimationFrame(syncFrame);
-    });
-    settleTimers = LEGACY_SETTLE_DELAYS.map((delay) => window.setTimeout(syncFrame, delay));
+    animationFrame = window.requestAnimationFrame(syncFrame);
   }
 
   const observer = new Observer(scheduleSync);
@@ -296,11 +280,9 @@
   window.addEventListener('pagehide', () => {
     observer.disconnect();
     window.cancelAnimationFrame(animationFrame);
-    window.cancelAnimationFrame(followupFrame);
-    clearSettleTimers();
     clearPosterState();
   }, { once: true });
 
-  window.SmazkaResultPoster = Object.freeze({ version: 90, sync: scheduleSync });
+  window.SmazkaResultPoster = Object.freeze({ version: 91, sync: scheduleSync });
   scheduleSync();
 })();
