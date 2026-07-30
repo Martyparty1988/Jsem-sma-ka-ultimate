@@ -24,21 +24,21 @@ function serviceWorkerContract() {
   return context.__PWA_TEST__;
 }
 
-test('PWA v93 precaches one compact production shell with no retired entries', () => {
+test('PWA v94 precaches one compact production shell with no retired entries', () => {
   const { CACHE_NAME, APP_SHELL } = serviceWorkerContract();
   const assets = new Set(APP_SHELL);
 
-  assert.equal(CACHE_NAME, 'jsem-smazka-v93');
+  assert.equal(CACHE_NAME, 'jsem-smazka-v94');
   [
     './foundation.css?v=87',
     './components.css?v=87',
     './screens.css?v=87',
-    './result-poster.css?v=93',
+    './result-poster.css?v=94',
     './app.js?v=87',
     './scanner-runtime.js?v=87',
     './result-runtime.js?v=87',
     './lifecycle-runtime.js?v=87',
-    './result-poster-runtime.js?v=93',
+    './result-poster-runtime.js?v=94',
     './responses.json',
     './responses-hard.json?v=64',
     './responses-pernik.json?v=64'
@@ -49,9 +49,11 @@ test('PWA v93 precaches one compact production shell with no retired entries', (
     './result-poster.css?v=89',
     './result-poster.css?v=91',
     './result-poster.css?v=92',
+    './result-poster.css?v=93',
     './result-poster-runtime.js?v=89',
     './result-poster-runtime.js?v=91',
     './result-poster-runtime.js?v=92',
+    './result-poster-runtime.js?v=93',
     './bundle-base.css?v=60',
     './scan-theme.css?v=65',
     './legacy-share-bypass-v79.js?v=79',
@@ -79,7 +81,7 @@ test('MediaPipe uses a stable request-driven cache and never install-precaches W
   assert.match(serviceWorker, /key !== CACHE_NAME && key !== FACE_MODEL_CACHE/);
 });
 
-test('HTML entries, bundle sections and dynamic files agree with the v93 cache graph', () => {
+test('HTML entries, bundle sections and dynamic files agree with the v94 cache graph', () => {
   const { APP_SHELL } = serviceWorkerContract();
   const appAssets = new Set(APP_SHELL);
   const index = readRoot('index.html');
@@ -111,7 +113,7 @@ test('HTML entries, bundle sections and dynamic files agree with the v93 cache g
   });
 });
 
-test('v93 CSS is the sole mobile composition owner', () => {
+test('v94 poster uses one compact bottom stack and keeps geometry out of runtime', () => {
   const index = readRoot('index.html');
   const css = readRoot('result-poster.css');
   const runtime = readRoot('result-poster-runtime.js');
@@ -120,33 +122,38 @@ test('v93 CSS is the sole mobile composition owner', () => {
   assert.equal(fs.existsSync(new URL('result-layout.css', root)), false);
   assert.doesNotMatch(index, /result-layout\.css/);
   assert.doesNotMatch(serviceWorker, /result-layout\.css/);
-  assert.ok(index.indexOf('result-poster.css?v=93') > index.indexOf('screens.css?v=87'));
-  assert.ok(index.indexOf('result-poster-runtime.js?v=93') > index.indexOf('lifecycle-runtime.js?v=87'));
-  assert.match(index, /class="result result-poster-v93 hidden"/);
-  assert.match(index, /data-result-poster="v93"/);
+  assert.ok(index.indexOf('result-poster.css?v=94') > index.indexOf('screens.css?v=87'));
+  assert.ok(index.indexOf('result-poster-runtime.js?v=94') > index.indexOf('lifecycle-runtime.js?v=87'));
+  assert.match(index, /class="result result-poster-v94 hidden"/);
+  assert.match(index, /data-result-poster="v94"/);
 
   assert.doesNotThrow(() => new Function(runtime));
-  assert.match(runtime, /const VERSION = 'v93'/);
-  assert.match(runtime, /const POSTER_CLASS = 'result-poster-v93'/);
+  assert.match(runtime, /const VERSION = 'v94'/);
+  assert.match(runtime, /const POSTER_CLASS = 'result-poster-v94'/);
+  assert.match(runtime, /new Intl\.DateTimeFormat\('cs-CZ', \{ weekday: 'long' \}\)/);
+  assert.match(runtime, /return `SCAN • \$\{weekday\}`/);
   assert.match(runtime, /replacement\.dataset\.posterOwner = VERSION/);
-  assert.match(runtime, /window\.SmazkaResultPoster = Object\.freeze\(\{ version: 93/);
+  assert.match(runtime, /window\.SmazkaResultPoster = Object\.freeze\(\{ version: 94/);
   assert.doesNotMatch(runtime, /setImportant|viewportMetrics|syncClosedComposition|syncDetailsComposition/);
   assert.doesNotMatch(runtime, /padding-top|object-position|100dvh|visualViewport\?\.width/);
 
   assert.match(css, /body\.result-open \.result:not\(\.hidden\)/);
   assert.match(css, /height:\s*100dvh\s*!important/);
   assert.match(css, /width:\s*100dvw\s*!important/);
-  assert.match(css, /\.result-poster-v93:not\(\.details-open\) #resultTitle/);
-  assert.match(css, /bottom:\s*calc\(max\(12px, env\(safe-area-inset-bottom\)\) \+ 224px\)\s*!important/);
-  assert.match(css, /\.result-poster-v93:not\(\.details-open\) \.result-actions/);
-  assert.match(css, /top:\s*48%\s*!important/);
+  assert.match(css, /\.result-poster-v94:not\(\.details-open\) \.result-content/);
+  assert.match(css, /display:\s*grid\s*!important/);
+  assert.match(css, /align-content:\s*end/);
+  assert.match(css, /grid-auto-rows:\s*max-content/);
+  assert.match(css, /bottom:\s*calc\(var\(--result-safe-bottom\) \+ 278px\)\s*!important/);
+  assert.match(css, /position:\s*relative\s*!important/);
   assert.match(css, /width:\s*44px\s*!important/);
   assert.match(css, /min-height:\s*44px\s*!important/);
   assert.match(css, /grid-template-columns:\s*auto minmax\(0, 1fr\)/);
   assert.match(css, /linear-gradient\(100deg, #2edaf0 0%, #22e8d0 53%, #30f2a0 100%\)/);
+  assert.doesNotMatch(css, /top:\s*48%\s*!important/);
 
-  assert.doesNotMatch(index, /result-poster\.css\?v=(?:89|91|92)|result-poster-runtime\.js\?v=(?:89|91|92)/);
-  assert.doesNotMatch(css, /result-poster-v(?:89|91|92)/);
+  assert.doesNotMatch(index, /result-poster\.css\?v=(?:89|91|92|93)|result-poster-runtime\.js\?v=(?:89|91|92|93)/);
+  assert.doesNotMatch(css, /result-poster-v(?:89|91|92|93)/);
 });
 
 test('result, crop, recovery, single-pass, impact and share keep authoritative order', () => {
@@ -156,14 +163,14 @@ test('result, crop, recovery, single-pass, impact and share keep authoritative o
     'foundation.css?v=87',
     'components.css?v=87',
     'screens.css?v=87',
-    'result-poster.css?v=93'
+    'result-poster.css?v=94'
   ];
   const indexOrder = [
     'app.js?v=87',
     'scanner-runtime.js?v=87',
     'result-runtime.js?v=87',
     'lifecycle-runtime.js?v=87',
-    'result-poster-runtime.js?v=93'
+    'result-poster-runtime.js?v=94'
   ];
   const lifecycleOrder = [
     'face-aware-crop-runtime.js',
@@ -248,7 +255,7 @@ test('retired source files and result layout layers cannot return', () => {
   ].forEach((file) => assert.equal(fs.existsSync(new URL(file, root)), false, file));
 
   const index = readRoot('index.html');
-  assert.doesNotMatch(index, /share-card\.png|result-layout\.css|result-poster\.css\?v=(?:89|91|92)/);
+  assert.doesNotMatch(index, /share-card\.png|result-layout\.css|result-poster\.css\?v=(?:89|91|92|93)/);
   assert.match(index, /icon-512\.png/);
 });
 

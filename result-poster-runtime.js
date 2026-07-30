@@ -1,9 +1,9 @@
-/* Smažka v93 — CSS owns result geometry; runtime only owns state and detail toggle. */
+/* Smažka v94 — CSS owns result geometry; runtime only owns identity, badge and detail state. */
 (() => {
   'use strict';
 
-  const VERSION = 'v93';
-  const POSTER_CLASS = 'result-poster-v93';
+  const VERSION = 'v94';
+  const POSTER_CLASS = 'result-poster-v94';
   const app = window.SmazkaApp;
   const result = app?.elements?.result;
   if (!result) return;
@@ -24,12 +24,18 @@
       && (result.open || result.hasAttribute('open') || document.body.classList.contains('result-open'));
   }
 
+  function currentBadgeLabel() {
+    const weekday = new Intl.DateTimeFormat('cs-CZ', { weekday: 'long' })
+      .format(new Date())
+      .toLocaleUpperCase('cs-CZ');
+    return `SCAN • ${weekday}`;
+  }
+
   function normalizeBadge() {
     const badge = result.querySelector('.result-badge');
     if (!badge) return;
-    const value = String(badge.textContent || '').trim();
-    if (!value.includes('//')) return;
-    badge.textContent = `SCAN • ${value.split('//').pop().trim().toLocaleUpperCase('cs-CZ')}`;
+    const label = currentBadgeLabel();
+    if (String(badge.textContent || '').trim() !== label) badge.textContent = label;
   }
 
   function updateDetailsLabel(button) {
@@ -112,6 +118,7 @@
   observer.observe(result, {
     childList: true,
     subtree: true,
+    characterData: true,
     attributes: true,
     attributeFilter: ['class', 'hidden', 'open']
   });
@@ -130,6 +137,6 @@
     window.cancelAnimationFrame(animationFrame);
   }, { once: true });
 
-  window.SmazkaResultPoster = Object.freeze({ version: 93, sync: scheduleSync });
+  window.SmazkaResultPoster = Object.freeze({ version: 94, sync: scheduleSync });
   scheduleSync();
 })();
