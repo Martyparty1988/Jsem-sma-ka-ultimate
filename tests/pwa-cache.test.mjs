@@ -25,20 +25,22 @@ globalThis.__PWA_TEST__ = { CACHE_NAME, FACE_MODEL_CACHE, APP_SHELL };`;
   return context.__PWA_TEST__;
 }
 
-test('PWA v88 precaches one compact production shell with no retired entries', () => {
+test('PWA v89 precaches one compact production shell with no retired entries', () => {
   const { CACHE_NAME, APP_SHELL } = serviceWorkerContract();
   const assets = new Set(APP_SHELL);
 
-  assert.equal(CACHE_NAME, 'jsem-smazka-v88');
+  assert.equal(CACHE_NAME, 'jsem-smazka-v89');
   [
     './foundation.css?v=87',
     './components.css?v=87',
     './screens.css?v=87',
     './result-layout.css?v=88',
+    './result-poster.css?v=89',
     './app.js?v=87',
     './scanner-runtime.js?v=87',
     './result-runtime.js?v=87',
     './lifecycle-runtime.js?v=87',
+    './result-poster-runtime.js?v=89',
     './responses.json',
     './responses-hard.json?v=64',
     './responses-pernik.json?v=64'
@@ -72,7 +74,7 @@ test('MediaPipe uses a stable request-driven cache and never install-precaches W
   assert.match(serviceWorker, /key !== CACHE_NAME && key !== FACE_MODEL_CACHE/);
 });
 
-test('HTML entries, bundle sections and dynamic files agree with the v88 cache graph', () => {
+test('HTML entries, bundle sections and dynamic files agree with the v89 cache graph', () => {
   const { APP_SHELL } = serviceWorkerContract();
   const appAssets = new Set(APP_SHELL);
   const index = readRoot('index.html');
@@ -123,11 +125,42 @@ test('result layout authority loads last and locks mobile geometry', () => {
   assert.match(css, /grid-template-columns:\s*auto minmax\(0, 1fr\)/);
 });
 
+test('poster result v89 loads after legacy geometry and owns the mobile hero composition', () => {
+  const index = readRoot('index.html');
+  const css = readRoot('result-poster.css');
+  const runtime = readRoot('result-poster-runtime.js');
+
+  assert.doesNotThrow(() => new Function(runtime));
+  assert.ok(index.indexOf('result-poster.css?v=89') > index.indexOf('result-layout.css?v=88'));
+  assert.ok(index.indexOf('result-poster-runtime.js?v=89') > index.indexOf('lifecycle-runtime.js?v=87'));
+  assert.match(runtime, /result-poster-v89/);
+  assert.match(runtime, /clamp\(455px, 62dvh, 630px\)/);
+  assert.match(runtime, /SCAN • \$\{context\}/);
+  assert.match(runtime, /window\.SmazkaMutationObserver \|\| window\.MutationObserver/);
+  assert.match(css, /\.result-poster-v89:not\(\.details-open\) \.result-visual/);
+  assert.match(css, /top:\s*54%\s*!important/);
+  assert.match(css, /font-size:\s*clamp\(4\.4rem, 23vw, 6\.6rem\)\s*!important/);
+  assert.match(css, /linear-gradient\(100deg, #2edaf0 0%, #22e8d0 53%, #30f2a0 100%\)/);
+  assert.match(css, /\.result-poster-v89\.details-open \.diagnostic-panel/);
+});
+
 test('result, crop, recovery, single-pass, impact and share keep authoritative order', () => {
   const index = readRoot('index.html');
   const lifecycle = readRoot('lifecycle-runtime.js');
-  const stylesheetOrder = ['foundation.css?v=87', 'components.css?v=87', 'screens.css?v=87', 'result-layout.css?v=88'];
-  const indexOrder = ['app.js?v=87', 'scanner-runtime.js?v=87', 'result-runtime.js?v=87', 'lifecycle-runtime.js?v=87'];
+  const stylesheetOrder = [
+    'foundation.css?v=87',
+    'components.css?v=87',
+    'screens.css?v=87',
+    'result-layout.css?v=88',
+    'result-poster.css?v=89'
+  ];
+  const indexOrder = [
+    'app.js?v=87',
+    'scanner-runtime.js?v=87',
+    'result-runtime.js?v=87',
+    'lifecycle-runtime.js?v=87',
+    'result-poster-runtime.js?v=89'
+  ];
   const lifecycleOrder = [
     'result-frame-geometry.js',
     'in-frame-result.js',
@@ -189,7 +222,8 @@ test('all DOM watchers share one native MutationObserver', () => {
     app,
     readRoot('scanner-runtime.js'),
     readRoot('result-runtime.js'),
-    readRoot('lifecycle-runtime.js')
+    readRoot('lifecycle-runtime.js'),
+    readRoot('result-poster-runtime.js')
   ].join('\n');
 
   assert.match(app, /new NativeMutationObserver\(dispatchRecords\)/);
