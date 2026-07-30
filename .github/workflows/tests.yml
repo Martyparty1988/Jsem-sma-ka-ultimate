@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   test:
@@ -17,34 +17,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.pull_request.head.ref || github.ref }}
-          fetch-depth: 0
-
       - name: Set up Node
         uses: actions/setup-node@v4
         with:
           node-version: 22
-
-      - name: Prune obsolete lifecycle sections
-        if: github.event_name == 'pull_request' && github.head_ref == 'cleanup/lifecycle-v91'
-        run: |
-          if [ -f scripts/prune-lifecycle-v91.mjs ]; then
-            node scripts/prune-lifecycle-v91.mjs
-          fi
-
       - name: Run test suite
         run: node --test tests/*.test.mjs
-
-      - name: Commit generated cleanup
-        if: github.event_name == 'pull_request' && github.head_ref == 'cleanup/lifecycle-v91'
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add lifecycle-runtime.js result-poster.css index.html service-worker.js tests
-          if git diff --cached --quiet; then
-            echo "No generated cleanup to commit."
-            exit 0
-          fi
-          git commit -m "Prune obsolete lifecycle result owners"
-          git push origin HEAD:${{ github.head_ref }}
