@@ -1,6 +1,7 @@
 const CACHE_VERSION = 'v89';
 const CACHE_NAME = `jsem-smazka-${CACHE_VERSION}`;
 const FACE_MODEL_CACHE = 'jsem-smazka-face-model-v1';
+const UPDATE_STATE_KEY = './__smazka-update-state-v89';
 
 const APP_SHELL = [
   './',
@@ -24,32 +25,57 @@ const APP_SHELL = [
   './responses-pernik.json?v=64'
 ];
 
-self.addEventListener(`install`, (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(APP_SHELL))
-  );
-  // Activation remains user-controlled through the visible update action.
+self.addEventListener('install', (event) => {
+  event.waitUntil((async () => {
+    const isUpdate = Boolean(self.registration.active);
+    const cache = await caches.open(CACHE_NAME);
+    await cache.addAll(APP_SHELL);
+    await cache.put(UPDATE_STATE_KEY, new Response(isUpdate ? 'reload' : 'first-install'));
+    await self.skipWaiting();
+  })());
 });
 
-self.addEventListener(`activate`, (event) => {
-  event.waitUntil(
-    caches.keys()
-      .then((keys) => Promise.all(
-        keys
-          .filter((key) => key !== CACHE_NAME && key !== FACE_MODEL_CACHE)
-          .map((key) => caches.delete(key))
-      ))
-      .then(() => self.clients.claim())
-  );
+self.addEventListener('activate', (event) => {
+  event.waitUntil((async () => {
+    const cache = await caches.open(CACHE_NAME);
+    const updateState = await cache.match(UPDATE_STATE_KEY);
+    const shouldReloadClients = (await updateState?.text()) === 'reload';
+    await cache.delete(UPDATE_STATE_KEY);
+
+    const keys = await caches.keys();
+    await Promise.all(
+      keys
+        .filter((key) => key !== CACHE_NAME && key !== FACE_MODEL_CACHE)
+        .map((key) => caches.delete(key))
+    );
+
+    await self.clients.claim();
+    if (!shouldReloadClients) return;
+
+    const clients = await self.clients.matchAll({
+      type: 'window',
+      includeUncontrolled: true
+    });
+
+    await Promise.all(clients.map(async (client) => {
+      try {
+        const url = new URL(client.url);
+        if (url.origin !== self.location.origin) return;
+        await client.navigate(url.href);
+      } catch {
+        // A closing Safari tab can disappear between matchAll() and navigate().
+      }
+    }));
+  })());
 });
 
-self.addEventListener(`message`, (event) => {
-  if (event.data?.type === `SKIP_WAITING`) {
+self.addEventListener('message', (event) => {
+  if (event.data?.type === 'SKIP_WAITING') {
     event.waitUntil(self.skipWaiting());
   }
 });
 
-self.addEventListener(`fetch`, (event) => {
+self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
 
   const requestUrl = new URL(event.request.url);
