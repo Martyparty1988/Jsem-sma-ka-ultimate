@@ -66,11 +66,15 @@ for (const entry of fs.readdirSync(path.join(root, 'tests'))) {
   const file = path.join('tests', entry);
   let content = read(file)
     .replaceAll('v90', 'v91')
+    .replaceAll('v=90', 'v=91')
     .replaceAll('version: 90', 'version: 91')
     .replace(/^.*LEGACY_SETTLE_DELAYS.*\n/gm, '')
     .replace(/^.*data-result-layout.*\n/gm, '');
   write(file, content);
 }
+
+const retiredGeometryTest = path.join(root, 'tests/result-frame-geometry.test.mjs');
+if (fs.existsSync(retiredGeometryTest)) fs.rmSync(retiredGeometryTest);
 
 const oldUpdateTest = path.join(root, 'tests/pwa-update-delivery-v90.test.mjs');
 const newUpdateTest = path.join(root, 'tests/pwa-update-delivery-v91.test.mjs');
