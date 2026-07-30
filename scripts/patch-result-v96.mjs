@@ -10,8 +10,10 @@ function replaceOnce(content, from, to, label) {
 
 function bump(path) {
   const source = read(path);
-  if (!source.includes('v95')) throw new Error(`Missing v95 marker in ${path}`);
-  write(path, source.replaceAll('v95', 'v96'));
+  if (!source.includes('v95') && !source.includes('v=95')) {
+    throw new Error(`Missing v95 marker in ${path}`);
+  }
+  write(path, source.replaceAll('v95', 'v96').replaceAll('v=95', 'v=96'));
 }
 
 [
