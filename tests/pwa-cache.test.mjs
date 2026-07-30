@@ -7,8 +7,7 @@ import { readBundleSection, readRoot } from './bundle-source.mjs';
 const root = new URL('../', import.meta.url);
 
 function serviceWorkerContract() {
-  const source = `${readRoot('service-worker.js')}
-globalThis.__PWA_TEST__ = { CACHE_NAME, FACE_MODEL_CACHE, APP_SHELL };`;
+  const source = `${readRoot('service-worker.js')}\nglobalThis.__PWA_TEST__ = { CACHE_NAME, FACE_MODEL_CACHE, APP_SHELL };`;
   const context = {
     URL,
     Response,
@@ -25,21 +24,21 @@ globalThis.__PWA_TEST__ = { CACHE_NAME, FACE_MODEL_CACHE, APP_SHELL };`;
   return context.__PWA_TEST__;
 }
 
-test('PWA v92 precaches one compact production shell with no retired entries', () => {
+test('PWA v93 precaches one compact production shell with no retired entries', () => {
   const { CACHE_NAME, APP_SHELL } = serviceWorkerContract();
   const assets = new Set(APP_SHELL);
 
-  assert.equal(CACHE_NAME, 'jsem-smazka-v92');
+  assert.equal(CACHE_NAME, 'jsem-smazka-v93');
   [
     './foundation.css?v=87',
     './components.css?v=87',
     './screens.css?v=87',
-    './result-poster.css?v=92',
+    './result-poster.css?v=93',
     './app.js?v=87',
     './scanner-runtime.js?v=87',
     './result-runtime.js?v=87',
     './lifecycle-runtime.js?v=87',
-    './result-poster-runtime.js?v=92',
+    './result-poster-runtime.js?v=93',
     './responses.json',
     './responses-hard.json?v=64',
     './responses-pernik.json?v=64'
@@ -49,8 +48,10 @@ test('PWA v92 precaches one compact production shell with no retired entries', (
     './result-layout.css?v=88',
     './result-poster.css?v=89',
     './result-poster.css?v=91',
+    './result-poster.css?v=92',
     './result-poster-runtime.js?v=89',
     './result-poster-runtime.js?v=91',
+    './result-poster-runtime.js?v=92',
     './bundle-base.css?v=60',
     './scan-theme.css?v=65',
     './legacy-share-bypass-v79.js?v=79',
@@ -78,7 +79,7 @@ test('MediaPipe uses a stable request-driven cache and never install-precaches W
   assert.match(serviceWorker, /key !== CACHE_NAME && key !== FACE_MODEL_CACHE/);
 });
 
-test('HTML entries, bundle sections and dynamic files agree with the v92 cache graph', () => {
+test('HTML entries, bundle sections and dynamic files agree with the v93 cache graph', () => {
   const { APP_SHELL } = serviceWorkerContract();
   const appAssets = new Set(APP_SHELL);
   const index = readRoot('index.html');
@@ -110,7 +111,7 @@ test('HTML entries, bundle sections and dynamic files agree with the v92 cache g
   });
 });
 
-test('v92 poster owns the mobile viewport before observers or cached runtimes can race', () => {
+test('v93 CSS is the sole mobile composition owner', () => {
   const index = readRoot('index.html');
   const css = readRoot('result-poster.css');
   const runtime = readRoot('result-poster-runtime.js');
@@ -119,36 +120,33 @@ test('v92 poster owns the mobile viewport before observers or cached runtimes ca
   assert.equal(fs.existsSync(new URL('result-layout.css', root)), false);
   assert.doesNotMatch(index, /result-layout\.css/);
   assert.doesNotMatch(serviceWorker, /result-layout\.css/);
-  assert.ok(index.indexOf('result-poster.css?v=92') > index.indexOf('screens.css?v=87'));
-  assert.ok(index.indexOf('result-poster-runtime.js?v=92') > index.indexOf('lifecycle-runtime.js?v=87'));
-  assert.match(index, /class="result result-poster-v92 hidden"/);
-  assert.match(index, /data-result-poster="v92"/);
+  assert.ok(index.indexOf('result-poster.css?v=93') > index.indexOf('screens.css?v=87'));
+  assert.ok(index.indexOf('result-poster-runtime.js?v=93') > index.indexOf('lifecycle-runtime.js?v=87'));
+  assert.match(index, /class="result result-poster-v93 hidden"/);
+  assert.match(index, /data-result-poster="v93"/);
 
   assert.doesNotThrow(() => new Function(runtime));
-  assert.match(runtime, /const VERSION = 'v92'/);
-  assert.match(runtime, /const POSTER_CLASS = 'result-poster-v92'/);
-  assert.match(runtime, /function installPosterIdentity\(\)/);
-  assert.match(runtime, /result\.classList\.add\(POSTER_CLASS\)/);
-  assert.match(runtime, /installPosterIdentity\(\);\s*\n\s*const observer/);
+  assert.match(runtime, /const VERSION = 'v93'/);
+  assert.match(runtime, /const POSTER_CLASS = 'result-poster-v93'/);
   assert.match(runtime, /replacement\.dataset\.posterOwner = VERSION/);
-  assert.match(runtime, /clamp\(330px, 54dvh, 520px\)/);
-  assert.match(runtime, /window\.SmazkaResultPoster = Object\.freeze\(\{ version: 92/);
+  assert.match(runtime, /window\.SmazkaResultPoster = Object\.freeze\(\{ version: 93/);
+  assert.doesNotMatch(runtime, /setImportant|viewportMetrics|syncClosedComposition|syncDetailsComposition/);
+  assert.doesNotMatch(runtime, /padding-top|object-position|100dvh|visualViewport\?\.width/);
 
   assert.match(css, /body\.result-open \.result:not\(\.hidden\)/);
   assert.match(css, /height:\s*100dvh\s*!important/);
   assert.match(css, /width:\s*100dvw\s*!important/);
-  assert.match(css, /border-radius:\s*0\s*!important/);
-  assert.match(css, /max\(28px, env\(safe-area-inset-bottom\)\)/);
+  assert.match(css, /\.result-poster-v93:not\(\.details-open\) #resultTitle/);
+  assert.match(css, /bottom:\s*calc\(max\(12px, env\(safe-area-inset-bottom\)\) \+ 224px\)\s*!important/);
+  assert.match(css, /\.result-poster-v93:not\(\.details-open\) \.result-actions/);
+  assert.match(css, /top:\s*48%\s*!important/);
   assert.match(css, /width:\s*44px\s*!important/);
-  assert.match(css, /min-width:\s*44px\s*!important/);
-  assert.match(css, /height:\s*44px\s*!important/);
   assert.match(css, /min-height:\s*44px\s*!important/);
   assert.match(css, /grid-template-columns:\s*auto minmax\(0, 1fr\)/);
-  assert.match(css, /top:\s*46%\s*!important/);
   assert.match(css, /linear-gradient\(100deg, #2edaf0 0%, #22e8d0 53%, #30f2a0 100%\)/);
 
-  assert.doesNotMatch(index, /result-poster\.css\?v=(?:89|91)|result-poster-runtime\.js\?v=(?:89|91)/);
-  assert.doesNotMatch(css, /result-poster-v(?:89|91)/);
+  assert.doesNotMatch(index, /result-poster\.css\?v=(?:89|91|92)|result-poster-runtime\.js\?v=(?:89|91|92)/);
+  assert.doesNotMatch(css, /result-poster-v(?:89|91|92)/);
 });
 
 test('result, crop, recovery, single-pass, impact and share keep authoritative order', () => {
@@ -158,14 +156,14 @@ test('result, crop, recovery, single-pass, impact and share keep authoritative o
     'foundation.css?v=87',
     'components.css?v=87',
     'screens.css?v=87',
-    'result-poster.css?v=92'
+    'result-poster.css?v=93'
   ];
   const indexOrder = [
     'app.js?v=87',
     'scanner-runtime.js?v=87',
     'result-runtime.js?v=87',
     'lifecycle-runtime.js?v=87',
-    'result-poster-runtime.js?v=92'
+    'result-poster-runtime.js?v=93'
   ];
   const lifecycleOrder = [
     'face-aware-crop-runtime.js',
@@ -250,7 +248,7 @@ test('retired source files and result layout layers cannot return', () => {
   ].forEach((file) => assert.equal(fs.existsSync(new URL(file, root)), false, file));
 
   const index = readRoot('index.html');
-  assert.doesNotMatch(index, /share-card\.png|result-layout\.css|result-poster\.css\?v=(?:89|91)/);
+  assert.doesNotMatch(index, /share-card\.png|result-layout\.css|result-poster\.css\?v=(?:89|91|92)/);
   assert.match(index, /icon-512\.png/);
 });
 
