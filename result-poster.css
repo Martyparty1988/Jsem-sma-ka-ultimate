@@ -1,4 +1,4 @@
-/* Smažka v94 — one CSS-owned mobile result composition with a compact bottom stack. */
+/* Smažka v95 — fixed photo layer + one normal-flow mobile result grid. */
 .result,
 .result * {
   box-sizing: border-box;
@@ -19,7 +19,7 @@
   }
 
   body.result-open .result:not(.hidden),
-  .result.result-poster-v94:not(.hidden) {
+  .result.result-poster-v95:not(.hidden) {
     --result-safe-top: max(12px, env(safe-area-inset-top));
     --result-safe-bottom: max(12px, env(safe-area-inset-bottom));
     position: fixed !important;
@@ -44,16 +44,16 @@
   }
 
   body.result-open .result::backdrop,
-  .result.result-poster-v94::backdrop {
+  .result.result-poster-v95::backdrop {
     background: #02060c;
   }
 
-  .result.result-poster-v94::before {
+  .result.result-poster-v95::before {
     display: none !important;
     content: none !important;
   }
 
-  .result-poster-v94 .result-content {
+  .result-poster-v95 .result-content {
     isolation: isolate;
     position: relative !important;
     width: 100% !important;
@@ -63,78 +63,77 @@
     color: #f8fbff;
   }
 
-  .result-poster-v94:not(.details-open) .result-content {
+  .result-poster-v95:not(.details-open) .result-content {
     display: grid !important;
     grid-template-columns: minmax(0, 1fr) !important;
-    grid-auto-rows: max-content;
-    align-content: end;
+    grid-template-rows: minmax(112px, 1fr) auto auto auto auto auto;
     align-items: stretch;
-    gap: 8px;
-    padding: calc(var(--result-safe-top) + 64px) 14px var(--result-safe-bottom) !important;
+    gap: 7px;
+    padding: calc(var(--result-safe-top) + 58px) 14px var(--result-safe-bottom) !important;
     overflow: hidden !important;
   }
 
-  .result-poster-v94 .result-visual {
-    position: absolute !important;
-    inset: 0 !important;
-    z-index: 0 !important;
-    width: 100% !important;
-    height: 100% !important;
-    min-height: 100% !important;
-    max-height: none !important;
-    margin: 0 !important;
-    overflow: hidden !important;
-    border: 0 !important;
-    border-radius: 0 !important;
-    background: #030810 !important;
-    box-shadow: none !important;
-    pointer-events: none;
-  }
-
-  .result-poster-v94 .result-visual img,
-  .result-poster-v94 .result-visual canvas {
-    position: absolute !important;
-    inset: 0 !important;
-    width: 100% !important;
-    height: 100% !important;
-    min-width: 100% !important;
-    min-height: 100% !important;
-    max-width: none !important;
-    max-height: none !important;
-    display: block !important;
-    object-fit: cover !important;
-    object-position: 50% 42% !important;
-    transform: none !important;
-    filter: saturate(1.06) contrast(1.04) brightness(0.94);
-  }
-
-  .result-poster-v94 .result-visual::before,
-  .result-poster-v94 .result-visual::after {
+  .result-poster-v95:not(.details-open) .result-content::before,
+  .result-poster-v95:not(.details-open) .result-content::after {
     content: '';
-    position: absolute;
+    position: fixed;
     inset: 0;
     pointer-events: none;
   }
 
-  .result-poster-v94 .result-visual::before {
-    z-index: 3;
+  .result-poster-v95:not(.details-open) .result-content::before {
+    z-index: 1;
     opacity: 0.18;
     background:
       repeating-linear-gradient(180deg, transparent 0 5px, rgba(115, 239, 255, 0.04) 6px),
-      radial-gradient(circle at 50% 36%, transparent 20%, rgba(1, 5, 11, 0.2) 72%, rgba(1, 4, 9, 0.74) 100%);
+      radial-gradient(circle at 50% 35%, transparent 18%, rgba(1, 5, 11, 0.16) 68%, rgba(1, 4, 9, 0.58) 100%);
     mix-blend-mode: screen;
   }
 
-  .result-poster-v94 .result-visual::after {
-    z-index: 4;
+  .result-poster-v95:not(.details-open) .result-content::after {
+    z-index: 2;
     background:
-      linear-gradient(180deg, rgba(1, 5, 11, 0.02) 0%, rgba(1, 5, 11, 0.02) 30%, rgba(1, 6, 12, 0.1) 45%, rgba(1, 6, 13, 0.54) 62%, rgba(2, 7, 17, 0.88) 78%, #02060c 100%),
-      radial-gradient(circle at 50% 55%, rgba(20, 221, 236, 0.08), transparent 38%);
-    box-shadow: inset 0 -90px 110px rgba(0, 0, 0, 0.58);
+      linear-gradient(180deg, rgba(1, 5, 11, 0.02) 0%, rgba(1, 5, 11, 0.01) 34%, rgba(1, 6, 12, 0.08) 48%, rgba(1, 6, 13, 0.46) 63%, rgba(2, 7, 17, 0.88) 78%, #02060c 100%),
+      radial-gradient(circle at 50% 58%, rgba(20, 221, 236, 0.08), transparent 38%);
+    box-shadow: inset 0 -90px 110px rgba(0, 0, 0, 0.56);
   }
 
-  .result-poster-v94 .result-close {
-    position: absolute !important;
+  /* Closed poster: the figure box disappears, its children join the main grid. */
+  .result-poster-v95:not(.details-open) .result-visual {
+    display: contents !important;
+  }
+
+  .result-poster-v95:not(.details-open) .result-visual img,
+  .result-poster-v95:not(.details-open) .result-visual canvas {
+    position: fixed !important;
+    inset: 0 !important;
+    z-index: 0 !important;
+    width: 100dvw !important;
+    min-width: 100dvw !important;
+    max-width: none !important;
+    height: 100dvh !important;
+    min-height: 100dvh !important;
+    max-height: none !important;
+    display: block !important;
+    object-fit: cover !important;
+    object-position: 50% 40% !important;
+    transform: none !important;
+    filter: saturate(1.06) contrast(1.04) brightness(0.95);
+    pointer-events: none !important;
+  }
+
+  .result-poster-v95:not(.details-open) .effect-noise {
+    position: fixed !important;
+    inset: 0 !important;
+    z-index: 2 !important;
+    width: 100dvw !important;
+    height: 100dvh !important;
+    opacity: 0.07 !important;
+    pointer-events: none !important;
+  }
+
+  .result-poster-v95 .result-close {
+    position: fixed !important;
     z-index: 40 !important;
     top: var(--result-safe-top) !important;
     right: 12px !important;
@@ -159,13 +158,13 @@
     -webkit-backdrop-filter: blur(14px) saturate(118%);
   }
 
-  .result-poster-v94 .result-close:focus-visible {
+  .result-poster-v95 .result-close:focus-visible {
     outline: 2px solid rgba(67, 231, 220, 0.9) !important;
     outline-offset: 2px !important;
   }
 
-  .result-poster-v94:not(.details-open) .result-badge {
-    position: absolute !important;
+  .result-poster-v95:not(.details-open) .result-badge {
+    position: fixed !important;
     z-index: 20 !important;
     top: var(--result-safe-top) !important;
     left: 50% !important;
@@ -193,64 +192,64 @@
     -webkit-backdrop-filter: blur(16px) saturate(126%);
   }
 
-  .result-poster-v94:not(.details-open) .effect-label,
-  .result-poster-v94:not(.details-open) .effect-label.result-score {
-    position: absolute !important;
+  .result-poster-v95:not(.details-open) .effect-label,
+  .result-poster-v95:not(.details-open) .effect-label.result-score {
+    grid-row: 2;
+    position: relative !important;
+    inset: auto !important;
     z-index: 14 !important;
-    top: auto !important;
-    right: auto !important;
-    bottom: calc(var(--result-safe-bottom) + 278px) !important;
-    left: 50% !important;
-    width: min(calc(100% - 38px), 370px) !important;
-    min-height: 112px;
+    justify-self: center;
+    width: min(100%, 370px) !important;
+    min-height: 104px;
     display: flex !important;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 4px;
-    padding: 14px 26px 11px !important;
+    gap: 3px;
+    margin: 0 !important;
+    padding: 13px 24px 10px !important;
     overflow: visible;
     border: 1px solid rgba(72, 223, 237, 0.48) !important;
-    border-radius: 24px 24px 34px 34px !important;
-    background: linear-gradient(180deg, rgba(7, 22, 38, 0.87), rgba(3, 12, 25, 0.94)) !important;
+    border-radius: 24px 24px 32px 32px !important;
+    background: linear-gradient(180deg, rgba(7, 22, 38, 0.86), rgba(3, 12, 25, 0.94)) !important;
     color: #f8fbff !important;
     text-align: center;
-    transform: translateX(-50%) !important;
-    box-shadow: 0 20px 54px rgba(0, 0, 0, 0.44), 0 0 32px rgba(19, 215, 231, 0.18), inset 0 1px rgba(255, 255, 255, 0.08) !important;
+    transform: none !important;
+    box-shadow: 0 18px 46px rgba(0, 0, 0, 0.42), 0 0 28px rgba(19, 215, 231, 0.17), inset 0 1px rgba(255, 255, 255, 0.08) !important;
     backdrop-filter: blur(18px) saturate(124%);
     -webkit-backdrop-filter: blur(18px) saturate(124%);
   }
 
-  .result-poster-v94:not(.details-open) .effect-label span {
+  .result-poster-v95:not(.details-open) .effect-label span {
     width: 100%;
     overflow: hidden;
     color: rgba(245, 251, 255, 0.92) !important;
-    font-size: clamp(0.6rem, 2.55vw, 0.7rem) !important;
+    font-size: clamp(0.58rem, 2.5vw, 0.68rem) !important;
     font-weight: 900 !important;
-    letter-spacing: 0.15em !important;
-    line-height: 1.15;
+    letter-spacing: 0.14em !important;
+    line-height: 1.1;
     text-overflow: ellipsis;
     text-transform: uppercase;
     white-space: nowrap;
   }
 
-  .result-poster-v94:not(.details-open) .effect-label strong {
+  .result-poster-v95:not(.details-open) .effect-label strong {
     display: block;
     color: #33ebef !important;
     font-family: Impact, Haettenschweiler, "Arial Narrow Bold", "SF Pro Display", sans-serif;
-    font-size: clamp(4rem, 21vw, 6rem) !important;
+    font-size: clamp(3.75rem, 19vw, 5.6rem) !important;
     font-style: italic;
     font-weight: 950 !important;
     letter-spacing: -0.075em;
-    line-height: 0.82;
+    line-height: 0.84;
     text-shadow: 3px 3px 0 rgba(5, 122, 148, 0.48), 0 0 20px rgba(36, 229, 238, 0.4), 0 14px 28px rgba(0, 0, 0, 0.52) !important;
   }
 
-  .result-poster-v94:not(.details-open) #resultTitle,
-  .result-poster-v94:not(.details-open) h2,
-  .result-poster-v94:not(.details-open) .description,
-  .result-poster-v94:not(.details-open) .in-frame-details-toggle,
-  .result-poster-v94:not(.details-open) .result-actions {
+  .result-poster-v95:not(.details-open) #resultTitle,
+  .result-poster-v95:not(.details-open) h2,
+  .result-poster-v95:not(.details-open) .description,
+  .result-poster-v95:not(.details-open) .in-frame-details-toggle,
+  .result-poster-v95:not(.details-open) .result-actions {
     position: relative !important;
     inset: auto !important;
     z-index: 16 !important;
@@ -259,44 +258,47 @@
     margin: 0 !important;
   }
 
-  .result-poster-v94:not(.details-open) #resultTitle,
-  .result-poster-v94:not(.details-open) h2 {
+  .result-poster-v95:not(.details-open) #resultTitle,
+  .result-poster-v95:not(.details-open) h2 {
+    grid-row: 3;
     padding: 0 2px !important;
     color: #fff !important;
     font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", sans-serif;
-    font-size: clamp(1.9rem, 8.8vw, 2.9rem) !important;
+    font-size: clamp(1.72rem, 7.8vw, 2.55rem) !important;
     font-style: italic;
     font-weight: 950 !important;
     letter-spacing: -0.05em !important;
-    line-height: 0.96 !important;
+    line-height: 0.98 !important;
     text-align: center !important;
     text-wrap: balance;
     text-shadow: 0 4px 0 rgba(1, 7, 14, 0.42), 0 12px 30px rgba(0, 0, 0, 0.78) !important;
   }
 
-  .result-poster-v94:not(.details-open) .description {
+  .result-poster-v95:not(.details-open) .description {
+    grid-row: 4;
     padding: 0 4px !important;
     display: -webkit-box !important;
     overflow: hidden !important;
     color: rgba(244, 248, 252, 0.91) !important;
-    font-size: clamp(0.84rem, 3.7vw, 1rem) !important;
+    font-size: clamp(0.8rem, 3.45vw, 0.96rem) !important;
     font-style: italic !important;
     font-weight: 650 !important;
-    line-height: 1.24 !important;
+    line-height: 1.2 !important;
     text-align: center !important;
     text-shadow: 0 6px 20px rgba(0, 0, 0, 0.9) !important;
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 2 !important;
   }
 
-  .result-poster-v94:not(.details-open) .in-frame-details-toggle {
+  .result-poster-v95:not(.details-open) .in-frame-details-toggle {
+    grid-row: 5;
     z-index: 18 !important;
     min-height: 40px !important;
     padding: 8px 12px !important;
     border: 1px solid rgba(104, 223, 228, 0.24) !important;
     border-radius: 999px !important;
-    background: rgba(5, 14, 25, 0.72) !important;
-    color: rgba(226, 244, 246, 0.88) !important;
+    background: rgba(5, 14, 25, 0.76) !important;
+    color: rgba(226, 244, 246, 0.9) !important;
     font-size: 0.68rem !important;
     letter-spacing: 0.035em;
     box-shadow: inset 0 1px rgba(255, 255, 255, 0.05) !important;
@@ -304,25 +306,26 @@
     -webkit-backdrop-filter: blur(12px);
   }
 
-  .result-poster-v94:not(.details-open) .diagnostic-panel,
-  .result-poster-v94:not(.details-open) .result-tool-grid,
-  .result-poster-v94:not(.details-open) .secondary-diagnosis,
-  .result-poster-v94:not(.details-open) .result-effect-meta {
+  .result-poster-v95:not(.details-open) .diagnostic-panel,
+  .result-poster-v95:not(.details-open) .result-tool-grid,
+  .result-poster-v95:not(.details-open) .secondary-diagnosis,
+  .result-poster-v95:not(.details-open) .result-effect-meta {
     display: none !important;
   }
 
-  .result-poster-v94:not(.details-open) .result-actions {
+  .result-poster-v95:not(.details-open) .result-actions {
+    grid-row: 6;
     z-index: 18 !important;
     display: grid !important;
     grid-template-columns: 1fr !important;
     gap: 8px !important;
   }
 
-  .result-poster-v94 .share-button,
-  .result-poster-v94 .new-scan-button {
+  .result-poster-v95 .share-button,
+  .result-poster-v95 .new-scan-button {
     width: 100% !important;
-    min-height: 52px !important;
-    padding: 11px 16px !important;
+    min-height: 50px !important;
+    padding: 10px 16px !important;
     border-radius: 18px !important;
     font-size: clamp(0.8rem, 3.5vw, 0.94rem) !important;
     font-weight: 950 !important;
@@ -331,27 +334,28 @@
     text-transform: uppercase;
   }
 
-  .result-poster-v94 .share-button {
+  .result-poster-v95 .share-button {
     border: 1px solid rgba(212, 255, 250, 0.78) !important;
     background: linear-gradient(100deg, #2edaf0 0%, #22e8d0 53%, #30f2a0 100%) !important;
     color: #031219 !important;
     box-shadow: 0 0 26px rgba(37, 229, 224, 0.3), 0 12px 30px rgba(0, 0, 0, 0.36), inset 0 1px rgba(255, 255, 255, 0.54) !important;
   }
 
-  .result-poster-v94 .new-scan-button {
+  .result-poster-v95 .new-scan-button {
     border: 1px solid rgba(143, 184, 218, 0.38) !important;
-    background: rgba(8, 18, 33, 0.82) !important;
+    background: rgba(8, 18, 33, 0.84) !important;
     color: #f7fbff !important;
     box-shadow: inset 0 1px rgba(255, 255, 255, 0.05), 0 10px 24px rgba(0, 0, 0, 0.28) !important;
     backdrop-filter: blur(14px);
     -webkit-backdrop-filter: blur(14px);
   }
 
-  .result-poster-v94.details-open {
+  /* Detail view returns to a normal scrollable document. */
+  .result-poster-v95.details-open {
     background: #07101a !important;
   }
 
-  .result-poster-v94.details-open .result-content {
+  .result-poster-v95.details-open .result-content {
     display: flex !important;
     flex-direction: column;
     align-items: stretch;
@@ -363,7 +367,7 @@
     overscroll-behavior: contain;
   }
 
-  .result-poster-v94.details-open .result-visual {
+  .result-poster-v95.details-open .result-visual {
     position: relative !important;
     inset: auto !important;
     flex: 0 0 auto;
@@ -371,16 +375,22 @@
     height: clamp(190px, 28dvh, 250px) !important;
     min-height: 190px !important;
     margin: 0 -14px 4px !important;
+    overflow: hidden !important;
     border-radius: 0 0 24px 24px !important;
   }
 
-  .result-poster-v94.details-open .result-visual img,
-  .result-poster-v94.details-open .result-visual canvas {
-    object-position: 50% 42% !important;
+  .result-poster-v95.details-open .result-visual img,
+  .result-poster-v95.details-open .result-visual canvas {
+    position: absolute !important;
+    inset: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+    object-position: 50% 40% !important;
   }
 
-  .result-poster-v94.details-open .result-badge {
-    position: absolute !important;
+  .result-poster-v95.details-open .result-badge {
+    position: fixed !important;
     top: var(--result-safe-top) !important;
     left: 12px !important;
     right: auto !important;
@@ -388,8 +398,8 @@
     max-width: calc(100% - 124px) !important;
   }
 
-  .result-poster-v94.details-open .effect-label,
-  .result-poster-v94.details-open .effect-label.result-score {
+  .result-poster-v95.details-open .effect-label,
+  .result-poster-v95.details-open .effect-label.result-score {
     position: absolute !important;
     right: 60px !important;
     bottom: 12px !important;
@@ -405,15 +415,15 @@
     border-radius: 14px !important;
   }
 
-  .result-poster-v94.details-open .effect-label strong {
+  .result-poster-v95.details-open .effect-label strong {
     font-size: 1rem !important;
   }
 
-  .result-poster-v94.details-open #resultTitle,
-  .result-poster-v94.details-open h2,
-  .result-poster-v94.details-open .description,
-  .result-poster-v94.details-open .in-frame-details-toggle,
-  .result-poster-v94.details-open .result-actions {
+  .result-poster-v95.details-open #resultTitle,
+  .result-poster-v95.details-open h2,
+  .result-poster-v95.details-open .description,
+  .result-poster-v95.details-open .in-frame-details-toggle,
+  .result-poster-v95.details-open .result-actions {
     position: relative !important;
     inset: auto !important;
     width: 100% !important;
@@ -422,15 +432,15 @@
     text-align: left !important;
   }
 
-  .result-poster-v94.details-open #resultTitle,
-  .result-poster-v94.details-open h2 {
+  .result-poster-v95.details-open #resultTitle,
+  .result-poster-v95.details-open h2 {
     padding: 0 2px !important;
     color: #fff !important;
     font-size: clamp(1.7rem, 7.8vw, 2.3rem) !important;
     line-height: 1 !important;
   }
 
-  .result-poster-v94.details-open .description {
+  .result-poster-v95.details-open .description {
     display: block !important;
     padding-inline: 2px !important;
     overflow: visible !important;
@@ -440,7 +450,7 @@
     -webkit-line-clamp: unset !important;
   }
 
-  .result-poster-v94.details-open .in-frame-details-toggle {
+  .result-poster-v95.details-open .in-frame-details-toggle {
     position: sticky !important;
     top: 0 !important;
     z-index: 24;
@@ -449,10 +459,10 @@
     background: rgba(10, 23, 36, 0.94) !important;
   }
 
-  .result-poster-v94.details-open .diagnostic-panel,
-  .result-poster-v94.details-open .result-tool-grid,
-  .result-poster-v94.details-open .secondary-diagnosis,
-  .result-poster-v94.details-open .result-actions {
+  .result-poster-v95.details-open .diagnostic-panel,
+  .result-poster-v95.details-open .result-tool-grid,
+  .result-poster-v95.details-open .secondary-diagnosis,
+  .result-poster-v95.details-open .result-actions {
     grid-column: 1 / -1 !important;
     width: 100% !important;
     min-width: 0 !important;
@@ -463,22 +473,22 @@
     justify-self: stretch !important;
   }
 
-  .result-poster-v94.details-open .result-actions {
+  .result-poster-v95.details-open .result-actions {
     display: grid !important;
     grid-template-columns: 1fr !important;
     gap: 8px !important;
   }
 
-  .result-poster-v94 .diagnostic-panel,
-  .result-poster-v94 .diagnostic-list,
-  .result-poster-v94 .diagnostic-row,
-  .result-poster-v94 .diagnostic-copy,
-  .result-poster-v94 .diagnostic-heading,
-  .result-poster-v94 .diagnostic-heading > div {
+  .result-poster-v95 .diagnostic-panel,
+  .result-poster-v95 .diagnostic-list,
+  .result-poster-v95 .diagnostic-row,
+  .result-poster-v95 .diagnostic-copy,
+  .result-poster-v95 .diagnostic-heading,
+  .result-poster-v95 .diagnostic-heading > div {
     min-width: 0;
   }
 
-  .result-poster-v94 .diagnostic-heading {
+  .result-poster-v95 .diagnostic-heading {
     width: 100%;
     display: grid;
     grid-template-columns: auto minmax(0, 1fr);
@@ -487,7 +497,7 @@
     text-align: left;
   }
 
-  .result-poster-v94 .diagnostic-heading > div {
+  .result-poster-v95 .diagnostic-heading > div {
     max-width: 100%;
     display: flex;
     flex-direction: column;
@@ -495,8 +505,8 @@
     gap: 2px;
   }
 
-  .result-poster-v94 .diagnostic-heading strong,
-  .result-poster-v94 .diagnostic-heading small {
+  .result-poster-v95 .diagnostic-heading strong,
+  .result-poster-v95 .diagnostic-heading small {
     max-width: 100%;
     overflow-wrap: anywhere;
     white-space: normal;
@@ -505,46 +515,48 @@
 }
 
 @media (max-width: 640px) and (max-height: 740px) {
-  .result-poster-v94:not(.details-open) .result-content {
-    gap: 6px;
+  .result-poster-v95:not(.details-open) .result-content {
+    grid-template-rows: minmax(84px, 1fr) auto auto auto auto auto;
+    gap: 5px;
     padding-right: 12px !important;
     padding-bottom: max(8px, env(safe-area-inset-bottom)) !important;
     padding-left: 12px !important;
   }
 
-  .result-poster-v94:not(.details-open) .effect-label,
-  .result-poster-v94:not(.details-open) .effect-label.result-score {
-    bottom: calc(max(8px, env(safe-area-inset-bottom)) + 238px) !important;
-    min-height: 96px;
+  .result-poster-v95:not(.details-open) .effect-label,
+  .result-poster-v95:not(.details-open) .effect-label.result-score {
+    min-height: 86px;
+    padding-top: 10px !important;
+    padding-bottom: 8px !important;
   }
 
-  .result-poster-v94:not(.details-open) .effect-label strong {
-    font-size: clamp(3.5rem, 19vw, 5rem) !important;
+  .result-poster-v95:not(.details-open) .effect-label strong {
+    font-size: clamp(3.25rem, 17vw, 4.5rem) !important;
   }
 
-  .result-poster-v94:not(.details-open) #resultTitle,
-  .result-poster-v94:not(.details-open) h2 {
-    font-size: clamp(1.65rem, 8vw, 2.35rem) !important;
+  .result-poster-v95:not(.details-open) #resultTitle,
+  .result-poster-v95:not(.details-open) h2 {
+    font-size: clamp(1.5rem, 7.2vw, 2.15rem) !important;
   }
 
-  .result-poster-v94:not(.details-open) .description {
-    font-size: 0.82rem !important;
-    line-height: 1.2 !important;
+  .result-poster-v95:not(.details-open) .description {
+    font-size: 0.78rem !important;
+    line-height: 1.16 !important;
   }
 
-  .result-poster-v94:not(.details-open) .in-frame-details-toggle {
-    min-height: 36px !important;
+  .result-poster-v95:not(.details-open) .in-frame-details-toggle {
+    min-height: 34px !important;
   }
 
-  .result-poster-v94 .share-button,
-  .result-poster-v94 .new-scan-button {
-    min-height: 46px !important;
+  .result-poster-v95 .share-button,
+  .result-poster-v95 .new-scan-button {
+    min-height: 44px !important;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .result-poster-v94,
-  .result-poster-v94 * {
+  .result-poster-v95,
+  .result-poster-v95 * {
     scroll-behavior: auto !important;
   }
 }
