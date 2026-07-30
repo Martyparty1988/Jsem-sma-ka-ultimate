@@ -1,9 +1,9 @@
-/* Smažka v91 — sole mobile result lifecycle and geometry owner. */
+/* Smažka v92 — sole mobile result lifecycle and geometry owner. */
 (() => {
   'use strict';
 
-  const VERSION = 'v91';
-  const POSTER_CLASS = 'result-poster-v91';
+  const VERSION = 'v92';
+  const POSTER_CLASS = 'result-poster-v92';
   const MEDIA_SELECTOR = 'img, canvas';
   const app = window.SmazkaApp;
   const result = app?.elements?.result;
@@ -14,6 +14,11 @@
   const Observer = window.SmazkaMutationObserver || window.MutationObserver;
   const mobileQuery = window.matchMedia('(max-width: 640px)');
   let animationFrame = 0;
+
+  function installPosterIdentity() {
+    result.classList.add(POSTER_CLASS);
+    result.dataset.resultPoster = VERSION;
+  }
 
   function setImportant(element, property, value) {
     element?.style.setProperty(property, value, 'important');
@@ -31,10 +36,10 @@
   function viewportMetrics() {
     const viewport = window.visualViewport;
     return {
-      top: viewport?.offsetTop || 0,
-      left: viewport?.offsetLeft || 0,
-      width: viewport?.width || window.innerWidth,
-      height: viewport?.height || window.innerHeight
+      top: Math.max(0, viewport?.offsetTop || 0),
+      left: Math.max(0, viewport?.offsetLeft || 0),
+      width: Math.max(1, viewport?.width || window.innerWidth),
+      height: Math.max(1, viewport?.height || window.innerHeight)
     };
   }
 
@@ -128,11 +133,11 @@
     setImportant(content, 'justify-content', 'flex-start');
     setImportant(content, 'gap', '8px');
     setImportant(content, 'height', '100%');
-    setImportant(content, 'min-height', '100%');
+    setImportant(content, 'min-height', '0');
     setImportant(content, 'max-height', '100%');
-    setImportant(content, 'padding-top', 'clamp(455px, 62dvh, 630px)');
+    setImportant(content, 'padding-top', 'clamp(330px, 54dvh, 520px)');
     setImportant(content, 'padding-right', 'clamp(14px, 4vw, 20px)');
-    setImportant(content, 'padding-bottom', 'max(14px, env(safe-area-inset-bottom))');
+    setImportant(content, 'padding-bottom', 'max(20px, env(safe-area-inset-bottom))');
     setImportant(content, 'padding-left', 'clamp(14px, 4vw, 20px)');
     setImportant(content, 'overflow-x', 'hidden');
     setImportant(content, 'overflow-y', 'auto');
@@ -165,7 +170,7 @@
     setImportant(content, 'max-height', '100%');
     setImportant(content, 'padding-top', '0');
     setImportant(content, 'padding-right', '14px');
-    setImportant(content, 'padding-bottom', 'max(14px, env(safe-area-inset-bottom))');
+    setImportant(content, 'padding-bottom', 'max(28px, env(safe-area-inset-bottom))');
     setImportant(content, 'padding-left', '14px');
     setImportant(content, 'overflow-x', 'hidden');
     setImportant(content, 'overflow-y', 'auto');
@@ -188,6 +193,7 @@
   }
 
   function syncFrame() {
+    installPosterIdentity();
     if (!mobileQuery.matches || !resultVisible()) {
       clearPosterState();
       return;
@@ -198,8 +204,6 @@
     if (!content || !visual) return;
 
     const viewport = viewportMetrics();
-    result.classList.add(POSTER_CLASS);
-    result.dataset.resultPoster = VERSION;
     document.body.classList.add('result-in-frame');
     cameraStage?.classList.add('has-in-frame-result');
     appRoot?.toggleAttribute('inert', true);
@@ -211,11 +215,12 @@
     setImportant(result, 'right', 'auto');
     setImportant(result, 'bottom', 'auto');
     setImportant(result, 'left', `${Math.round(viewport.left)}px`);
-    setImportant(result, 'width', `${Math.max(1, Math.round(viewport.width))}px`);
-    setImportant(result, 'height', `${Math.max(1, Math.round(viewport.height))}px`);
+    setImportant(result, 'width', `${Math.round(viewport.width)}px`);
+    setImportant(result, 'height', `${Math.round(viewport.height)}px`);
     setImportant(result, 'min-width', '0');
     setImportant(result, 'max-width', 'none');
-    setImportant(result, 'max-height', `${Math.max(1, Math.round(viewport.height))}px`);
+    setImportant(result, 'min-height', '0');
+    setImportant(result, 'max-height', `${Math.round(viewport.height)}px`);
     setImportant(result, 'margin', '0');
     setImportant(result, 'overflow', 'hidden');
     setImportant(result, 'pointer-events', 'auto');
@@ -229,15 +234,14 @@
   }
 
   function clearPosterState() {
-    result.classList.remove(POSTER_CLASS, 'details-open');
-    delete result.dataset.resultPoster;
+    result.classList.remove('details-open');
     document.body.classList.remove('result-in-frame');
     cameraStage?.classList.remove('has-in-frame-result');
     if (!resultVisible()) appRoot?.removeAttribute('inert');
 
     clearProperties(result, [
       'position', 'z-index', 'top', 'right', 'bottom', 'left', 'width', 'height',
-      'min-width', 'max-width', 'max-height', 'margin', 'overflow', 'pointer-events', 'isolation'
+      'min-width', 'max-width', 'min-height', 'max-height', 'margin', 'overflow', 'pointer-events', 'isolation'
     ]);
 
     const content = result.querySelector('.result-content');
@@ -258,6 +262,8 @@
     window.cancelAnimationFrame(animationFrame);
     animationFrame = window.requestAnimationFrame(syncFrame);
   }
+
+  installPosterIdentity();
 
   const observer = new Observer(scheduleSync);
   observer.observe(result, {
@@ -283,6 +289,6 @@
     clearPosterState();
   }, { once: true });
 
-  window.SmazkaResultPoster = Object.freeze({ version: 91, sync: scheduleSync });
+  window.SmazkaResultPoster = Object.freeze({ version: 92, sync: scheduleSync });
   scheduleSync();
 })();
