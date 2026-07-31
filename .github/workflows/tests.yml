@@ -1,45 +1,52 @@
-name: Build verified v100 poster viewport fix
+name: Regression tests
 
 on:
+  push:
+    branches: [main]
   pull_request:
     branches: [main]
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
-  migrate-test-and-commit:
+  node-contracts:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
-    container:
-      image: mcr.microsoft.com/playwright:v1.61.1-noble
-      options: --ipc=host
+    timeout-minutes: 8
     steps:
-      - name: Checkout working branch
+      - name: Checkout
         uses: actions/checkout@v4
+      - name: Set up Node
+        uses: actions/setup-node@v4
         with:
-          ref: fix/remove-v71-result-owner-v100
-          fetch-depth: 0
-      - name: Scope legacy result animations away from poster
-        run: python3 tools/apply-v100-poster-animation-scope.py
+          node-version: 22
+          cache: npm
       - name: Install dependencies
         run: npm ci
       - name: Run Node contracts
         run: npm test
-      - name: Run WebKit real iPhone checks
+
+  mobile-webkit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    container:
+      image: mcr.microsoft.com/playwright:v1.61.1-noble
+      options: --ipc=host
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install dependencies
+        run: npm ci
+      - name: Run WebKit checks at 393x852 and 393x700
         run: npm run test:e2e
-      - name: Prepare clean repository output
-        run: |
-          rm -rf node_modules test-results playwright-report
-          rm tools/apply-v100-poster-animation-scope.py
-          git config --global --add safe.directory "$GITHUB_WORKSPACE"
-          git -C "$GITHUB_WORKSPACE" checkout HEAD -- .github/workflows/tests.yml
-      - name: Commit verified v100 output
-        run: |
-          git config --global --add safe.directory "$GITHUB_WORKSPACE"
-          git -C "$GITHUB_WORKSPACE" config user.name "github-actions[bot]"
-          git -C "$GITHUB_WORKSPACE" config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git -C "$GITHUB_WORKSPACE" add -A
-          git -C "$GITHUB_WORKSPACE" commit -m "Fix poster viewport containing block v100 [skip ci]"
-          git -C "$GITHUB_WORKSPACE" push origin HEAD:fix/remove-v71-result-owner-v100
+      - name: Upload browser diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mobile-webkit-diagnostics
+          path: |
+            test-results
+            playwright-report
+          if-no-files-found: ignore
+          retention-days: 7
