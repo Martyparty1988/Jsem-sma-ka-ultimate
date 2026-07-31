@@ -26,6 +26,8 @@ jobs:
           node-version: 22
       - name: Apply source-owned result migration
         run: python3 tools/apply-result-v98.py
+      - name: Align version contracts
+        run: python3 tools/fix-v98-test-contracts.py
       - name: Install development dependencies
         run: npm install
       - name: Run Node contracts
@@ -34,8 +36,8 @@ jobs:
         run: npx playwright install --with-deps webkit
       - name: Run iPhone layout checks
         run: npm run test:e2e
-      - name: Remove one-time migration helper
-        run: rm tools/apply-result-v98.py
+      - name: Remove one-time migration helpers
+        run: rm tools/apply-result-v98.py tools/fix-v98-test-contracts.py
       - name: Commit verified production result
         run: |
           git config user.name "github-actions[bot]"
