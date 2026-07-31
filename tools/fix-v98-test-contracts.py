@@ -14,6 +14,7 @@ REPLACEMENTS = (
     (r"result-poster\.css\?v=96", r"result-poster\.css\?v=98"),
     ("result-poster-runtime.js?v=96", "result-poster-runtime.js?v=98"),
     (r"result-poster-runtime\.js\?v=96", r"result-poster-runtime\.js\?v=98"),
+    ("version: 96", "version: 98"),
 )
 
 STALE_TOKENS = tuple(old for old, _ in REPLACEMENTS)
@@ -39,4 +40,4 @@ for path in sorted(TESTS.glob("*.test.mjs")):
 if stale:
     raise RuntimeError("Stale asset contracts remain:\n" + "\n".join(stale))
 
-print("Aligned plain and regex-encoded v98 contracts across all Node tests.")
+print("Aligned all plain, regex and numeric v98 contracts across Node tests.")
