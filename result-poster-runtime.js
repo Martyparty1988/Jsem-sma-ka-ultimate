@@ -91,6 +91,7 @@
   }
 
   function syncFrame() {
+    animationFrame = 0;
     installPosterIdentity();
     retireLegacyFrameState();
 
@@ -108,13 +109,19 @@
   }
 
   function scheduleSync() {
-    window.cancelAnimationFrame(animationFrame);
+    // Coalesce rapid result mutations without cancelling the frame that is already queued.
+    // Cancelling/restarting here can starve layout synchronization while diagnostics render.
+    if (animationFrame) return;
     animationFrame = window.requestAnimationFrame(syncFrame);
   }
 
   installPosterIdentity();
+  retireLegacyFrameState();
 
-  const observer = new Observer(scheduleSync);
+  const observer = new Observer((records = []) => {
+    if (records.some((record) => record.target === document.body)) retireLegacyFrameState();
+    scheduleSync();
+  });
   observer.observe(result, {
     childList: true,
     subtree: true,
@@ -135,6 +142,7 @@
   window.addEventListener('pagehide', () => {
     observer.disconnect();
     window.cancelAnimationFrame(animationFrame);
+    animationFrame = 0;
   }, { once: true });
 
   window.SmazkaResultPoster = Object.freeze({ version: 100, sync: scheduleSync });
