@@ -1,4 +1,4 @@
-/* Smažka v98 — fixed photo layer + one normal-flow mobile result grid. */
+/* Smažka v101 — separate photo hero + score/result panel; no score/photo overlap. */
 .result,
 .result * {
   box-sizing: border-box;
@@ -22,6 +22,7 @@
   .result.result-poster-v99:not(.hidden) {
     --result-safe-top: max(12px, env(safe-area-inset-top));
     --result-safe-bottom: max(12px, env(safe-area-inset-bottom));
+    --poster-photo-height: clamp(320px, 52dvh, 440px);
     position: fixed !important;
     inset: 0 !important;
     z-index: 2147483000 !important;
@@ -68,10 +69,10 @@
   .result-poster-v99:not(.details-open) .result-content {
     display: grid !important;
     grid-template-columns: minmax(0, 1fr) !important;
-    grid-template-rows: minmax(112px, 1fr) auto auto auto auto auto;
+    grid-template-rows: var(--poster-photo-height) auto auto auto auto auto;
     align-items: stretch;
     gap: 7px;
-    padding: calc(var(--result-safe-top) + 58px) 14px var(--result-safe-bottom) !important;
+    padding: 0 14px var(--result-safe-bottom) !important;
     overflow: hidden !important;
   }
 
@@ -95,21 +96,24 @@
   .result-poster-v99:not(.details-open) .result-content::after {
     z-index: 2;
     background:
-      linear-gradient(180deg, rgba(1, 5, 11, 0.02) 0%, rgba(1, 5, 11, 0.01) 34%, rgba(1, 6, 12, 0.08) 48%, rgba(1, 6, 13, 0.46) 63%, rgba(2, 7, 17, 0.88) 78%, #02060c 100%),
+      linear-gradient(180deg, rgba(1, 5, 11, 0.02) 0%, rgba(1, 5, 11, 0.015) 32%, rgba(1, 6, 12, 0.10) 41%, rgba(2, 7, 17, 0.72) 49%, #02060c 56%, #02060c 100%),
       radial-gradient(circle at 50% 58%, rgba(20, 221, 236, 0.08), transparent 38%);
     box-shadow: inset 0 -90px 110px rgba(0, 0, 0, 0.56);
   }
 
-  /* Closed poster: the photo owns the viewport; runtime promotes score into the grid. */
+  /* Closed poster: photo owns only the hero region; score starts after its bottom edge. */
   .result-poster-v99:not(.details-open) .result-visual {
     position: fixed !important;
-    inset: 0 !important;
+    top: 0 !important;
+    right: 0 !important;
+    bottom: auto !important;
+    left: 0 !important;
     z-index: 0 !important;
     width: 100dvw !important;
     min-width: 100dvw !important;
     max-width: none !important;
-    height: 100dvh !important;
-    min-height: 100dvh !important;
+    height: var(--poster-photo-height) !important;
+    min-height: var(--poster-photo-height) !important;
     max-height: none !important;
     margin: 0 !important;
     overflow: hidden !important;
@@ -140,10 +144,13 @@
 
   .result-poster-v99:not(.details-open) .effect-noise {
     position: fixed !important;
-    inset: 0 !important;
+    top: 0 !important;
+    right: 0 !important;
+    bottom: auto !important;
+    left: 0 !important;
     z-index: 2 !important;
     width: 100dvw !important;
-    height: 100dvh !important;
+    height: var(--poster-photo-height) !important;
     opacity: 0.07 !important;
     pointer-events: none !important;
   }
@@ -538,8 +545,12 @@
 }
 
 @media (max-width: 640px) and (max-height: 740px) {
+  .result.result-poster-v99:not(.hidden) {
+    --poster-photo-height: clamp(245px, 43dvh, 315px);
+  }
+
   .result-poster-v99:not(.details-open) .result-content {
-    grid-template-rows: minmax(84px, 1fr) auto auto auto auto auto;
+    grid-template-rows: var(--poster-photo-height) auto auto auto auto auto;
     gap: 5px;
     padding-right: 12px !important;
     padding-bottom: max(8px, env(safe-area-inset-bottom)) !important;
