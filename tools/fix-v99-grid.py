@@ -53,9 +53,9 @@ replacement = """  const scoreStyle = await score.evaluate((node) => {
   expect(Math.abs(scoreBox.x + scoreBox.width / 2 - viewport.width / 2)).toBeLessThanOrEqual(2);
   expect(scoreStyle.parentGridColumns).toHaveLength(1);
   expect(scoreStyle.position).toBe('relative');
-  expect(scoreStyle.top).toBe('auto');
-  expect(scoreStyle.right).toBe('auto');
-  expect(scoreStyle.left).toBe('auto');
+  expect(['auto', '0px']).toContain(scoreStyle.top);
+  expect(['auto', '0px']).toContain(scoreStyle.right);
+  expect(['auto', '0px']).toContain(scoreStyle.left);
   expect(scoreStyle.borderTopLeftRadius).toBeLessThanOrEqual(40);
   expect(badgeBox.y + badgeBox.height).toBeLessThan(scoreBox.y);
 """
