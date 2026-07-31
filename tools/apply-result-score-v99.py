@@ -23,7 +23,6 @@ def replace_required(source: str, old: str, new: str, label: str, count: int | N
     return source.replace(old, new, found if count is None else count)
 
 
-# Remove only obsolete selectors that let screens.css own mobile score geometry.
 screens = read('screens.css')
 leaf_rule = re.compile(r'(?P<selectors>[^{}]+)\{(?P<body>[^{}]*)\}')
 removed_selectors: list[str] = []
@@ -56,7 +55,6 @@ if re.search(r'body\.result-in-frame[^,{]*\.effect-label', screens):
     raise RuntimeError('A body.result-in-frame effect-label selector survived the cleanup')
 write('screens.css', screens)
 
-# Bump only the assets changed by this release.
 poster_css = read('result-poster.css')
 poster_css = replace_required(poster_css, 'result-poster-v98', 'result-poster-v99', 'poster CSS class', None)
 write('result-poster.css', poster_css)
@@ -89,7 +87,6 @@ for old, new, label in (
     sw = replace_required(sw, old, new, label)
 write('service-worker.js', sw)
 
-# Align current release contracts without changing unchanged app/lifecycle asset URLs.
 for path in sorted((ROOT / 'tests').glob('*.test.mjs')):
     source = path.read_text(encoding='utf-8')
     replacements = (
@@ -142,33 +139,83 @@ if "readRoot('screens.css')" not in ownership:
     )
 ownership_test.write_text(ownership, encoding='utf-8')
 
-# Strengthen real WebKit checks so a narrow pill can never pass again.
 e2e_path = ROOT / 'tests/e2e/mobile-result.spec.mjs'
 e2e = e2e_path.read_text(encoding='utf-8')
 old_assertions = """  expect(scoreBox.x).toBeGreaterThanOrEqual(10);
   expect(scoreBox.x + scoreBox.width).toBeLessThanOrEqual(viewport.width - 10 + 1);
   expect(badgeBox.y + badgeBox.height).toBeLessThan(scoreBox.y);
 """
-new_assertions = """  const scoreStyle = await score.evaluate((node) => {
+new_assertions = """  const scoreDiagnostics = await score.evaluate((node) => {
     const style = getComputedStyle(node);
+    const parentStyle = getComputedStyle(node.parentElement);
+    const matchedRules = [];
+
+    const inspectRules = (rules, sheet) => {
+      for (const rule of rules) {
+        if (rule.cssRules) {
+          inspectRules(rule.cssRules, sheet);
+          continue;
+        }
+        if (!rule.selectorText) continue;
+        try {
+          if (!node.matches(rule.selectorText)) continue;
+        } catch {
+          continue;
+        }
+        const interesting = ['position', 'top', 'right', 'bottom', 'left', 'width', 'min-width', 'max-width', 'display', 'justify-self', 'align-self', 'grid-column', 'border-radius'];
+        const declarations = interesting
+          .filter((property) => rule.style.getPropertyValue(property))
+          .map((property) => `${property}:${rule.style.getPropertyValue(property)}${rule.style.getPropertyPriority(property) ? ' !important' : ''}`)
+          .join(';');
+        if (declarations) matchedRules.push(`${sheet}:${rule.selectorText}{${declarations}}`);
+      }
+    };
+
+    for (const sheet of document.styleSheets) {
+      try {
+        inspectRules(sheet.cssRules, sheet.href || 'inline');
+      } catch {}
+    }
+
     return {
-      position: style.position,
-      top: style.top,
-      right: style.right,
-      left: style.left,
-      borderTopLeftRadius: Number.parseFloat(style.borderTopLeftRadius)
+      className: node.className,
+      parentClassName: node.parentElement?.className,
+      style: {
+        position: style.position,
+        top: style.top,
+        right: style.right,
+        bottom: style.bottom,
+        left: style.left,
+        width: style.width,
+        minWidth: style.minWidth,
+        maxWidth: style.maxWidth,
+        display: style.display,
+        justifySelf: style.justifySelf,
+        alignSelf: style.alignSelf,
+        gridColumn: style.gridColumn,
+        borderTopLeftRadius: style.borderTopLeftRadius
+      },
+      parentStyle: {
+        display: parentStyle.display,
+        width: parentStyle.width,
+        gridTemplateColumns: parentStyle.gridTemplateColumns,
+        alignItems: parentStyle.alignItems
+      },
+      matchedRules
     };
   });
+
+  console.log('SCORE_DIAGNOSTICS', JSON.stringify({ viewport, scoreBox, scoreDiagnostics }));
 
   expect(scoreBox.x).toBeGreaterThanOrEqual(10);
   expect(scoreBox.x + scoreBox.width).toBeLessThanOrEqual(viewport.width - 10 + 1);
   expect(scoreBox.width).toBeGreaterThanOrEqual(viewport.width * 0.88);
   expect(Math.abs(scoreBox.x + scoreBox.width / 2 - viewport.width / 2)).toBeLessThanOrEqual(2);
-  expect(scoreStyle.position).toBe('relative');
-  expect(scoreStyle.top).toBe('auto');
-  expect(scoreStyle.right).toBe('auto');
-  expect(scoreStyle.left).toBe('auto');
-  expect(scoreStyle.borderTopLeftRadius).toBeLessThanOrEqual(40);
+  expect(scoreDiagnostics.style.position).toBe('relative');
+  expect(scoreDiagnostics.style.top).toBe('auto');
+  expect(scoreDiagnostics.style.right).toBe('auto');
+  expect(scoreDiagnostics.style.left).toBe('auto');
+  expect(Number.parseFloat(scoreDiagnostics.style.borderTopLeftRadius)).toBeLessThanOrEqual(40);
   expect(badgeBox.y + badgeBox.height).toBeLessThan(scoreBox.y);
 """
 if e2e.count(old_assertions) != 1:
