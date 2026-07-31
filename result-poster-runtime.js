@@ -18,8 +18,8 @@
     [...result.classList]
       .filter((name) => /^result-poster-v\d+$/.test(name) && name !== POSTER_CLASS)
       .forEach((name) => result.classList.remove(name));
-    result.classList.add(POSTER_CLASS);
-    result.dataset.resultPoster = VERSION;
+    if (!result.classList.contains(POSTER_CLASS)) result.classList.add(POSTER_CLASS);
+    if (result.dataset.resultPoster !== VERSION) result.dataset.resultPoster = VERSION;
   }
 
   function resultVisible() {
@@ -35,9 +35,11 @@
   function updateDetailsLabel(button) {
     if (!button) return;
     const open = result.classList.contains('details-open');
-    button.setAttribute('aria-expanded', String(open));
+    const expanded = String(open);
+    if (button.getAttribute('aria-expanded') !== expanded) button.setAttribute('aria-expanded', expanded);
     const label = button.querySelector('.in-frame-details-label');
-    if (label) label.textContent = open ? 'Skrýt detailní rozbor' : 'Zobrazit detailní rozbor';
+    const text = open ? 'Skrýt detailní rozbor' : 'Zobrazit detailní rozbor';
+    if (label && label.textContent !== text) label.textContent = text;
   }
 
   function setDetailsOpen(open) {
@@ -86,8 +88,11 @@
 
   function retireLegacyFrameState() {
     // `result-in-frame` belongs to the retired pre-poster layout in screens.css.
-    // Leaving it on <body> reactivates high-specificity v71 selectors on real scans.
-    document.body.classList.remove('result-in-frame');
+    // Only mutate the class attribute when the legacy token is actually present;
+    // no-op DOMTokenList writes can otherwise feed MutationObserver loops in WebKit.
+    if (document.body.classList.contains('result-in-frame')) {
+      document.body.classList.remove('result-in-frame');
+    }
   }
 
   function syncFrame() {
@@ -96,7 +101,7 @@
     retireLegacyFrameState();
 
     if (!mobileQuery.matches || !resultVisible()) {
-      result.classList.remove('details-open');
+      if (result.classList.contains('details-open')) result.classList.remove('details-open');
       cameraStage?.classList.remove('has-in-frame-result');
       if (!resultVisible()) appRoot?.removeAttribute('inert');
       return;
