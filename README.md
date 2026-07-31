@@ -19,14 +19,16 @@ Satirická mobilní webová aplikace, která lokálně změří MediaPipe Face M
 
 - `foundation.css` – tokeny, reset, typografie, přístupnost a společné prvky.
 - `components.css` – kamera, skenovací HUD, ovládání a sdílené komponenty.
-- `screens.css` – výsledek, responzivní/iPhone geometrie a finální VOID kaskáda.
+- `screens.css` – obecné obrazovky a starší sdílené výsledkové komponenty.
+- `result-poster.css` – jediná mobilní kompozice výsledku, safe-area a detailní režim.
 
 ### Detekce a verdikt
 
 - `app.js` – stav aplikace, uživatelské spuštění kamery a sdílený DOM observer.
 - `scanner-runtime.js` – lazy Face Mesh loader, landmarky, HUD a skenovací watchdog.
 - `result-runtime.js` – deformace, metadata-driven verdikt a diagnostika.
-- `lifecycle-runtime.js` – výsledkový lifecycle, recovery, share cover a PWA update UI.
+- `lifecycle-runtime.js` – recovery, reveal, share cover a PWA update lifecycle; nevlastní geometrii posteru.
+- `result-poster-runtime.js` – identita posteru a stav detailního rozboru; nepřesouvá výsledkové uzly.
 - `devastation-metrics.js` – normalizované landmarky, bounds, anchors, metriky a 70/30 severity kontrakt.
 - `verdict-matcher.js` – metadata-driven výběr verdiktu.
 - `responses.json`, `responses-hard.json`, `responses-pernik.json` – knihovny verdiktů.
@@ -60,10 +62,16 @@ http://localhost:8000
 
 ## Testy
 
-Testy používají vestavěný Node test runner:
+Statické a datové kontrakty používají vestavěný Node test runner:
 
 ```bash
-node --test tests/*.test.mjs
+npm test
+```
+
+Mobilní výsledek se navíc ověřuje ve WebKitu na 393×852 a 393×700:
+
+```bash
+npm run test:e2e
 ```
 
 Důležité kontrakty:

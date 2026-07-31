@@ -1,9 +1,9 @@
-/* Smažka v96 — CSS owns geometry; runtime owns identity, badge and detail state. */
+/* Smažka v98 — source DOM owns composition; runtime owns identity and detail state only. */
 (() => {
   'use strict';
 
-  const VERSION = 'v96';
-  const POSTER_CLASS = 'result-poster-v96';
+  const VERSION = 'v98';
+  const POSTER_CLASS = 'result-poster-v98';
   const app = window.SmazkaApp;
   const result = app?.elements?.result;
   if (!result) return;
@@ -15,6 +15,9 @@
   let animationFrame = 0;
 
   function installPosterIdentity() {
+    [...result.classList]
+      .filter((name) => /^result-poster-v\d+$/.test(name) && name !== POSTER_CLASS)
+      .forEach((name) => result.classList.remove(name));
     result.classList.add(POSTER_CLASS);
     result.dataset.resultPoster = VERSION;
   }
@@ -24,27 +27,9 @@
       && (result.open || result.hasAttribute('open') || document.body.classList.contains('result-open'));
   }
 
-  function currentBadgeLabel() {
-    return 'SMAŽKA FAKTOR';
-  }
-
   function normalizeBadge() {
     const badge = result.querySelector('.result-badge');
-    if (!badge) return;
-    const label = currentBadgeLabel();
-    if (String(badge.textContent || '').trim() !== label) badge.textContent = label;
-  }
-
-  function promoteScore() {
-    const content = result.querySelector('.result-content');
-    const visual = content?.querySelector('.result-visual');
-    const score = result.querySelector('.effect-label');
-    if (!content || !visual || !score) return;
-
-    score.classList.add('result-score');
-    if (score.parentElement !== content || score.previousElementSibling !== visual) {
-      visual.insertAdjacentElement('afterend', score);
-    }
+    if (badge && badge.textContent !== 'SMAŽKA FAKTOR') badge.textContent = 'SMAŽKA FAKTOR';
   }
 
   function updateDetailsLabel(button) {
@@ -112,9 +97,8 @@
     document.body.classList.add('result-in-frame');
     cameraStage?.classList.add('has-in-frame-result');
     appRoot?.toggleAttribute('inert', true);
-    promoteScore();
-    ensureDetailsButton();
     normalizeBadge();
+    ensureDetailsButton();
   }
 
   function scheduleSync() {
@@ -147,6 +131,6 @@
     window.cancelAnimationFrame(animationFrame);
   }, { once: true });
 
-  window.SmazkaResultPoster = Object.freeze({ version: 96, sync: scheduleSync });
+  window.SmazkaResultPoster = Object.freeze({ version: 98, sync: scheduleSync });
   scheduleSync();
 })();

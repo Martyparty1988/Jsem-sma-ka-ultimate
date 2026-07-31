@@ -24,21 +24,21 @@ function serviceWorkerContract() {
   return context.__PWA_TEST__;
 }
 
-test('PWA v96 precaches one compact production shell with no retired entries', () => {
+test('PWA v98 precaches one compact production shell with no retired entries', () => {
   const { CACHE_NAME, APP_SHELL } = serviceWorkerContract();
   const assets = new Set(APP_SHELL);
 
-  assert.equal(CACHE_NAME, 'jsem-smazka-v96');
+  assert.equal(CACHE_NAME, 'jsem-smazka-v98');
   [
     './foundation.css?v=87',
     './components.css?v=87',
     './screens.css?v=87',
-    './result-poster.css?v=96',
-    './app.js?v=87',
+    './result-poster.css?v=98',
+    './app.js?v=98',
     './scanner-runtime.js?v=87',
     './result-runtime.js?v=87',
-    './lifecycle-runtime.js?v=87',
-    './result-poster-runtime.js?v=96',
+    './lifecycle-runtime.js?v=98',
+    './result-poster-runtime.js?v=98',
     './responses.json',
     './responses-hard.json?v=64',
     './responses-pernik.json?v=64'
@@ -83,7 +83,7 @@ test('MediaPipe uses a stable request-driven cache and never install-precaches W
   assert.match(serviceWorker, /key !== CACHE_NAME && key !== FACE_MODEL_CACHE/);
 });
 
-test('HTML entries, bundle sections and dynamic files agree with the v96 cache graph', () => {
+test('HTML entries, bundle sections and dynamic files agree with the v98 cache graph', () => {
   const { APP_SHELL } = serviceWorkerContract();
   const appAssets = new Set(APP_SHELL);
   const index = readRoot('index.html');
@@ -115,7 +115,7 @@ test('HTML entries, bundle sections and dynamic files agree with the v96 cache g
   });
 });
 
-test('v96 keeps the photo fixed, promotes score into the grid and labels the factor', () => {
+test('v98 keeps the photo fixed, renders score directly in the grid and labels the factor', () => {
   const index = readRoot('index.html');
   const css = readRoot('result-poster.css');
   const runtime = readRoot('result-poster-runtime.js');
@@ -124,26 +124,24 @@ test('v96 keeps the photo fixed, promotes score into the grid and labels the fac
   assert.equal(fs.existsSync(new URL('result-layout.css', root)), false);
   assert.doesNotMatch(index, /result-layout\.css/);
   assert.doesNotMatch(serviceWorker, /result-layout\.css/);
-  assert.ok(index.indexOf('result-poster.css?v=96') > index.indexOf('screens.css?v=87'));
-  assert.ok(index.indexOf('result-poster-runtime.js?v=96') > index.indexOf('lifecycle-runtime.js?v=87'));
-  assert.match(index, /class="result result-poster-v96 hidden"/);
-  assert.match(index, /data-result-poster="v96"/);
+  assert.ok(index.indexOf('result-poster.css?v=98') > index.indexOf('screens.css?v=87'));
+  assert.ok(index.indexOf('result-poster-runtime.js?v=98') > index.indexOf('lifecycle-runtime.js?v=98'));
+  assert.match(index, /class="result result-poster-v98 hidden"/);
+  assert.match(index, /data-result-poster="v98"/);
 
   assert.doesNotThrow(() => new Function(runtime));
-  assert.match(runtime, /const VERSION = 'v96'/);
-  assert.match(runtime, /const POSTER_CLASS = 'result-poster-v96'/);
-  assert.match(runtime, /return 'SMAŽKA FAKTOR'/);
-  assert.match(runtime, /function promoteScore\(\)/);
-  assert.match(runtime, /visual\.insertAdjacentElement\('afterend', score\)/);
-  assert.match(runtime, /replacement\.dataset\.posterOwner = VERSION/);
-  assert.match(runtime, /window\.SmazkaResultPoster = Object\.freeze\(\{ version: 96/);
+  assert.match(runtime, /const VERSION = 'v98'/);
+  assert.match(runtime, /const POSTER_CLASS = 'result-poster-v98'/);
+  assert.match(runtime, /badge\.textContent !== 'SMAŽKA FAKTOR'/);
+      assert.match(runtime, /replacement\.dataset\.posterOwner = VERSION/);
+  assert.match(runtime, /window\.SmazkaResultPoster = Object\.freeze\(\{ version: 98/);
   assert.doesNotMatch(runtime, /setImportant|viewportMetrics|syncClosedComposition|syncDetailsComposition/);
   assert.doesNotMatch(runtime, /padding-top|object-position|100dvh|visualViewport\?\.width/);
 
-  assert.match(css, /\.result-poster-v96:not\(\.details-open\) \.result-visual\s*\{[\s\S]*position:\s*fixed\s*!important/);
+  assert.match(css, /\.result-poster-v98:not\(\.details-open\) \.result-visual\s*\{[\s\S]*position:\s*fixed\s*!important/);
   assert.doesNotMatch(css, /display:\s*contents\s*!important/);
-  assert.match(css, /content:\s*'SMAŽKA FAKTOR'/);
-  assert.match(css, /\.result-poster-v96:not\(\.details-open\) \.result-visual img/);
+  assert.doesNotMatch(css, /result-badge::after|content:\s*'SMAŽKA FAKTOR'/);
+  assert.match(css, /\.result-poster-v98:not\(\.details-open\) \.result-visual img/);
   assert.match(css, /position:\s*fixed\s*!important/);
   assert.match(css, /width:\s*100dvw\s*!important/);
   assert.match(css, /height:\s*100dvh\s*!important/);
@@ -172,14 +170,14 @@ test('result, crop, recovery, single-pass, impact and share keep authoritative o
     'foundation.css?v=87',
     'components.css?v=87',
     'screens.css?v=87',
-    'result-poster.css?v=96'
+    'result-poster.css?v=98'
   ];
   const indexOrder = [
-    'app.js?v=87',
+    'app.js?v=98',
     'scanner-runtime.js?v=87',
     'result-runtime.js?v=87',
-    'lifecycle-runtime.js?v=87',
-    'result-poster-runtime.js?v=96'
+    'lifecycle-runtime.js?v=98',
+    'result-poster-runtime.js?v=98'
   ];
   const lifecycleOrder = [
     'face-aware-crop-runtime.js',

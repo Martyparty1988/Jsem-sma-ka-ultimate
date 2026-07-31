@@ -1624,15 +1624,11 @@
 
     removeLegacyConfetti();
 
-    const badge = result.querySelector('.result-badge');
-    if (badge) badge.textContent = 'VOID VERDIKT';
-
     const shareLabel = result.querySelector('#shareResultButton span:last-child');
     if (shareLabel) shareLabel.textContent = 'Sdílet rozsudek';
 
-    const visual = result.querySelector('.result-visual');
-    const effectLabel = visual?.querySelector('.effect-label');
-    if (visual && effectLabel) {
+    const effectLabel = result.querySelector('.effect-label');
+    if (effectLabel) {
       effectLabel.classList.add('result-score');
       const effectName = effectLabel.querySelector('span');
       let meta = result.querySelector('.result-effect-meta');
@@ -1640,7 +1636,7 @@
         meta = document.createElement('p');
         meta.className = 'result-effect-meta';
         meta.innerHTML = `<span>Efekt</span><strong>${effectName.textContent.trim()}</strong>`;
-        visual.insertAdjacentElement('afterend', meta);
+        effectLabel.insertAdjacentElement('afterend', meta);
       }
       effectName?.remove();
     }
