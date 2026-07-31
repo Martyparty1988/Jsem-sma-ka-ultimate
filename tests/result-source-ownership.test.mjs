@@ -20,6 +20,8 @@ test('result semantics and order are owned by app render source', () => {
   assert.doesNotMatch(lifecycle, /visual\?\.querySelector\('\.effect-label'\)/);
 
   assert.doesNotMatch(poster, /promoteScore|settleVisibleResult|settleAttempts/);
+  assert.match(poster, /classList\.remove\('result-in-frame'\)/);
+  assert.doesNotMatch(poster, /classList\.add\('result-in-frame'\)/);
   assert.doesNotMatch(css, /result-badge::after|content:\s*'SMAŽKA FAKTOR'/);
   assert.doesNotMatch(screens, /body\.result-in-frame[^,{]*\.effect-label/);
 });
