@@ -60,7 +60,7 @@ replacement = """  const scoreStyle = await score.evaluate((node) => {
   expect(badgeBox.y + badgeBox.height).toBeLessThan(scoreBox.y);
 """
 
-e2e, count = pattern.subn(replacement, e2e, count=1)
+e2e, count = pattern.subn(lambda _match: replacement, e2e, count=1)
 if count != 1:
     raise RuntimeError(f'Expected one diagnostic assertion block, replaced {count}')
 e2e_path.write_text(e2e, encoding='utf-8')
