@@ -24,16 +24,16 @@ function serviceWorkerContract() {
   return context.__PWA_TEST__;
 }
 
-test('PWA v100 precaches one compact production shell with no retired entries', () => {
+test('PWA v101 precaches one compact production shell with no retired entries', () => {
   const { CACHE_NAME, APP_SHELL } = serviceWorkerContract();
   const assets = new Set(APP_SHELL);
 
-  assert.equal(CACHE_NAME, 'jsem-smazka-v100');
+  assert.equal(CACHE_NAME, 'jsem-smazka-v101');
   [
     './foundation.css?v=87',
     './components.css?v=87',
     './screens.css?v=100',
-    './result-poster.css?v=99',
+    './result-poster.css?v=101',
     './app.js?v=98',
     './scanner-runtime.js?v=87',
     './result-runtime.js?v=87',
@@ -84,7 +84,7 @@ test('MediaPipe uses a stable request-driven cache and never install-precaches W
   assert.match(serviceWorker, /key !== CACHE_NAME && key !== FACE_MODEL_CACHE/);
 });
 
-test('HTML entries, bundle sections and dynamic files agree with the v100 cache graph', () => {
+test('HTML entries, bundle sections and dynamic files agree with the v101 cache graph', () => {
   const { APP_SHELL } = serviceWorkerContract();
   const appAssets = new Set(APP_SHELL);
   const index = readRoot('index.html');
@@ -126,7 +126,7 @@ test('v100 runtime keeps the v99 poster authoritative and retires result-in-fram
   assert.equal(fs.existsSync(new URL('result-layout.css', root)), false);
   assert.doesNotMatch(index, /result-layout\.css/);
   assert.doesNotMatch(serviceWorker, /result-layout\.css/);
-  assert.ok(index.indexOf('result-poster.css?v=99') > index.indexOf('screens.css?v=100'));
+  assert.ok(index.indexOf('result-poster.css?v=101') > index.indexOf('screens.css?v=100'));
   assert.ok(index.indexOf('result-poster-runtime.js?v=100') > index.indexOf('lifecycle-runtime.js?v=98'));
   assert.match(index, /class="result result-poster-v99 hidden"/);
   assert.match(index, /data-result-poster="v99"/);
@@ -148,8 +148,10 @@ test('v100 runtime keeps the v99 poster authoritative and retires result-in-fram
   assert.match(css, /\.result-poster-v99:not\(\.details-open\) \.result-visual img/);
   assert.match(css, /position:\s*fixed\s*!important/);
   assert.match(css, /width:\s*100dvw\s*!important/);
-  assert.match(css, /height:\s*100dvh\s*!important/);
-  assert.match(css, /grid-template-rows:\s*minmax\(112px, 1fr\) auto auto auto auto auto/);
+  assert.match(css, /--poster-photo-height:\s*clamp\(320px, 52dvh, 440px\)/);
+  assert.match(css, /height:\s*var\(--poster-photo-height\)\s*!important/);
+  assert.match(css, /grid-template-rows:\s*var\(--poster-photo-height\) auto auto auto auto auto/);
+  assert.doesNotMatch(css, /\.result-poster-v99:not\(\.details-open\) \.result-visual[\s\S]{0,360}height:\s*100dvh/);
   assert.doesNotMatch(screens, /\.result:not\(\.hidden\) \.result-content\s*\{\s*animation:\s*resultContentReveal/);
   assert.doesNotMatch(screens, /\.result:not\(\.hidden\) \.result-visual\s*\{[\s\S]{0,160}animation:\s*(?:resultVisualReveal|professionalResultReveal)/);
   assert.match(screens, /\.result:not\(\.hidden\):not\(\.result-poster-v99\) \.result-content\s*\{\s*animation:\s*resultContentReveal/);
@@ -179,7 +181,7 @@ test('result, crop, recovery, single-pass, impact and share keep authoritative o
     'foundation.css?v=87',
     'components.css?v=87',
     'screens.css?v=100',
-    'result-poster.css?v=99'
+    'result-poster.css?v=101'
   ];
   const indexOrder = [
     'app.js?v=98',
