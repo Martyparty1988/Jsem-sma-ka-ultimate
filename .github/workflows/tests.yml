@@ -39,13 +39,22 @@ jobs:
         run: npm test
       - name: Run iPhone layout checks
         run: npm run test:e2e
-      - name: Remove one-time migration helpers
-        run: rm tools/apply-result-v98.py tools/fix-v98-test-contracts.py tools/fix-v98-e2e.py tools/fix-v98-layout.py
+      - name: Prepare clean repository output
+        run: |
+          rm -rf node_modules test-results playwright-report
+          rm tools/apply-result-v98.py tools/fix-v98-test-contracts.py tools/fix-v98-e2e.py tools/fix-v98-layout.py
+          cat > .gitignore <<'EOF'
+          node_modules/
+          test-results/
+          playwright-report/
+          EOF
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          git -C "$GITHUB_WORKSPACE" checkout HEAD -- .github/workflows/tests.yml
       - name: Commit verified production result
         run: |
           git config --global --add safe.directory "$GITHUB_WORKSPACE"
           git -C "$GITHUB_WORKSPACE" config user.name "github-actions[bot]"
           git -C "$GITHUB_WORKSPACE" config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git -C "$GITHUB_WORKSPACE" add -A
-          git -C "$GITHUB_WORKSPACE" commit -m "Refactor mobile result ownership and add WebKit checks v98"
+          git -C "$GITHUB_WORKSPACE" commit -m "Refactor mobile result ownership and add WebKit checks v98 [skip ci]"
           git -C "$GITHUB_WORKSPACE" push origin HEAD:fix/result-source-owned-v98
