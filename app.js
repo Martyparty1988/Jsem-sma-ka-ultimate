@@ -607,7 +607,6 @@
   function displayResult(result, severity, effectImageData) {
     const category = syncWeekdayText(result.category || 'Neznámý stav');
     const description = syncWeekdayText(result.description || 'AI se tváří tajemně a odmítá vypovídat.');
-    const todayLabel = capitalizeFirst(getTodayForms().nominative);
     const effectProfile = getEffectProfile(result);
 
     state.lastAnalysisResult = {
@@ -634,7 +633,7 @@
 
     const badge = document.createElement('div');
     badge.className = 'result-badge';
-    badge.textContent = `VOID VERDIKT // ${todayLabel}`;
+    badge.textContent = 'SMAŽKA FAKTOR';
 
     const resultVisual = document.createElement('figure');
     resultVisual.className = `result-visual effect-${effectProfile.key}`;
@@ -649,10 +648,10 @@
     effectNoise.setAttribute('aria-hidden', 'true');
 
     const effectLabel = document.createElement('figcaption');
-    effectLabel.className = 'effect-label';
+    effectLabel.className = 'effect-label result-score';
     effectLabel.innerHTML = `<span>${effectProfile.label}</span><strong>${severity}%</strong>`;
 
-    resultVisual.append(effectImage, effectNoise, badge, effectLabel);
+    resultVisual.append(effectImage, effectNoise);
 
     const title = document.createElement('h2');
     title.id = 'resultTitle';
@@ -679,7 +678,7 @@
     actions.className = 'result-actions';
     actions.append(shareButton, newScanButton);
 
-    content.append(resultVisual, title, text, actions);
+    content.append(resultVisual, badge, effectLabel, title, text, actions);
     elements.result.setAttribute('aria-labelledby', title.id);
     elements.result.append(closeButton, content);
     showResult();

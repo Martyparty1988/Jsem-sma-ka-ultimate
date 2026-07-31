@@ -1,10 +1,4 @@
-from pathlib import Path
-
-ROOT = Path(__file__).resolve().parents[1]
-TARGET = ROOT / "tests/e2e/mobile-result.spec.mjs"
-TARGET.parent.mkdir(parents=True, exist_ok=True)
-
-TARGET.write_text(r'''import { test, expect } from '@playwright/test';
+import { test, expect } from '@playwright/test';
 
 const photoSvg = [
   '<svg xmlns="http://www.w3.org/2000/svg" width="480" height="640">',
@@ -82,6 +76,3 @@ test('mobile result keeps badge, score and actions inside the viewport', async (
 
   await page.screenshot({ path: testInfo.outputPath('result.png'), fullPage: false });
 });
-''', encoding='utf-8')
-
-print('Rewrote the WebKit fixture with semantic score and viewport assertions.')
