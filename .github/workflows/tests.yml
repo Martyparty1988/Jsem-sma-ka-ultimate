@@ -30,6 +30,8 @@ jobs:
         run: python3 tools/fix-v98-test-contracts.py
       - name: Repair generated WebKit fixture
         run: python3 tools/fix-v98-e2e.py
+      - name: Constrain score to the grid
+        run: python3 tools/fix-v98-layout.py
       - name: Install development dependencies
         run: npm install
       - name: Run Node contracts
@@ -39,7 +41,7 @@ jobs:
       - name: Run iPhone layout checks
         run: npm run test:e2e
       - name: Remove one-time migration helpers
-        run: rm tools/apply-result-v98.py tools/fix-v98-test-contracts.py tools/fix-v98-e2e.py
+        run: rm tools/apply-result-v98.py tools/fix-v98-test-contracts.py tools/fix-v98-e2e.py tools/fix-v98-layout.py
       - name: Commit verified production result
         run: |
           git config user.name "github-actions[bot]"
