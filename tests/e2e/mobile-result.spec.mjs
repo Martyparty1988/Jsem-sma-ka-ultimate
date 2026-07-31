@@ -61,8 +61,29 @@ test('mobile result keeps badge, score and actions inside the viewport', async (
   const closeBox = await close.boundingBox();
   expect(viewport && badgeBox && scoreBox && actionsBox && closeBox).toBeTruthy();
 
+  const scoreStyle = await score.evaluate((node) => {
+    const style = getComputedStyle(node);
+    const parentStyle = getComputedStyle(node.parentElement);
+    return {
+      position: style.position,
+      top: style.top,
+      right: style.right,
+      left: style.left,
+      borderTopLeftRadius: Number.parseFloat(style.borderTopLeftRadius),
+      parentGridColumns: parentStyle.gridTemplateColumns.split(/\s+/).filter(Boolean)
+    };
+  });
+
   expect(scoreBox.x).toBeGreaterThanOrEqual(10);
   expect(scoreBox.x + scoreBox.width).toBeLessThanOrEqual(viewport.width - 10 + 1);
+  expect(scoreBox.width).toBeGreaterThanOrEqual(viewport.width * 0.88);
+  expect(Math.abs(scoreBox.x + scoreBox.width / 2 - viewport.width / 2)).toBeLessThanOrEqual(2);
+  expect(scoreStyle.parentGridColumns).toHaveLength(1);
+  expect(scoreStyle.position).toBe('relative');
+  expect(['auto', '0px']).toContain(scoreStyle.top);
+  expect(['auto', '0px']).toContain(scoreStyle.right);
+  expect(['auto', '0px']).toContain(scoreStyle.left);
+  expect(scoreStyle.borderTopLeftRadius).toBeLessThanOrEqual(40);
   expect(badgeBox.y + badgeBox.height).toBeLessThan(scoreBox.y);
   expect(actionsBox.y + actionsBox.height).toBeLessThanOrEqual(viewport.height + 1);
   expect(closeBox.width).toBeGreaterThanOrEqual(44);
