@@ -24,21 +24,21 @@ function serviceWorkerContract() {
   return context.__PWA_TEST__;
 }
 
-test('PWA v98 precaches one compact production shell with no retired entries', () => {
+test('PWA v99 precaches one compact production shell with no retired entries', () => {
   const { CACHE_NAME, APP_SHELL } = serviceWorkerContract();
   const assets = new Set(APP_SHELL);
 
-  assert.equal(CACHE_NAME, 'jsem-smazka-v98');
+  assert.equal(CACHE_NAME, 'jsem-smazka-v99');
   [
     './foundation.css?v=87',
     './components.css?v=87',
-    './screens.css?v=87',
-    './result-poster.css?v=98',
+    './screens.css?v=99',
+    './result-poster.css?v=99',
     './app.js?v=98',
     './scanner-runtime.js?v=87',
     './result-runtime.js?v=87',
     './lifecycle-runtime.js?v=98',
-    './result-poster-runtime.js?v=98',
+    './result-poster-runtime.js?v=99',
     './responses.json',
     './responses-hard.json?v=64',
     './responses-pernik.json?v=64'
@@ -83,7 +83,7 @@ test('MediaPipe uses a stable request-driven cache and never install-precaches W
   assert.match(serviceWorker, /key !== CACHE_NAME && key !== FACE_MODEL_CACHE/);
 });
 
-test('HTML entries, bundle sections and dynamic files agree with the v98 cache graph', () => {
+test('HTML entries, bundle sections and dynamic files agree with the v99 cache graph', () => {
   const { APP_SHELL } = serviceWorkerContract();
   const appAssets = new Set(APP_SHELL);
   const index = readRoot('index.html');
@@ -115,7 +115,7 @@ test('HTML entries, bundle sections and dynamic files agree with the v98 cache g
   });
 });
 
-test('v98 keeps the photo fixed, renders score directly in the grid and labels the factor', () => {
+test('v99 keeps the photo fixed, renders score directly in the grid and labels the factor', () => {
   const index = readRoot('index.html');
   const css = readRoot('result-poster.css');
   const runtime = readRoot('result-poster-runtime.js');
@@ -124,29 +124,30 @@ test('v98 keeps the photo fixed, renders score directly in the grid and labels t
   assert.equal(fs.existsSync(new URL('result-layout.css', root)), false);
   assert.doesNotMatch(index, /result-layout\.css/);
   assert.doesNotMatch(serviceWorker, /result-layout\.css/);
-  assert.ok(index.indexOf('result-poster.css?v=98') > index.indexOf('screens.css?v=87'));
-  assert.ok(index.indexOf('result-poster-runtime.js?v=98') > index.indexOf('lifecycle-runtime.js?v=98'));
-  assert.match(index, /class="result result-poster-v98 hidden"/);
-  assert.match(index, /data-result-poster="v98"/);
+  assert.ok(index.indexOf('result-poster.css?v=99') > index.indexOf('screens.css?v=99'));
+  assert.ok(index.indexOf('result-poster-runtime.js?v=99') > index.indexOf('lifecycle-runtime.js?v=98'));
+  assert.match(index, /class="result result-poster-v99 hidden"/);
+  assert.match(index, /data-result-poster="v99"/);
 
   assert.doesNotThrow(() => new Function(runtime));
-  assert.match(runtime, /const VERSION = 'v98'/);
-  assert.match(runtime, /const POSTER_CLASS = 'result-poster-v98'/);
+  assert.match(runtime, /const VERSION = 'v99'/);
+  assert.match(runtime, /const POSTER_CLASS = 'result-poster-v99'/);
   assert.match(runtime, /badge\.textContent !== 'SMAŽKA FAKTOR'/);
       assert.match(runtime, /replacement\.dataset\.posterOwner = VERSION/);
-  assert.match(runtime, /window\.SmazkaResultPoster = Object\.freeze\(\{ version: 98/);
+  assert.match(runtime, /window\.SmazkaResultPoster = Object\.freeze\(\{ version: 99/);
   assert.doesNotMatch(runtime, /setImportant|viewportMetrics|syncClosedComposition|syncDetailsComposition/);
   assert.doesNotMatch(runtime, /padding-top|object-position|100dvh|visualViewport\?\.width/);
 
-  assert.match(css, /\.result-poster-v98:not\(\.details-open\) \.result-visual\s*\{[\s\S]*position:\s*fixed\s*!important/);
+  assert.match(css, /\.result-poster-v99:not\(\.details-open\) \.result-visual\s*\{[\s\S]*position:\s*fixed\s*!important/);
   assert.doesNotMatch(css, /display:\s*contents\s*!important/);
   assert.doesNotMatch(css, /result-badge::after|content:\s*'SMAŽKA FAKTOR'/);
-  assert.match(css, /\.result-poster-v98:not\(\.details-open\) \.result-visual img/);
+  assert.match(css, /\.result-poster-v99:not\(\.details-open\) \.result-visual img/);
   assert.match(css, /position:\s*fixed\s*!important/);
   assert.match(css, /width:\s*100dvw\s*!important/);
   assert.match(css, /height:\s*100dvh\s*!important/);
   assert.match(css, /grid-template-rows:\s*minmax\(112px, 1fr\) auto auto auto auto auto/);
   assert.match(css, /grid-row:\s*2/);
+  assert.match(css, /grid-column:\s*1\s*!important/);
   assert.match(css, /\.effect-label\.result-score[\s\S]*position:\s*relative\s*!important/);
   assert.match(css, /grid-row:\s*3/);
   assert.match(css, /grid-row:\s*4/);
@@ -159,8 +160,8 @@ test('v98 keeps the photo fixed, renders score directly in the grid and labels t
   assert.doesNotMatch(css, /bottom:\s*calc\(var\(--result-safe-bottom\) \+ 278px\)/);
   assert.doesNotMatch(css, /top:\s*48%\s*!important/);
 
-  assert.doesNotMatch(index, /result-poster\.css\?v=(?:89|91|92|93|94|95)|result-poster-runtime\.js\?v=(?:89|91|92|93|94|95)/);
-  assert.doesNotMatch(css, /result-poster-v(?:89|91|92|93|94|95)/);
+  assert.doesNotMatch(index, /result-poster\.css\?v=(?:89|91|92|93|94|95|98)|result-poster-runtime\.js\?v=(?:89|91|92|93|94|95|98)/);
+  assert.doesNotMatch(css, /result-poster-v(?:89|91|92|93|94|95|98)/);
 });
 
 test('result, crop, recovery, single-pass, impact and share keep authoritative order', () => {
@@ -169,15 +170,15 @@ test('result, crop, recovery, single-pass, impact and share keep authoritative o
   const stylesheetOrder = [
     'foundation.css?v=87',
     'components.css?v=87',
-    'screens.css?v=87',
-    'result-poster.css?v=98'
+    'screens.css?v=99',
+    'result-poster.css?v=99'
   ];
   const indexOrder = [
     'app.js?v=98',
     'scanner-runtime.js?v=87',
     'result-runtime.js?v=87',
     'lifecycle-runtime.js?v=98',
-    'result-poster-runtime.js?v=98'
+    'result-poster-runtime.js?v=99'
   ];
   const lifecycleOrder = [
     'face-aware-crop-runtime.js',
@@ -262,7 +263,7 @@ test('retired source files and result layout layers cannot return', () => {
   ].forEach((file) => assert.equal(fs.existsSync(new URL(file, root)), false, file));
 
   const index = readRoot('index.html');
-  assert.doesNotMatch(index, /share-card\.png|result-layout\.css|result-poster\.css\?v=(?:89|91|92|93|94|95)/);
+  assert.doesNotMatch(index, /share-card\.png|result-layout\.css|result-poster\.css\?v=(?:89|91|92|93|94|95|98)/);
   assert.match(index, /icon-512\.png/);
 });
 

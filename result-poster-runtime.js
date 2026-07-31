@@ -2,8 +2,8 @@
 (() => {
   'use strict';
 
-  const VERSION = 'v98';
-  const POSTER_CLASS = 'result-poster-v98';
+  const VERSION = 'v99';
+  const POSTER_CLASS = 'result-poster-v99';
   const app = window.SmazkaApp;
   const result = app?.elements?.result;
   if (!result) return;
@@ -131,6 +131,6 @@
     window.cancelAnimationFrame(animationFrame);
   }, { once: true });
 
-  window.SmazkaResultPoster = Object.freeze({ version: 98, sync: scheduleSync });
+  window.SmazkaResultPoster = Object.freeze({ version: 99, sync: scheduleSync });
   scheduleSync();
 })();
