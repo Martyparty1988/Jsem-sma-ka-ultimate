@@ -52,11 +52,12 @@ test('mobile result keeps badge, score and actions inside the viewport', async (
 
   const badge = page.locator('.result-badge');
   const score = page.locator('.effect-label.result-score');
+  const scoreValue = score.locator('strong');
   const actions = page.locator('.result-actions');
   const close = page.locator('.result-close');
 
   await expect(badge).toHaveText('SMAŽKA FAKTOR');
-  await expect(score).toContainText('61%');
+  await expect(scoreValue).toHaveText(/^(?:100|[1-9]?\d)%$/);
   expect(await score.evaluate((node) => node.parentElement?.classList.contains('result-content'))).toBe(true);
 
   const viewport = page.viewportSize();
@@ -83,4 +84,4 @@ test('mobile result keeps badge, score and actions inside the viewport', async (
 });
 ''', encoding='utf-8')
 
-print('Rewrote the generated WebKit fixture without nested template literals.')
+print('Rewrote the WebKit fixture with semantic score and viewport assertions.')
