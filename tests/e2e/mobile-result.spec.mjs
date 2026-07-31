@@ -59,7 +59,12 @@ test('mobile result keeps badge, score and actions inside the viewport', async (
   const scoreBox = await score.boundingBox();
   const actionsBox = await actions.boundingBox();
   const closeBox = await close.boundingBox();
-  expect(viewport && badgeBox && scoreBox && actionsBox && closeBox).toBeTruthy();
+  const visualBox = await page.locator('.result-visual').boundingBox();
+  expect(viewport && badgeBox && scoreBox && actionsBox && closeBox && visualBox).toBeTruthy();
+  expect(Math.abs(visualBox.x)).toBeLessThanOrEqual(1);
+  expect(Math.abs(visualBox.y)).toBeLessThanOrEqual(1);
+  expect(visualBox.width).toBeGreaterThanOrEqual(viewport.width - 1);
+  expect(visualBox.height).toBeGreaterThanOrEqual(viewport.height - 1);
 
   const scoreStyle = await score.evaluate((node) => {
     const style = getComputedStyle(node);
@@ -117,44 +122,37 @@ test('v100 poster retires legacy result-in-frame before it can reclaim the real 
     const content = document.querySelector('.result-content');
     const visual = document.querySelector('.result-visual');
     const image = visual?.querySelector('img, canvas');
-    const pack = (node) => {
-      const style = getComputedStyle(node);
-      const rect = node.getBoundingClientRect();
-      return {
-        rect: { x: rect.x, y: rect.y, width: rect.width, height: rect.height },
-        position: style.position,
-        inset: [style.top, style.right, style.bottom, style.left],
-        margin: [style.marginTop, style.marginRight, style.marginBottom, style.marginLeft],
-        padding: [style.paddingTop, style.paddingRight, style.paddingBottom, style.paddingLeft],
-        transform: style.transform,
-        transformOrigin: style.transformOrigin,
-        animationName: style.animationName,
-        contain: style.contain,
-        filter: style.filter,
-        perspective: style.perspective,
-        overflow: style.overflow
-      };
-    };
+    const resultRect = result.getBoundingClientRect();
+    const contentStyle = getComputedStyle(content);
+    const visualStyle = getComputedStyle(visual);
+    const imageStyle = image ? getComputedStyle(image) : null;
     return {
-      bodyClass: document.body.className,
-      result: pack(result),
-      content: pack(content),
-      visual: pack(visual),
-      image: image ? pack(image) : null,
-      contentDisplay: getComputedStyle(content).display,
-      contentColumns: getComputedStyle(content).gridTemplateColumns.split(/\s+/).filter(Boolean)
+      resultRect: { x: resultRect.x, y: resultRect.y, width: resultRect.width, height: resultRect.height },
+      contentDisplay: contentStyle.display,
+      contentColumns: contentStyle.gridTemplateColumns.split(/\s+/).filter(Boolean),
+      contentTransform: contentStyle.transform,
+      contentAnimation: contentStyle.animationName,
+      visualPosition: visualStyle.position,
+      visualAnimation: visualStyle.animationName,
+      imageAnimation: imageStyle?.animationName || 'none'
     };
   });
-  console.log('POSTER_LAYOUT_DIAGNOSTIC', JSON.stringify(layout));
 
-  expect(layout.visual.position).toBe('fixed');
-  expect(['0px', 'auto']).toContain(layout.visual.inset[0]);
+  expect(layout.resultRect.x).toBeCloseTo(0, 0);
+  expect(layout.resultRect.y).toBeCloseTo(0, 0);
+  expect(layout.resultRect.width).toBeGreaterThanOrEqual(viewport.width - 1);
+  expect(layout.resultRect.height).toBeGreaterThanOrEqual(viewport.height - 1);
+  expect(layout.contentDisplay).toBe('grid');
+  expect(layout.contentColumns).toHaveLength(1);
+  expect(layout.contentTransform).toBe('none');
+  expect(layout.contentAnimation).toBe('none');
+  expect(layout.visualPosition).toBe('fixed');
+  expect(layout.visualAnimation).toBe('none');
+  expect(layout.imageAnimation).toBe('none');
   expect(Math.abs(visualBox.x)).toBeLessThanOrEqual(1);
   expect(Math.abs(visualBox.y)).toBeLessThanOrEqual(1);
   expect(visualBox.width).toBeGreaterThanOrEqual(viewport.width - 1);
   expect(visualBox.height).toBeGreaterThanOrEqual(viewport.height - 1);
-  expect(layout.contentDisplay).toBe('grid');
-  expect(layout.contentColumns).toHaveLength(1);
 
   await page.screenshot({ path: testInfo.outputPath('result-real-scan-state.png'), fullPage: false });
 });

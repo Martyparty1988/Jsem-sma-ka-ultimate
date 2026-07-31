@@ -12,7 +12,7 @@ const APP_SHELL = [
   './icon.svg',
   './foundation.css?v=87',
   './components.css?v=87',
-  './screens.css?v=99',
+  './screens.css?v=100',
   './result-poster.css?v=99',
   './app.js?v=98',
   './scanner-runtime.js?v=87',

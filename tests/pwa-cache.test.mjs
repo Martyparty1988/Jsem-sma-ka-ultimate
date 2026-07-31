@@ -32,7 +32,7 @@ test('PWA v100 precaches one compact production shell with no retired entries', 
   [
     './foundation.css?v=87',
     './components.css?v=87',
-    './screens.css?v=99',
+    './screens.css?v=100',
     './result-poster.css?v=99',
     './app.js?v=98',
     './scanner-runtime.js?v=87',
@@ -119,13 +119,14 @@ test('HTML entries, bundle sections and dynamic files agree with the v100 cache 
 test('v100 runtime keeps the v99 poster authoritative and retires result-in-frame state', () => {
   const index = readRoot('index.html');
   const css = readRoot('result-poster.css');
+  const screens = readRoot('screens.css');
   const runtime = readRoot('result-poster-runtime.js');
   const serviceWorker = readRoot('service-worker.js');
 
   assert.equal(fs.existsSync(new URL('result-layout.css', root)), false);
   assert.doesNotMatch(index, /result-layout\.css/);
   assert.doesNotMatch(serviceWorker, /result-layout\.css/);
-  assert.ok(index.indexOf('result-poster.css?v=99') > index.indexOf('screens.css?v=99'));
+  assert.ok(index.indexOf('result-poster.css?v=99') > index.indexOf('screens.css?v=100'));
   assert.ok(index.indexOf('result-poster-runtime.js?v=100') > index.indexOf('lifecycle-runtime.js?v=98'));
   assert.match(index, /class="result result-poster-v99 hidden"/);
   assert.match(index, /data-result-poster="v99"/);
@@ -149,6 +150,10 @@ test('v100 runtime keeps the v99 poster authoritative and retires result-in-fram
   assert.match(css, /width:\s*100dvw\s*!important/);
   assert.match(css, /height:\s*100dvh\s*!important/);
   assert.match(css, /grid-template-rows:\s*minmax\(112px, 1fr\) auto auto auto auto auto/);
+  assert.doesNotMatch(screens, /\.result:not\(\.hidden\) \.result-content\s*\{\s*animation:\s*resultContentReveal/);
+  assert.doesNotMatch(screens, /\.result:not\(\.hidden\) \.result-visual\s*\{[\s\S]{0,160}animation:\s*(?:resultVisualReveal|professionalResultReveal)/);
+  assert.match(screens, /\.result:not\(\.hidden\):not\(\.result-poster-v99\) \.result-content\s*\{\s*animation:\s*resultContentReveal/);
+  assert.match(screens, /\.result:not\(\.result-poster-v99\) \.result-visual img\s*\{\s*animation:\s*meltReveal/);
   assert.match(css, /grid-row:\s*2/);
   assert.match(css, /grid-column:\s*1\s*!important/);
   assert.match(css, /\.effect-label\.result-score[\s\S]*position:\s*relative\s*!important/);
@@ -173,7 +178,7 @@ test('result, crop, recovery, single-pass, impact and share keep authoritative o
   const stylesheetOrder = [
     'foundation.css?v=87',
     'components.css?v=87',
-    'screens.css?v=99',
+    'screens.css?v=100',
     'result-poster.css?v=99'
   ];
   const indexOrder = [
