@@ -24,11 +24,11 @@ function serviceWorkerContract() {
   return context.__PWA_TEST__;
 }
 
-test('PWA v99 precaches one compact production shell with no retired entries', () => {
+test('PWA v100 precaches one compact production shell with no retired entries', () => {
   const { CACHE_NAME, APP_SHELL } = serviceWorkerContract();
   const assets = new Set(APP_SHELL);
 
-  assert.equal(CACHE_NAME, 'jsem-smazka-v99');
+  assert.equal(CACHE_NAME, 'jsem-smazka-v100');
   [
     './foundation.css?v=87',
     './components.css?v=87',
@@ -38,7 +38,7 @@ test('PWA v99 precaches one compact production shell with no retired entries', (
     './scanner-runtime.js?v=87',
     './result-runtime.js?v=87',
     './lifecycle-runtime.js?v=98',
-    './result-poster-runtime.js?v=99',
+    './result-poster-runtime.js?v=100',
     './responses.json',
     './responses-hard.json?v=64',
     './responses-pernik.json?v=64'
@@ -56,6 +56,7 @@ test('PWA v99 precaches one compact production shell with no retired entries', (
     './result-poster-runtime.js?v=92',
     './result-poster-runtime.js?v=93',
     './result-poster-runtime.js?v=94',
+    './result-poster-runtime.js?v=99',
     './bundle-base.css?v=60',
     './scan-theme.css?v=65',
     './legacy-share-bypass-v79.js?v=79',
@@ -83,7 +84,7 @@ test('MediaPipe uses a stable request-driven cache and never install-precaches W
   assert.match(serviceWorker, /key !== CACHE_NAME && key !== FACE_MODEL_CACHE/);
 });
 
-test('HTML entries, bundle sections and dynamic files agree with the v99 cache graph', () => {
+test('HTML entries, bundle sections and dynamic files agree with the v100 cache graph', () => {
   const { APP_SHELL } = serviceWorkerContract();
   const appAssets = new Set(APP_SHELL);
   const index = readRoot('index.html');
@@ -115,7 +116,7 @@ test('HTML entries, bundle sections and dynamic files agree with the v99 cache g
   });
 });
 
-test('v99 keeps the photo fixed, renders score directly in the grid and labels the factor', () => {
+test('v100 runtime keeps the v99 poster authoritative and retires result-in-frame state', () => {
   const index = readRoot('index.html');
   const css = readRoot('result-poster.css');
   const runtime = readRoot('result-poster-runtime.js');
@@ -125,16 +126,18 @@ test('v99 keeps the photo fixed, renders score directly in the grid and labels t
   assert.doesNotMatch(index, /result-layout\.css/);
   assert.doesNotMatch(serviceWorker, /result-layout\.css/);
   assert.ok(index.indexOf('result-poster.css?v=99') > index.indexOf('screens.css?v=99'));
-  assert.ok(index.indexOf('result-poster-runtime.js?v=99') > index.indexOf('lifecycle-runtime.js?v=98'));
+  assert.ok(index.indexOf('result-poster-runtime.js?v=100') > index.indexOf('lifecycle-runtime.js?v=98'));
   assert.match(index, /class="result result-poster-v99 hidden"/);
   assert.match(index, /data-result-poster="v99"/);
 
   assert.doesNotThrow(() => new Function(runtime));
-  assert.match(runtime, /const VERSION = 'v99'/);
+  assert.match(runtime, /const VERSION = 'v100'/);
   assert.match(runtime, /const POSTER_CLASS = 'result-poster-v99'/);
   assert.match(runtime, /badge\.textContent !== 'SMAŽKA FAKTOR'/);
-      assert.match(runtime, /replacement\.dataset\.posterOwner = VERSION/);
-  assert.match(runtime, /window\.SmazkaResultPoster = Object\.freeze\(\{ version: 99/);
+  assert.match(runtime, /replacement\.dataset\.posterOwner = VERSION/);
+  assert.match(runtime, /document\.body\.classList\.remove\('result-in-frame'\)/);
+  assert.doesNotMatch(runtime, /document\.body\.classList\.add\('result-in-frame'\)/);
+  assert.match(runtime, /window\.SmazkaResultPoster = Object\.freeze\(\{ version: 100/);
   assert.doesNotMatch(runtime, /setImportant|viewportMetrics|syncClosedComposition|syncDetailsComposition/);
   assert.doesNotMatch(runtime, /padding-top|object-position|100dvh|visualViewport\?\.width/);
 
@@ -160,7 +163,7 @@ test('v99 keeps the photo fixed, renders score directly in the grid and labels t
   assert.doesNotMatch(css, /bottom:\s*calc\(var\(--result-safe-bottom\) \+ 278px\)/);
   assert.doesNotMatch(css, /top:\s*48%\s*!important/);
 
-  assert.doesNotMatch(index, /result-poster\.css\?v=(?:89|91|92|93|94|95|98)|result-poster-runtime\.js\?v=(?:89|91|92|93|94|95|98)/);
+  assert.doesNotMatch(index, /result-poster\.css\?v=(?:89|91|92|93|94|95|98)|result-poster-runtime\.js\?v=(?:89|91|92|93|94|95|98|99)/);
   assert.doesNotMatch(css, /result-poster-v(?:89|91|92|93|94|95|98)/);
 });
 
@@ -178,7 +181,7 @@ test('result, crop, recovery, single-pass, impact and share keep authoritative o
     'scanner-runtime.js?v=87',
     'result-runtime.js?v=87',
     'lifecycle-runtime.js?v=98',
-    'result-poster-runtime.js?v=99'
+    'result-poster-runtime.js?v=100'
   ];
   const lifecycleOrder = [
     'face-aware-crop-runtime.js',
