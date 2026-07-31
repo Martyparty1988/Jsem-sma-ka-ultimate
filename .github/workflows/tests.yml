@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   test:
@@ -17,135 +17,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          ref: fix/result-dom-v97
-          fetch-depth: 0
       - name: Set up Node
         uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: Apply v97 result stabilization
-        shell: bash
-        run: |
-          python - <<'PY'
-          from pathlib import Path
-
-          def read(path): return Path(path).read_text()
-          def write(path, text): Path(path).write_text(text)
-          def once(text, old, new, label):
-              if old not in text: raise RuntimeError(f'missing {label}')
-              return text.replace(old, new, 1)
-
-          for path in [
-              'index.html', 'service-worker.js', 'result-poster.css',
-              'result-poster-runtime.js',
-              'tests/analysis-completion-guard-v84.test.mjs',
-              'tests/analysis-rescue-v85.test.mjs',
-              'tests/critical-impact-reveal-v82.test.mjs',
-              'tests/pwa-cache.test.mjs',
-              'tests/pwa-update-delivery-v93.test.mjs'
-          ]:
-              text = read(path).replace('v=96', 'v=97').replace('v96', 'v97')
-              write(path, text)
-
-          runtime = read('result-poster-runtime.js')
-          runtime = once(runtime, '  let animationFrame = 0;\n', '  let animationFrame = 0;\n  let settleFrame = 0;\n  let settleAttempts = 0;\n', 'settle state')
-          marker = '  function updateDetailsLabel(button) {'
-          settle = '''  function resultCompositionSettled() {
-            const content = result.querySelector('.result-content');
-            const score = result.querySelector('.effect-label');
-            const badge = result.querySelector('.result-badge');
-            return score?.parentElement === content
-              && String(badge?.textContent || '').trim() === currentBadgeLabel();
-          }
-
-          function settleVisibleResult() {
-            window.cancelAnimationFrame(settleFrame);
-            settleAttempts = 0;
-
-            const step = () => {
-              if (!mobileQuery.matches || !resultVisible()) return;
-              promoteScore();
-              ensureDetailsButton();
-              normalizeBadge();
-              settleAttempts += 1;
-              if (!resultCompositionSettled() && settleAttempts < 120) {
-                settleFrame = window.requestAnimationFrame(step);
-              }
-            };
-
-            settleFrame = window.requestAnimationFrame(step);
-          }
-
-          '''
-          runtime = once(runtime, marker, settle + marker, 'settle functions')
-          runtime = once(runtime, '    normalizeBadge();\n', '    normalizeBadge();\n    settleVisibleResult();\n', 'settle call')
-          runtime = once(runtime, '    window.cancelAnimationFrame(animationFrame);\n', '    window.cancelAnimationFrame(animationFrame);\n    window.cancelAnimationFrame(settleFrame);\n', 'settle cleanup')
-          runtime = once(runtime, 'version: 96', 'version: 97', 'public version')
-          write('result-poster-runtime.js', runtime)
-
-          css = read('result-poster.css')
-          css = once(css, '    font-size: clamp(0.62rem, 2.8vw, 0.74rem) !important;\n    font-weight: 900 !important;\n    letter-spacing: 0.22em !important;', '    font-size: 0 !important;\n    font-weight: 900 !important;\n    letter-spacing: 0 !important;', 'single badge text')
-          score_marker = '  .result-poster-v97:not(.details-open) .effect-label span {'
-          fallback = '''  /* Safari fallback: only applies while score is still nested in the photo. */
-          .result-poster-v97:not(.details-open) .result-visual > .effect-label,
-          .result-poster-v97:not(.details-open) .result-visual > .effect-label.result-score {
-            position: fixed !important;
-            inset: auto 14px clamp(300px, 38dvh, 420px) !important;
-            width: auto !important;
-            max-width: calc(100dvw - 28px) !important;
-            margin: 0 !important;
-            transform: none !important;
-          }
-
-          '''
-          css = once(css, score_marker, fallback + score_marker, 'nested score fallback')
-          write('result-poster.css', css)
-
-          test = read('tests/pwa-cache.test.mjs')
-          test = test.replace("    './result-poster.css?v=94',\n", "    './result-poster.css?v=94',\n    './result-poster.css?v=95',\n    './result-poster.css?v=96',\n")
-          test = test.replace("    './result-poster-runtime.js?v=94',\n", "    './result-poster-runtime.js?v=94',\n    './result-poster-runtime.js?v=95',\n    './result-poster-runtime.js?v=96',\n")
-          test = test.replace('version: 96', 'version: 97')
-          test = test.replace('(?:89|91|92|93|94|95)', '(?:89|91|92|93|94|95|96)')
-          test = test.replace("  assert.match(runtime, /function promoteScore\\(\\)/);", "  assert.match(runtime, /function promoteScore\\(\\)/);\n  assert.match(runtime, /function settleVisibleResult\\(\\)/);\n  assert.match(runtime, /settleAttempts < 120/);")
-          test = test.replace("  assert.match(css, /content:\\s*'SMAŽKA FAKTOR'/);", "  assert.match(css, /content:\\s*'SMAŽKA FAKTOR'/);\n  assert.match(css, /result-visual > \\.effect-label/);\n  assert.match(css, /clamp\\(300px, 38dvh, 420px\\)/);")
-          write('tests/pwa-cache.test.mjs', test)
-          PY
       - name: Run test suite
         run: node --test tests/*.test.mjs
-      - name: Commit generated v97 fix
-        if: success()
-        shell: bash
-        run: |
-          cat > .github/workflows/tests.yml <<'YAML'
-          name: Regression tests
-
-          on:
-            push:
-              branches: [main]
-            pull_request:
-              branches: [main]
-            workflow_dispatch:
-
-          permissions:
-            contents: read
-
-          jobs:
-            test:
-              runs-on: ubuntu-latest
-              timeout-minutes: 5
-              steps:
-                - name: Checkout
-                  uses: actions/checkout@v4
-                - name: Set up Node
-                  uses: actions/setup-node@v4
-                  with:
-                    node-version: 22
-                - name: Run test suite
-                  run: node --test tests/*.test.mjs
-          YAML
-          git config user.name github-actions[bot]
-          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
-          git add -A
-          git commit -m "Stabilize iPhone result score and badge v97"
-          git push origin HEAD:fix/result-dom-v97

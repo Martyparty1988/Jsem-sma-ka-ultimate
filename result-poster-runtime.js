@@ -1,9 +1,9 @@
-/* Smažka v96 — CSS owns geometry; runtime owns identity, badge and detail state. */
+/* Smažka v97 — CSS owns geometry; runtime owns identity, badge and detail state. */
 (() => {
   'use strict';
 
-  const VERSION = 'v96';
-  const POSTER_CLASS = 'result-poster-v96';
+  const VERSION = 'v97';
+  const POSTER_CLASS = 'result-poster-v97';
   const app = window.SmazkaApp;
   const result = app?.elements?.result;
   if (!result) return;
@@ -13,6 +13,8 @@
   const Observer = window.SmazkaMutationObserver || window.MutationObserver;
   const mobileQuery = window.matchMedia('(max-width: 640px)');
   let animationFrame = 0;
+  let settleFrame = 0;
+  let settleAttempts = 0;
 
   function installPosterIdentity() {
     result.classList.add(POSTER_CLASS);
@@ -46,6 +48,33 @@
       visual.insertAdjacentElement('afterend', score);
     }
   }
+
+  function resultCompositionSettled() {
+  const content = result.querySelector('.result-content');
+  const score = result.querySelector('.effect-label');
+  const badge = result.querySelector('.result-badge');
+  return score?.parentElement === content
+    && String(badge?.textContent || '').trim() === currentBadgeLabel();
+}
+
+function settleVisibleResult() {
+  window.cancelAnimationFrame(settleFrame);
+  settleAttempts = 0;
+
+  const step = () => {
+    if (!mobileQuery.matches || !resultVisible()) return;
+    promoteScore();
+    ensureDetailsButton();
+    normalizeBadge();
+    settleVisibleResult();
+    settleAttempts += 1;
+    if (!resultCompositionSettled() && settleAttempts < 120) {
+      settleFrame = window.requestAnimationFrame(step);
+    }
+  };
+
+  settleFrame = window.requestAnimationFrame(step);
+}
 
   function updateDetailsLabel(button) {
     if (!button) return;
@@ -119,6 +148,7 @@
 
   function scheduleSync() {
     window.cancelAnimationFrame(animationFrame);
+    window.cancelAnimationFrame(settleFrame);
     animationFrame = window.requestAnimationFrame(syncFrame);
   }
 
@@ -147,6 +177,6 @@
     window.cancelAnimationFrame(animationFrame);
   }, { once: true });
 
-  window.SmazkaResultPoster = Object.freeze({ version: 96, sync: scheduleSync });
+  window.SmazkaResultPoster = Object.freeze({ version: 97, sync: scheduleSync });
   scheduleSync();
 })();

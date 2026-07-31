@@ -165,7 +165,7 @@ test('v84 removes the obsolete reveal presentation and keeps v82 as final transi
   assert.ok(singlePass > guard);
   assert.ok(impact > singlePass);
 
-  assert.match(serviceWorker, /const CACHE_VERSION = 'v96'/);
+  assert.match(serviceWorker, /const CACHE_VERSION = 'v97'/);
   assert.match(serviceWorker, /\.\/lifecycle-runtime\.js\?v=87/);
-  assert.match(serviceWorker, /\.\/result-poster-runtime\.js\?v=96/);
+  assert.match(serviceWorker, /\.\/result-poster-runtime\.js\?v=97/);
 });
