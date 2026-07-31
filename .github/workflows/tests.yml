@@ -3,6 +3,8 @@ name: Build verified v98 result refactor
 on:
   push:
     branches: [fix/result-source-owned-v98]
+  pull_request:
+    branches: [main]
   workflow_dispatch:
 
 permissions:
