@@ -13,17 +13,18 @@ permissions:
 jobs:
   migrate-test-and-commit:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 15
+    container:
+      image: mcr.microsoft.com/playwright:v1.61.1-noble
+      options: --ipc=host
     steps:
       - name: Checkout working branch
         uses: actions/checkout@v4
         with:
           ref: fix/result-source-owned-v98
           fetch-depth: 0
-      - name: Set up Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
+      - name: Install migration runtime
+        run: apt-get update && apt-get install -y --no-install-recommends python3
       - name: Apply source-owned result migration
         run: python3 tools/apply-result-v98.py
       - name: Align version contracts
@@ -36,8 +37,6 @@ jobs:
         run: npm install
       - name: Run Node contracts
         run: npm test
-      - name: Install WebKit
-        run: npx playwright install --with-deps webkit
       - name: Run iPhone layout checks
         run: npm run test:e2e
       - name: Remove one-time migration helpers
