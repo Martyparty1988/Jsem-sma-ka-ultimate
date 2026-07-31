@@ -27,6 +27,8 @@ jobs:
         run: apt-get update && apt-get install -y --no-install-recommends python3
       - name: Remove obsolete score ownership and bump v99
         run: python3 tools/apply-result-score-v99.py
+      - name: Lock closed poster to one grid column
+        run: python3 tools/fix-v99-grid.py
       - name: Install dependencies
         run: npm ci
       - name: Run Node contracts
@@ -36,7 +38,7 @@ jobs:
       - name: Prepare clean repository output
         run: |
           rm -rf node_modules test-results playwright-report
-          rm tools/apply-result-score-v99.py
+          rm tools/apply-result-score-v99.py tools/fix-v99-grid.py
           git config --global --add safe.directory "$GITHUB_WORKSPACE"
           git -C "$GITHUB_WORKSPACE" checkout HEAD -- .github/workflows/tests.yml
       - name: Commit verified v99 output
