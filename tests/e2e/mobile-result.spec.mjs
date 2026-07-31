@@ -97,3 +97,43 @@ test('mobile result keeps badge, score and actions inside the viewport', async (
 
   await page.screenshot({ path: testInfo.outputPath('result.png'), fullPage: false });
 });
+
+test('v100 poster retires legacy result-in-frame before it can reclaim the real iPhone layout', async ({ page }, testInfo) => {
+  await openDeterministicResult(page);
+
+  await page.evaluate(() => {
+    document.body.classList.add('result-in-frame');
+    window.SmazkaResultPoster?.sync();
+  });
+  await expect.poll(() => page.evaluate(() => document.body.classList.contains('result-in-frame'))).toBe(false);
+
+  const visual = page.locator('.result-visual');
+  const content = page.locator('.result-content');
+  const viewport = page.viewportSize();
+  const visualBox = await visual.boundingBox();
+  expect(viewport && visualBox).toBeTruthy();
+
+  const layout = await page.evaluate(() => {
+    const visual = document.querySelector('.result-visual');
+    const content = document.querySelector('.result-content');
+    const visualStyle = getComputedStyle(visual);
+    const contentStyle = getComputedStyle(content);
+    return {
+      visualPosition: visualStyle.position,
+      visualTop: visualStyle.top,
+      contentDisplay: contentStyle.display,
+      contentColumns: contentStyle.gridTemplateColumns.split(/\s+/).filter(Boolean)
+    };
+  });
+
+  expect(layout.visualPosition).toBe('fixed');
+  expect(['0px', 'auto']).toContain(layout.visualTop);
+  expect(Math.abs(visualBox.x)).toBeLessThanOrEqual(1);
+  expect(Math.abs(visualBox.y)).toBeLessThanOrEqual(1);
+  expect(visualBox.width).toBeGreaterThanOrEqual(viewport.width - 1);
+  expect(visualBox.height).toBeGreaterThanOrEqual(viewport.height - 1);
+  expect(layout.contentDisplay).toBe('grid');
+  expect(layout.contentColumns).toHaveLength(1);
+
+  await page.screenshot({ path: testInfo.outputPath('result-real-scan-state.png'), fullPage: false });
+});
