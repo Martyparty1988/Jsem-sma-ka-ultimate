@@ -93,6 +93,12 @@ for test_path in (ROOT / 'tests').rglob('*.mjs'):
 # Strengthen the source contract: poster cannot inherit transform-producing reveal animations.
 pwa_path = ROOT / 'tests/pwa-cache.test.mjs'
 pwa = pwa_path.read_text(encoding='utf-8')
+source_decl = "  const index = readRoot('index.html');\n  const css = readRoot('result-poster.css');\n  const runtime = readRoot('result-poster-runtime.js');\n"
+source_decl_with_screens = "  const index = readRoot('index.html');\n  const css = readRoot('result-poster.css');\n  const screens = readRoot('screens.css');\n  const runtime = readRoot('result-poster-runtime.js');\n"
+if pwa.count(source_decl) != 1:
+    raise RuntimeError('Could not add screens source to poster ownership contract')
+pwa = pwa.replace(source_decl, source_decl_with_screens, 1)
+
 needle = "  assert.match(css, /grid-template-rows:\\s*minmax\\(112px, 1fr\\) auto auto auto auto auto/);\n"
 addition = needle + "  assert.doesNotMatch(screens, /\\.result:not\\(\\.hidden\\) \\.result-content\\s*\\{\\s*animation:\\s*resultContentReveal/);\n  assert.doesNotMatch(screens, /\\.result:not\\(\\.hidden\\) \\.result-visual\\s*\\{[\\s\\S]{0,160}animation:\\s*(?:resultVisualReveal|professionalResultReveal)/);\n  assert.match(screens, /\\.result:not\\(\\.hidden\\):not\\(\\.result-poster-v99\\) \\.result-content\\s*\\{\\s*animation:\\s*resultContentReveal/);\n  assert.match(screens, /\\.result:not\\(\\.result-poster-v99\\) \\.result-visual img\\s*\\{\\s*animation:\\s*meltReveal/);\n"
 if pwa.count(needle) != 1:
