@@ -1,8 +1,8 @@
-/* Smažka v98 — source DOM owns composition; runtime owns identity and detail state only. */
+/* Smažka runtime v100 — source DOM owns composition; runtime owns identity and detail state only. */
 (() => {
   'use strict';
 
-  const VERSION = 'v99';
+  const VERSION = 'v100';
   const POSTER_CLASS = 'result-poster-v99';
   const app = window.SmazkaApp;
   const result = app?.elements?.result;
@@ -84,17 +84,23 @@
     return button;
   }
 
+  function retireLegacyFrameState() {
+    // `result-in-frame` belongs to the retired pre-poster layout in screens.css.
+    // Leaving it on <body> reactivates high-specificity v71 selectors on real scans.
+    document.body.classList.remove('result-in-frame');
+  }
+
   function syncFrame() {
     installPosterIdentity();
+    retireLegacyFrameState();
+
     if (!mobileQuery.matches || !resultVisible()) {
       result.classList.remove('details-open');
-      document.body.classList.remove('result-in-frame');
       cameraStage?.classList.remove('has-in-frame-result');
       if (!resultVisible()) appRoot?.removeAttribute('inert');
       return;
     }
 
-    document.body.classList.add('result-in-frame');
     cameraStage?.classList.add('has-in-frame-result');
     appRoot?.toggleAttribute('inert', true);
     normalizeBadge();
@@ -131,6 +137,6 @@
     window.cancelAnimationFrame(animationFrame);
   }, { once: true });
 
-  window.SmazkaResultPoster = Object.freeze({ version: 99, sync: scheduleSync });
+  window.SmazkaResultPoster = Object.freeze({ version: 100, sync: scheduleSync });
   scheduleSync();
 })();
