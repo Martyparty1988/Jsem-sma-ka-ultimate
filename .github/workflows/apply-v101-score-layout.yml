@@ -1,8 +1,8 @@
 name: Apply verified v101 score layout
 
 on:
-  push:
-    branches: [fix/score-below-photo-v101]
+  pull_request:
+    branches: [main]
   workflow_dispatch:
 
 permissions:
