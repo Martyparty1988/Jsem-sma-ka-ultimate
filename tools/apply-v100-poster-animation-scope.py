@@ -7,19 +7,43 @@ screens = screens_path.read_text(encoding='utf-8')
 
 # Legacy reveal animations may transform the parent of the new fixed photo layer.
 # In WebKit, a transformed ancestor establishes the containing block for fixed descendants.
-content_selector = '.result:not(.hidden) .result-content {'
-content_scoped = '.result:not(.hidden):not(.result-poster-v99) .result-content {'
-content_count = screens.count(content_selector)
-if content_count != 1:
-    raise RuntimeError(f'Expected one legacy result content reveal selector, found {content_count}')
-screens = screens.replace(content_selector, content_scoped, 1)
+content_block = """.result:not(.hidden) .result-content {
+  animation: resultContentReveal 0.52s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+"""
+content_scoped = """.result:not(.hidden):not(.result-poster-v99) .result-content {
+  animation: resultContentReveal 0.52s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+"""
+if screens.count(content_block) != 1:
+    raise RuntimeError('Could not isolate the legacy resultContentReveal block')
+screens = screens.replace(content_block, content_scoped, 1)
 
-visual_selector = '.result:not(.hidden) .result-visual {'
-visual_scoped = '.result:not(.hidden):not(.result-poster-v99) .result-visual {'
-visual_count = screens.count(visual_selector)
-if visual_count != 2:
-    raise RuntimeError(f'Expected two legacy result visual reveal selectors, found {visual_count}')
-screens = screens.replace(visual_selector, visual_scoped)
+visual_reveal_block = """.result:not(.hidden) .result-visual {
+  isolation: isolate;
+  animation: resultVisualReveal 0.66s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+"""
+visual_reveal_scoped = """.result:not(.hidden):not(.result-poster-v99) .result-visual {
+  isolation: isolate;
+  animation: resultVisualReveal 0.66s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+"""
+if screens.count(visual_reveal_block) != 1:
+    raise RuntimeError('Could not isolate the legacy resultVisualReveal block')
+screens = screens.replace(visual_reveal_block, visual_reveal_scoped, 1)
+
+professional_block = """.result:not(.hidden) .result-visual {
+  animation: professionalResultReveal 680ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+"""
+professional_scoped = """.result:not(.hidden):not(.result-poster-v99) .result-visual {
+  animation: professionalResultReveal 680ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+"""
+if screens.count(professional_block) != 1:
+    raise RuntimeError('Could not isolate the legacy professionalResultReveal block')
+screens = screens.replace(professional_block, professional_scoped, 1)
 
 image_block = """.result-visual img {
   width: 100%;
@@ -70,7 +94,7 @@ for test_path in (ROOT / 'tests').rglob('*.mjs'):
 pwa_path = ROOT / 'tests/pwa-cache.test.mjs'
 pwa = pwa_path.read_text(encoding='utf-8')
 needle = "  assert.match(css, /grid-template-rows:\\s*minmax\\(112px, 1fr\\) auto auto auto auto auto/);\n"
-addition = needle + "  assert.doesNotMatch(screens, /\\.result:not\\(\\.hidden\\) \\.result-content\\s*\\{/);\n  assert.doesNotMatch(screens, /\\.result:not\\(\\.hidden\\) \\.result-visual\\s*\\{/);\n  assert.match(screens, /\\.result:not\\(\\.hidden\\):not\\(\\.result-poster-v99\\) \\.result-content/);\n  assert.match(screens, /\\.result:not\\(\\.result-poster-v99\\) \\.result-visual img/);\n"
+addition = needle + "  assert.doesNotMatch(screens, /\\.result:not\\(\\.hidden\\) \\.result-content\\s*\\{\\s*animation:\\s*resultContentReveal/);\n  assert.doesNotMatch(screens, /\\.result:not\\(\\.hidden\\) \\.result-visual\\s*\\{[\\s\\S]{0,160}animation:\\s*(?:resultVisualReveal|professionalResultReveal)/);\n  assert.match(screens, /\\.result:not\\(\\.hidden\\):not\\(\\.result-poster-v99\\) \\.result-content\\s*\\{\\s*animation:\\s*resultContentReveal/);\n  assert.match(screens, /\\.result:not\\(\\.result-poster-v99\\) \\.result-visual img\\s*\\{\\s*animation:\\s*meltReveal/);\n"
 if pwa.count(needle) != 1:
     raise RuntimeError('Could not find poster grid contract insertion point')
 pwa = pwa.replace(needle, addition, 1)
@@ -101,7 +125,6 @@ replacement = """  const layout = await page.evaluate(() => {
       contentTransform: contentStyle.transform,
       contentAnimation: contentStyle.animationName,
       visualPosition: visualStyle.position,
-      visualTransform: visualStyle.transform,
       visualAnimation: visualStyle.animationName,
       imageAnimation: imageStyle?.animationName || 'none'
     };
@@ -135,4 +158,4 @@ if e2e.count(first_anchor) != 1:
 e2e = e2e.replace(first_anchor, first_replacement, 1)
 e2e_path.write_text(e2e, encoding='utf-8')
 
-print('Scoped legacy reveal animations away from the poster and strengthened real WebKit geometry checks.')
+print('Scoped only the diagnosed legacy reveal animations away from the poster and strengthened real WebKit geometry checks.')
