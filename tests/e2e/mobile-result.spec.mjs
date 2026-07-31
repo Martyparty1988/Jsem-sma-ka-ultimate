@@ -105,7 +105,7 @@ test('mobile result keeps badge, score and actions inside the viewport', async (
   await page.screenshot({ path: testInfo.outputPath('result.png'), fullPage: false });
 });
 
-test('v100 poster retires legacy result-in-frame before it can reclaim the real iPhone layout', async ({ page }, testInfo) => {
+test('v101 poster keeps score below the photo even if legacy result-in-frame returns', async ({ page }, testInfo) => {
   await openDeterministicResult(page);
 
   await page.evaluate(() => {
