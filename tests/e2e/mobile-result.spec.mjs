@@ -108,26 +108,47 @@ test('v100 poster retires legacy result-in-frame before it can reclaim the real 
   await expect.poll(() => page.evaluate(() => document.body.classList.contains('result-in-frame'))).toBe(false);
 
   const visual = page.locator('.result-visual');
-  const content = page.locator('.result-content');
   const viewport = page.viewportSize();
   const visualBox = await visual.boundingBox();
   expect(viewport && visualBox).toBeTruthy();
 
   const layout = await page.evaluate(() => {
-    const visual = document.querySelector('.result-visual');
+    const result = document.querySelector('#result');
     const content = document.querySelector('.result-content');
-    const visualStyle = getComputedStyle(visual);
-    const contentStyle = getComputedStyle(content);
+    const visual = document.querySelector('.result-visual');
+    const image = visual?.querySelector('img, canvas');
+    const pack = (node) => {
+      const style = getComputedStyle(node);
+      const rect = node.getBoundingClientRect();
+      return {
+        rect: { x: rect.x, y: rect.y, width: rect.width, height: rect.height },
+        position: style.position,
+        inset: [style.top, style.right, style.bottom, style.left],
+        margin: [style.marginTop, style.marginRight, style.marginBottom, style.marginLeft],
+        padding: [style.paddingTop, style.paddingRight, style.paddingBottom, style.paddingLeft],
+        transform: style.transform,
+        transformOrigin: style.transformOrigin,
+        animationName: style.animationName,
+        contain: style.contain,
+        filter: style.filter,
+        perspective: style.perspective,
+        overflow: style.overflow
+      };
+    };
     return {
-      visualPosition: visualStyle.position,
-      visualTop: visualStyle.top,
-      contentDisplay: contentStyle.display,
-      contentColumns: contentStyle.gridTemplateColumns.split(/\s+/).filter(Boolean)
+      bodyClass: document.body.className,
+      result: pack(result),
+      content: pack(content),
+      visual: pack(visual),
+      image: image ? pack(image) : null,
+      contentDisplay: getComputedStyle(content).display,
+      contentColumns: getComputedStyle(content).gridTemplateColumns.split(/\s+/).filter(Boolean)
     };
   });
+  console.log('POSTER_LAYOUT_DIAGNOSTIC', JSON.stringify(layout));
 
-  expect(layout.visualPosition).toBe('fixed');
-  expect(['0px', 'auto']).toContain(layout.visualTop);
+  expect(layout.visual.position).toBe('fixed');
+  expect(['0px', 'auto']).toContain(layout.visual.inset[0]);
   expect(Math.abs(visualBox.x)).toBeLessThanOrEqual(1);
   expect(Math.abs(visualBox.y)).toBeLessThanOrEqual(1);
   expect(visualBox.width).toBeGreaterThanOrEqual(viewport.width - 1);
