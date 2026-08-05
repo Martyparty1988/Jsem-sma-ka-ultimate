@@ -41,26 +41,39 @@ async function openDeterministicResult(page) {
   await expect(page.locator('#result')).toBeVisible({ timeout: 10_000 });
 }
 
-test('mobile result keeps badge, score and actions inside the viewport', async ({ page }, testInfo) => {
+test('mobile result keeps the visible detail control and compact action dock inside the viewport', async ({ page }, testInfo) => {
   await openDeterministicResult(page);
 
   const badge = page.locator('.result-badge');
   const score = page.locator('.effect-label.result-score');
   const scoreValue = score.locator('strong');
+  const description = page.locator('.description');
+  const details = page.locator('.in-frame-details-toggle');
   const actions = page.locator('.result-actions');
+  const share = page.locator('.share-button');
+  const destroy = page.locator('.destroy-more-button');
+  const retry = page.locator('.new-scan-button');
   const close = page.locator('.result-close');
 
   await expect(badge).toHaveText('SMAŽKA FAKTOR');
   await expect(scoreValue).toHaveText(/^(?:100|[1-9]?\d)%$/);
+  await expect(details).toBeVisible();
+  await expect(details).toHaveAttribute('aria-expanded', 'false');
+  await expect(destroy).toBeVisible();
   expect(await score.evaluate((node) => node.parentElement?.classList.contains('result-content'))).toBe(true);
 
   const viewport = page.viewportSize();
   const badgeBox = await badge.boundingBox();
   const scoreBox = await score.boundingBox();
+  const descriptionBox = await description.boundingBox();
+  const detailsBox = await details.boundingBox();
   const actionsBox = await actions.boundingBox();
+  const shareBox = await share.boundingBox();
+  const destroyBox = await destroy.boundingBox();
+  const retryBox = await retry.boundingBox();
   const closeBox = await close.boundingBox();
   const visualBox = await page.locator('.result-visual').boundingBox();
-  expect(viewport && badgeBox && scoreBox && actionsBox && closeBox && visualBox).toBeTruthy();
+  expect(viewport && badgeBox && scoreBox && descriptionBox && detailsBox && actionsBox && shareBox && destroyBox && retryBox && closeBox && visualBox).toBeTruthy();
   expect(Math.abs(visualBox.x)).toBeLessThanOrEqual(1);
   expect(Math.abs(visualBox.y)).toBeLessThanOrEqual(1);
   expect(visualBox.width).toBeGreaterThanOrEqual(viewport.width - 1);
@@ -92,9 +105,21 @@ test('mobile result keeps badge, score and actions inside the viewport', async (
   expect(['auto', '0px']).toContain(scoreStyle.left);
   expect(scoreStyle.borderTopLeftRadius).toBeLessThanOrEqual(40);
   expect(badgeBox.y + badgeBox.height).toBeLessThan(scoreBox.y);
+  expect(detailsBox.y).toBeGreaterThanOrEqual(descriptionBox.y + descriptionBox.height);
+  expect(detailsBox.y + detailsBox.height).toBeLessThanOrEqual(actionsBox.y + 1);
+  expect(detailsBox.height).toBeGreaterThanOrEqual(44);
+  expect(shareBox.y).toBeLessThan(destroyBox.y);
+  expect(Math.abs(destroyBox.y - retryBox.y)).toBeLessThanOrEqual(1);
+  expect(destroyBox.x + destroyBox.width).toBeLessThanOrEqual(retryBox.x + 1);
+  expect(shareBox.height).toBeGreaterThanOrEqual(44);
+  expect(destroyBox.height).toBeGreaterThanOrEqual(44);
+  expect(retryBox.height).toBeGreaterThanOrEqual(44);
   expect(actionsBox.y + actionsBox.height).toBeLessThanOrEqual(viewport.height + 1);
   expect(closeBox.width).toBeGreaterThanOrEqual(44);
   expect(closeBox.height).toBeGreaterThanOrEqual(44);
+
+  const actionColumns = await actions.evaluate((node) => getComputedStyle(node).gridTemplateColumns.split(/\s+/).filter(Boolean));
+  expect(actionColumns).toHaveLength(2);
 
   const overflow = await page.evaluate(() => ({
     scrollWidth: document.documentElement.scrollWidth,
@@ -103,9 +128,23 @@ test('mobile result keeps badge, score and actions inside the viewport', async (
   expect(overflow.scrollWidth).toBeLessThanOrEqual(overflow.clientWidth + 1);
 
   await page.screenshot({ path: testInfo.outputPath('result.png'), fullPage: false });
+
+  await details.click();
+  await expect(page.locator('#result')).toHaveClass(/details-open/);
+  await expect(details).toHaveAttribute('aria-expanded', 'true');
+  const diagnosticPanel = page.locator('.diagnostic-panel');
+  await expect(diagnosticPanel).toBeVisible();
+  const diagnosticGeometry = await diagnosticPanel.evaluate((node) => ({
+    clientHeight: node.clientHeight,
+    scrollHeight: node.scrollHeight,
+    visibleRows: Array.from(node.querySelectorAll('.diagnostic-row')).filter((row) => row.getBoundingClientRect().height > 0).length
+  }));
+  expect(diagnosticGeometry.visibleRows).toBeGreaterThan(0);
+  expect(diagnosticGeometry.clientHeight).toBeGreaterThanOrEqual(diagnosticGeometry.scrollHeight - 1);
+  await page.screenshot({ path: testInfo.outputPath('result-details.png'), fullPage: false });
 });
 
-test('v101 poster keeps score below the photo even if legacy result-in-frame returns', async ({ page }, testInfo) => {
+test('v102 poster keeps score below the photo even if legacy result-in-frame returns', async ({ page }, testInfo) => {
   await openDeterministicResult(page);
 
   await page.evaluate(() => {
