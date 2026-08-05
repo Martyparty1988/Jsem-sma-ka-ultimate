@@ -24,20 +24,20 @@ function serviceWorkerContract() {
   return context.__PWA_TEST__;
 }
 
-test('PWA v103 precaches one compact production shell with no retired entries', () => {
+test('PWA v104 precaches one compact production shell with no retired entries', () => {
   const { CACHE_NAME, APP_SHELL } = serviceWorkerContract();
   const assets = new Set(APP_SHELL);
 
-  assert.equal(CACHE_NAME, 'jsem-smazka-v103');
+  assert.equal(CACHE_NAME, 'jsem-smazka-v104');
   [
-    './foundation.css?v=87',
+    './foundation.css?v=104',
     './components.css?v=87',
-    './screens.css?v=100',
+    './screens.css?v=104',
     './result-poster.css?v=103',
-    './app.js?v=98',
-    './scanner-runtime.js?v=87',
+    './app.js?v=104',
+    './scanner-runtime.js?v=104',
     './result-runtime.js?v=87',
-    './lifecycle-runtime.js?v=98',
+    './lifecycle-runtime.js?v=104',
     './result-poster-runtime.js?v=100',
     './responses.json',
     './responses-hard.json?v=64',
@@ -53,6 +53,11 @@ test('PWA v103 precaches one compact production shell with no retired entries', 
     './result-poster.css?v=94',
     './result-poster.css?v=101',
     './result-poster.css?v=102',
+    './foundation.css?v=87',
+    './screens.css?v=100',
+    './app.js?v=98',
+    './scanner-runtime.js?v=87',
+    './lifecycle-runtime.js?v=98',
     './result-poster-runtime.js?v=89',
     './result-poster-runtime.js?v=91',
     './result-poster-runtime.js?v=92',
@@ -86,7 +91,7 @@ test('MediaPipe uses a stable request-driven cache and never install-precaches W
   assert.match(serviceWorker, /key !== CACHE_NAME && key !== FACE_MODEL_CACHE/);
 });
 
-test('HTML entries, bundle sections and dynamic files agree with the v103 cache graph', () => {
+test('HTML entries, bundle sections and dynamic files agree with the v104 cache graph', () => {
   const { APP_SHELL } = serviceWorkerContract();
   const appAssets = new Set(APP_SHELL);
   const index = readRoot('index.html');
@@ -128,8 +133,8 @@ test('v103 stylesheet and v100 runtime keep the v99 poster authoritative', () =>
   assert.equal(fs.existsSync(new URL('result-layout.css', root)), false);
   assert.doesNotMatch(index, /result-layout\.css/);
   assert.doesNotMatch(serviceWorker, /result-layout\.css/);
-  assert.ok(index.indexOf('result-poster.css?v=103') > index.indexOf('screens.css?v=100'));
-  assert.ok(index.indexOf('result-poster-runtime.js?v=100') > index.indexOf('lifecycle-runtime.js?v=98'));
+  assert.ok(index.indexOf('result-poster.css?v=103') > index.indexOf('screens.css?v=104'));
+  assert.ok(index.indexOf('result-poster-runtime.js?v=100') > index.indexOf('lifecycle-runtime.js?v=104'));
   assert.match(index, /class="result result-poster-v99 hidden"/);
   assert.match(index, /data-result-poster="v99"/);
 
@@ -194,16 +199,16 @@ test('result, crop, recovery, single-pass, impact and share keep authoritative o
   const index = readRoot('index.html');
   const lifecycle = readRoot('lifecycle-runtime.js');
   const stylesheetOrder = [
-    'foundation.css?v=87',
+    'foundation.css?v=104',
     'components.css?v=87',
-    'screens.css?v=100',
+    'screens.css?v=104',
     'result-poster.css?v=103'
   ];
   const indexOrder = [
-    'app.js?v=98',
-    'scanner-runtime.js?v=87',
+    'app.js?v=104',
+    'scanner-runtime.js?v=104',
     'result-runtime.js?v=87',
-    'lifecycle-runtime.js?v=98',
+    'lifecycle-runtime.js?v=104',
     'result-poster-runtime.js?v=100'
   ];
   const lifecycleOrder = [

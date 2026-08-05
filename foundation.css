@@ -306,29 +306,6 @@ footer {
   font-size: 0.82rem;
 }
 
-.confetti-layer {
-  position: fixed;
-  inset: 0;
-  z-index: 80;
-  overflow: hidden;
-  pointer-events: none;
-}
-
-.confetti-piece {
-  position: absolute;
-  top: -24px;
-  width: 8px;
-  height: 16px;
-  border-radius: 2px;
-  animation: confettiFall var(--fall-duration) cubic-bezier(0.2, 0.7, 0.35, 1) var(--fall-delay) both;
-}
-
-@keyframes confettiFall {
-  0% { opacity: 0; transform: translate3d(0, -20px, 0) rotate(0deg); }
-  10% { opacity: 1; }
-  100% { opacity: 0.22; transform: translate3d(var(--drift), 105svh, 0) rotate(var(--spin)); }
-}
-
 .hidden {
   display: none !important;
 }
@@ -998,18 +975,6 @@ h1 {
 .install-button {
   border-color: var(--hairline);
   background: rgba(255, 255, 255, 0.065);
-}
-
-.confetti-piece {
-  width: 4px;
-  height: 12px;
-  border-radius: 999px;
-  opacity: 0.82;
-  box-shadow: 0 0 10px currentColor;
-}
-
-.confetti-piece:nth-child(n + 21) {
-  display: none;
 }
 
 @media (max-width: 640px) {
@@ -1762,12 +1727,6 @@ footer > .privacy-note {
   background: var(--quiet-surface-1);
 }
 
-.confetti-layer,
-.confetti-piece {
-  display: none !important;
-  animation: none !important;
-}
-
 .app-update-banner {
   border: 1px solid var(--quiet-border-strong);
   border-radius: 16px;
@@ -2215,11 +2174,6 @@ h1 {
   grid-column: 2 / 4;
 }
 
-.confetti-layer,
-.confetti-piece {
-  display: none;
-}
-
 @media (max-width: 640px) {
   .container {
     grid-template-rows: 38px minmax(58px, auto) minmax(0, 1fr);
@@ -2626,10 +2580,6 @@ h1 {
     radial-gradient(circle at 82% 0%, rgba(114, 232, 242, 0.08), transparent 34%),
     linear-gradient(180deg, rgba(16, 22, 31, 0.985), rgba(5, 8, 13, 0.995));
   box-shadow: 0 30px 90px rgba(0, 0, 0, 0.66), inset 0 1px rgba(255, 255, 255, 0.055);
-}
-
-.confetti-piece:nth-child(n + 13) {
-  display: none;
 }
 
 @media (max-width: 640px) {

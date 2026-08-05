@@ -4504,8 +4504,8 @@ body.result-in-frame .new-scan-button {
 }
 
 /*
- * Smažka v65 — targeted visual polish.
- * Final presentation overrides only; no workflow or application logic changes.
+ * Smažka v104 — Quiet Scan camera-stage and overlay polish.
+ * Final presentation overrides only; verdict and biometric logic stay untouched.
  */
 
 :root {
@@ -4638,30 +4638,13 @@ body {
 }
 
 .video-container::before {
-  display: block !important;
-  content: "" !important;
-  inset: 0 !important;
-  opacity: 0.16 !important;
-  background: repeating-linear-gradient(
-    180deg,
-    rgba(255, 255, 255, 0.026) 0 1px,
-    transparent 1px 5px
-  ) !important;
-  background-size: auto !important;
-  mix-blend-mode: normal !important;
-  mask-image: linear-gradient(to bottom, transparent, #000 14%, #000 86%, transparent) !important;
-  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 14%, #000 86%, transparent) !important;
+  display: none !important;
+  content: none !important;
 }
 
 .video-container::after {
-  display: block !important;
-  content: "" !important;
-  inset: 0 !important;
-  border: 1px solid rgba(255, 255, 255, 0.035) !important;
-  border-radius: inherit !important;
-  background: none !important;
-  opacity: 1 !important;
-  box-shadow: none !important;
+  display: none !important;
+  content: none !important;
 }
 
 .stage-vignette {
@@ -4796,6 +4779,12 @@ body {
 }
 
 #scanStatus {
+  display: grid !important;
+  grid-template-columns: auto minmax(0, 1fr) auto !important;
+  align-items: center !important;
+  gap: 7px 9px !important;
+  padding: 9px 11px 10px !important;
+  overflow: hidden !important;
   border-color: var(--polish-border) !important;
   border-radius: 13px !important;
   background: rgba(10, 15, 21, 0.74) !important;
@@ -4827,7 +4816,12 @@ body {
 }
 
 #scanBar {
+  position: static !important;
+  grid-column: 1 / -1 !important;
+  width: 100% !important;
+  margin: 1px 0 0 !important;
   height: 2px !important;
+  transform: none !important;
   background: rgba(218, 229, 238, 0.11) !important;
   box-shadow: none !important;
 }
@@ -4926,6 +4920,38 @@ body {
   font-weight: 550 !important;
   letter-spacing: 0 !important;
   text-transform: none !important;
+}
+
+.topbar,
+.boot-message,
+.privacy-strip,
+.camera-hint-overlay,
+.scan-hint {
+  transition: opacity 180ms ease, max-height 220ms var(--polish-ease), margin 220ms var(--polish-ease) !important;
+}
+
+body.face-scan-active .topbar,
+body.face-scan-active .privacy-strip {
+  opacity: 0.32 !important;
+}
+
+body.face-scan-active .boot-message {
+  min-height: 0 !important;
+  max-height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  opacity: 0 !important;
+}
+
+body.face-scan-active .camera-hint-overlay,
+body.face-scan-active .scan-hint {
+  opacity: 0 !important;
+}
+
+body.face-scan-active .video-container {
+  border-color: rgba(88, 214, 194, 0.34) !important;
+  box-shadow: inset 0 0 52px rgba(0, 0, 0, 0.26), 0 0 0 1px rgba(88, 214, 194, 0.045) !important;
 }
 
 .error-message {
@@ -5131,14 +5157,14 @@ body {
     right: 12px !important;
     bottom: 12px !important;
     left: 12px !important;
-    min-height: 42px !important;
-    padding: 9px 10px 13px !important;
+    min-height: 48px !important;
+    padding: 9px 10px 10px !important;
   }
 
   #scanBar {
-    right: 22px !important;
-    bottom: 17px !important;
-    left: 22px !important;
+    position: static !important;
+    width: 100% !important;
+    margin-top: 1px !important;
   }
 
   body.result-in-frame .result:not(.hidden),

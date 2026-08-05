@@ -683,7 +683,6 @@
     elements.result.append(closeButton, content);
     showResult();
     state.shareImagePromise = prepareShareImage(category, description, effectImageData, severity);
-    triggerConfetti();
     window.requestAnimationFrame(() => {
       closeButton.focus({ preventScroll: true });
     });
@@ -743,31 +742,6 @@
       setBusy(false);
       setHint('Rozsudek je venku. Sdílej ostudu, nebo přiveď další subjekt.');
     }, delay);
-  }
-
-  function triggerConfetti() {
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-
-    document.querySelector('.confetti-layer')?.remove();
-    const layer = document.createElement('div');
-    layer.className = 'confetti-layer';
-    layer.setAttribute('aria-hidden', 'true');
-    const colors = ['#22d3ee', '#34d399', '#ffffff', '#fb7185'];
-
-    for (let index = 0; index < 44; index += 1) {
-      const piece = document.createElement('i');
-      piece.className = 'confetti-piece';
-      piece.style.left = `${4 + Math.random() * 92}%`;
-      piece.style.background = colors[index % colors.length];
-      piece.style.setProperty('--fall-delay', `${Math.random() * 0.32}s`);
-      piece.style.setProperty('--fall-duration', `${1.7 + Math.random() * 1.15}s`);
-      piece.style.setProperty('--drift', `${-80 + Math.random() * 160}px`);
-      piece.style.setProperty('--spin', `${-540 + Math.random() * 1080}deg`);
-      layer.appendChild(piece);
-    }
-
-    document.body.appendChild(layer);
-    window.setTimeout(() => layer.remove(), 3400);
   }
 
   function drawCoverImage(ctx, image, x, y, width, height) {

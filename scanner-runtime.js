@@ -838,28 +838,12 @@
     });
   });
 
-  const lockLabel = document.createElement('span');
-  lockLabel.className = 'face-lock-label';
-  lockLabel.textContent = 'SUBJECT TARGET';
-
-  const eyeLeftLabel = document.createElement('span');
-  eyeLeftLabel.className = 'feature-label feature-eye-left';
-  eyeLeftLabel.textContent = 'EYE // L';
-
-  const eyeRightLabel = document.createElement('span');
-  eyeRightLabel.className = 'feature-label feature-eye-right';
-  eyeRightLabel.textContent = 'EYE // R';
-
-  const mouthLabel = document.createElement('span');
-  mouthLabel.className = 'feature-label feature-mouth';
-  mouthLabel.textContent = 'MOUTH // TRACE';
-
   const scanLine = document.createElement('div');
   scanLine.id = 'scanLine';
   scanLine.setAttribute('aria-hidden', 'true');
 
-  faceFrame.append(lockLabel, scanLine);
-  tracker.append(faceFrame, mesh, eyeLeftLabel, eyeRightLabel, mouthLabel);
+  faceFrame.appendChild(scanLine);
+  tracker.append(faceFrame, mesh);
 
   const status = document.createElement('div');
   status.id = 'scanStatus';
@@ -881,8 +865,9 @@
   const bar = document.createElement('div');
   bar.className = 'scan-bar-fill';
   barWrap.appendChild(bar);
+  status.appendChild(barWrap);
 
-  overlay.append(tracker, status, barWrap);
+  overlay.append(tracker, status);
   videoContainer.appendChild(overlay);
 
   let animationFrame = null;
@@ -984,7 +969,6 @@
               ? 'Přesná detekce odmítla svědčit'
               : 'Hledám oči, nos a zbytky tváře'
       );
-      lockLabel.textContent = faceDetected ? `${landmarkCount}-POINT VOID LOCK` : 'SUBJECT TARGET';
     }
 
     if (!changed) return;
@@ -1067,22 +1051,6 @@
     }).join(' ');
   }
 
-  function averagePoint(points, indices) {
-    const valid = indices.map((index) => points[index]).filter(Boolean);
-    if (!valid.length) return null;
-    const total = valid.reduce((sum, point) => ({
-      x: sum.x + point.x,
-      y: sum.y + point.y
-    }), { x: 0, y: 0 });
-    return { x: total.x / valid.length, y: total.y / valid.length };
-  }
-
-  function placeFeatureLabel(label, point, offsetY = -13) {
-    if (!point) return;
-    label.style.left = `${point.x}px`;
-    label.style.top = `${point.y + offsetY}px`;
-  }
-
   function renderLandmarks(landmarks) {
     const mapped = mapLandmarks(landmarks);
     if (!mapped) return false;
@@ -1134,9 +1102,6 @@
       );
     }
 
-    placeFeatureLabel(eyeLeftLabel, averagePoint(points, LEFT_EYE));
-    placeFeatureLabel(eyeRightLabel, averagePoint(points, RIGHT_EYE));
-    placeFeatureLabel(mouthLabel, averagePoint(points, OUTER_LIPS), 18);
     overlay.classList.add('has-landmarks');
     return true;
   }
@@ -1487,7 +1452,6 @@
     document.body.classList.remove('face-scan-active');
     app.setBusy(false);
     loading.classList.add('hidden');
-    lockLabel.textContent = hasFreshLandmarks() ? `${landmarkCount}-POINT VOID LOCK` : 'SUBJECT TARGET';
     setStatus(
       hasFreshLandmarks()
         ? `${landmarkCount} bodů subjektu zamčeno`
@@ -1556,8 +1520,6 @@
     scanLine.classList.remove('active');
     overlay.classList.remove('is-scanning');
     overlay.classList.add('is-complete');
-    lockLabel.textContent = 'SUBJECT CAPTURED';
-
     finishTimer = window.setTimeout(() => {
       finishTimer = null;
       void captureAndAnalyze();
@@ -1640,7 +1602,6 @@
     document.body.classList.add('face-scan-active');
     overlay.classList.remove('is-tracking', 'is-complete');
     overlay.classList.add('is-scanning');
-    lockLabel.textContent = `${landmarkCount}-POINT VOID LOCK`;
     scanLine.classList.add('active');
     barWrap.classList.add('show');
     setProgress(0);

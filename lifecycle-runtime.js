@@ -1561,11 +1561,6 @@
   let revealTargetSrc = '';
   let suppressPreviewObservation = false;
 
-  function removeLegacyConfetti(root = document) {
-    root.querySelectorAll?.('.confetti-layer, .confetti-piece').forEach((node) => node.remove());
-    if (root instanceof Element && root.matches('.confetti-layer, .confetti-piece')) root.remove();
-  }
-
   function cleanStatusCopy() {
     const copy = document.querySelector('.scan-state-copy');
     if (!copy) return;
@@ -1621,8 +1616,6 @@
 
   function decorateResult() {
     if (!result || result.classList.contains('hidden')) return;
-
-    removeLegacyConfetti();
 
     const shareLabel = result.querySelector('#shareResultButton span:last-child');
     if (shareLabel) shareLabel.textContent = 'Sdílet rozsudek';
@@ -1707,15 +1700,6 @@
   if (scanStatus) copyObserver.observe(scanStatus, { childList: true, subtree: true, characterData: true });
   if (scanHint) copyObserver.observe(scanHint, { childList: true, subtree: true, characterData: true });
 
-  const legacyEffectsObserver = new (window.SmazkaMutationObserver || window.MutationObserver)((mutations) => {
-    mutations.forEach((mutation) => {
-      mutation.addedNodes.forEach((node) => {
-        if (node instanceof Element) removeLegacyConfetti(node);
-      });
-    });
-  });
-  legacyEffectsObserver.observe(document.body, { childList: true, subtree: true });
-
   const previewObserver = preview && new (window.SmazkaMutationObserver || window.MutationObserver)(() => {
     if (suppressPreviewObservation) return;
     const currentSrc = preview.getAttribute('src') || '';
@@ -1735,7 +1719,6 @@
   });
   revealObserver?.observe(cameraStage, { attributes: true, attributeFilter: ['class'] });
 
-  removeLegacyConfetti();
   cleanStatusCopy();
   cleanHintCopy();
   decorateResult();
@@ -1744,7 +1727,6 @@
     clearRevealPhases();
     resultObserver?.disconnect();
     copyObserver.disconnect();
-    legacyEffectsObserver.disconnect();
     previewObserver?.disconnect();
     revealObserver?.disconnect();
   }, { once: true });
