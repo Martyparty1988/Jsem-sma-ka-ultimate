@@ -46,5 +46,5 @@ test('v83 loads after the camera HUD inside the cached scanner bundle', () => {
   assert.ok(hud > scan);
   assert.ok(balance > hud);
   assert.match(readRoot('screens.css'), /jvh-balanced-progress/);
-  assert.match(serviceWorker, /\.\/scanner-runtime\.js\?v=87/);
+  assert.match(serviceWorker, /\.\/scanner-runtime\.js\?v=105/);
 });

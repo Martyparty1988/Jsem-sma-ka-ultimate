@@ -51,5 +51,5 @@ test('v84 busy state runtime loads before the completion observer and is cached'
   const guard = lifecycle.indexOf('/* === analysis-completion-guard-v84.js === */');
   assert.ok(stability > -1);
   assert.ok(guard > stability);
-  assert.match(serviceWorker, /\.\/lifecycle-runtime\.js\?v=98/);
+  assert.match(serviceWorker, /\.\/lifecycle-runtime\.js\?v=105/);
 });

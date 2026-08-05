@@ -899,15 +899,6 @@
   let microcopyQueued = false;
   let metadataWarningIssued = false;
 
-  function hashText(text) {
-    let hash = 2166136261;
-    for (let i = 0; i < text.length; i += 1) {
-      hash ^= text.charCodeAt(i);
-      hash = Math.imul(hash, 16777619);
-    }
-    return hash >>> 0;
-  }
-
   function randomUnit() {
     if (!window.crypto?.getRandomValues) return Math.random();
     const value = new Uint32Array(1);
@@ -963,124 +954,6 @@
     });
   }
 
-  function drawCover(context, image, width, height) {
-    const imageRatio = image.width / image.height;
-    const targetRatio = width / height;
-    let sx = 0;
-    let sy = 0;
-    let sw = image.width;
-    let sh = image.height;
-    if (imageRatio > targetRatio) {
-      sw = image.height * targetRatio;
-      sx = (image.width - sw) / 2;
-    } else {
-      sh = image.width / targetRatio;
-      sy = (image.height - sh) / 2;
-    }
-    context.drawImage(image, sx, sy, sw, sh, 0, 0, width, height);
-  }
-
-  function pointDistance(a, b) {
-    return a && b ? Math.hypot(a.x - b.x, a.y - b.y) : 0;
-  }
-
-  function landmarkSignals() {
-    const points = new Map();
-    document.querySelectorAll('.face-landmark-mesh circle.landmark').forEach((circle) => {
-      if (circle.hidden) return;
-      const index = Number(circle.dataset.index);
-      const x = Number(circle.getAttribute('cx'));
-      const y = Number(circle.getAttribute('cy'));
-      if (Number.isFinite(index) && Number.isFinite(x) && Number.isFinite(y)) points.set(index, { x, y });
-    });
-    if (points.size < 8) return null;
-
-    const rightWidth = pointDistance(points.get(33), points.get(133));
-    const leftWidth = pointDistance(points.get(263), points.get(362));
-    const rightOpen = rightWidth ? pointDistance(points.get(159), points.get(145)) / rightWidth : 0.2;
-    const leftOpen = leftWidth ? pointDistance(points.get(386), points.get(374)) / leftWidth : 0.2;
-    const eyeOpen = (rightOpen + leftOpen) / 2;
-    const eyeAsymmetry = Math.abs(rightOpen - leftOpen) / Math.max(0.04, eyeOpen);
-    const rightCenter = { x: ((points.get(33)?.x || 0) + (points.get(133)?.x || 0)) / 2, y: ((points.get(33)?.y || 0) + (points.get(133)?.y || 0)) / 2 };
-    const leftCenter = { x: ((points.get(263)?.x || 0) + (points.get(362)?.x || 0)) / 2, y: ((points.get(263)?.y || 0) + (points.get(362)?.y || 0)) / 2 };
-    const eyeDistance = pointDistance(rightCenter, leftCenter);
-    const mouthWidth = pointDistance(points.get(61), points.get(291));
-
-    return {
-      sleepy: clamp((0.22 - eyeOpen) / 0.14, 0, 1),
-      asymmetry: clamp(eyeAsymmetry / 0.8, 0, 1),
-      tilt: clamp((eyeDistance ? Math.abs(rightCenter.y - leftCenter.y) / eyeDistance : 0) / 0.16, 0, 1),
-      mouth: clamp((mouthWidth ? pointDistance(points.get(13), points.get(14)) / mouthWidth : 0) / 0.22, 0, 1)
-    };
-  }
-
-  async function computeSeverity(imageData) {
-    const image = await loadImage(imageData);
-    const width = 96;
-    const height = 112;
-    const canvas = document.createElement('canvas');
-    canvas.width = width;
-    canvas.height = height;
-    const context = canvas.getContext('2d', { willReadFrequently: true });
-    drawCover(context, image, width, height);
-    const pixels = context.getImageData(0, 0, width, height).data;
-    const luma = new Float32Array(width * height);
-    let sum = 0;
-    let squares = 0;
-    let saturation = 0;
-    let dark = 0;
-    let highlights = 0;
-    let red = 0;
-    let left = 0;
-    let right = 0;
-
-    for (let y = 0; y < height; y += 1) {
-      for (let x = 0; x < width; x += 1) {
-        const p = (y * width + x) * 4;
-        const r = pixels[p];
-        const g = pixels[p + 1];
-        const b = pixels[p + 2];
-        const value = r * 0.2126 + g * 0.7152 + b * 0.0722;
-        luma[y * width + x] = value;
-        sum += value;
-        squares += value * value;
-        saturation += Math.max(r, g, b) - Math.min(r, g, b);
-        if (value < 58) dark += 1;
-        if (value > 218) highlights += 1;
-        red += Math.max(0, r - (g + b) / 2);
-        if (x < width / 2) left += value;
-        else right += value;
-      }
-    }
-
-    let edge = 0;
-    let edgeCount = 0;
-    for (let y = 1; y < height; y += 1) {
-      for (let x = 1; x < width; x += 1) {
-        const current = luma[y * width + x];
-        edge += Math.abs(current - luma[y * width + x - 1]);
-        edge += Math.abs(current - luma[(y - 1) * width + x]);
-        edgeCount += 2;
-      }
-    }
-
-    const count = width * height;
-    const mean = sum / count;
-    const deviation = Math.sqrt(Math.max(0, squares / count - mean * mean));
-    const signals = landmarkSignals();
-    let score = 23;
-    score += clamp((deviation - 28) / 52, 0, 1) * 15;
-    score += clamp((dark / count) / 0.42, 0, 1) * 15;
-    score += clamp((highlights / count) / 0.32, 0, 1) * 4;
-    score += clamp((saturation / count - 24) / 78, 0, 1) * 6;
-    score += clamp((red / count - 3) / 24, 0, 1) * 8;
-    score += clamp(Math.abs(left - right) / (count / 2) / 34, 0, 1) * 10;
-    score += clamp((17 - edge / edgeCount) / 17, 0, 1) * 7;
-    if (signals) score += signals.sleepy * 11 + signals.asymmetry * 8 + signals.tilt * 6 + signals.mouth * 4;
-    score += ((hashText(String(imageData).slice(-320)) % 1001) / 1000 - 0.5) * 10;
-    return clamp(Math.round(score), 16, 94);
-  }
-
   async function waitForStableLibrary(timeout = 2200) {
     const started = performance.now();
     let previous = -1;
@@ -1133,19 +1006,14 @@
       await waitForStableLibrary(900);
       const metrics = normalizeDevastationMetrics(options.faceAnalysis?.metrics || options.metrics);
       const faceAnalysis = normalizeFaceAnalysis(options.faceAnalysis, metrics);
-      let severity;
-
-      if (metrics) {
-        const measuredSeverity = Number(faceAnalysis?.scores?.severity);
-        severity = Number.isFinite(measuredSeverity)
-          ? clamp(Math.round(measuredSeverity), 12, 98)
-          : clamp(Math.round(100 - metrics.lidskost), 16, 94);
-      } else {
-        severity = await computeSeverity(state.currentImageData).catch((error) => {
-          console.warn('Vizuální damage skóre selhalo, používám fallback:', error);
-          return 36 + (hashText(String(state.currentImageData).slice(-220)) % 48);
-        });
+      if (!metrics || !faceAnalysis) {
+        throw new Error('Verdikt nedostal úplný faceAnalysis z lokálního Face Mesh průchodu.');
       }
+      const measuredSeverity = Number(faceAnalysis.scores?.severity);
+      if (!Number.isFinite(measuredSeverity)) {
+        throw new Error('FaceAnalysis neobsahuje platné společné skóre.');
+      }
+      const severity = clamp(Math.round(measuredSeverity), 12, 98);
 
       const {
         hasValidResponseMetadata,
@@ -1201,6 +1069,11 @@
         verdict: selected,
         faceAnalysis: selectedFaceAnalysis
       });
+    } catch (error) {
+      console.error('Jednotný faceAnalysis průchod selhal:', error);
+      elements.loading?.classList.add('hidden');
+      app.showError('Lokální FACE engine nedodal úplný rozbor. Zkus nový sken nebo jinou fotku.');
+      app.setHint('Bez skutečných bodů a vizuálních signálů VOID verdikt nevymýšlí.');
     } finally {
       engineBusy = false;
       if (!state.isAnalyzing) app.setBusy(false);
@@ -1387,17 +1260,6 @@
     'Výraz odpovídá člověku, který našel smysl života a okamžitě ho ztratil u šatny.'
   ];
 
-  const extraProfiles = [
-    { key: 'widescreen', label: 'Obličej v režimu širokoúhlý peklo', rows: true, amount: 0.46 },
-    { key: 'jawdrop', label: 'Čelist vytažená z kolejí', rows: true, amount: 0.58 },
-    { key: 'forehead', label: 'Čelo po developerským projektu', rows: true, amount: 0.5 },
-    { key: 'sidepull', label: 'Ksicht tažený k nonstopu', rows: true, amount: 0.38 },
-    { key: 'accordion', label: 'Junky harmonika', rows: true, amount: 0.42 },
-    { key: 'spiral', label: 'Obličej zamotanej do vlastní směny', columns: true, amount: 0.32 },
-    { key: 'liquid', label: 'Tekutá pracovní morálka', columns: true, amount: 0.48 },
-    { key: 'implosion', label: 'Ksicht po vnitřním výbuchu', rows: true, amount: -0.34 }
-  ];
-
   function randomIndex(length) {
     if (!window.crypto?.getRandomValues) return Math.floor(Math.random() * length);
     const value = new Uint32Array(1);
@@ -1405,199 +1267,63 @@
     return value[0] % length;
   }
 
-  function loadImage(source) {
-    return new Promise((resolve, reject) => {
-      const image = new Image();
-      image.onload = () => resolve(image);
-      image.onerror = () => reject(new Error('Deformovaný snímek se nepovedlo načíst'));
-      image.src = source;
-    });
-  }
-
-  function canvasToDataUrl(canvas) {
-    return canvas.toDataURL('image/png');
-  }
-
-  function copyCanvas(source) {
-    const copy = document.createElement('canvas');
-    copy.width = source.width;
-    copy.height = source.height;
-    copy.getContext('2d').drawImage(source, 0, 0);
-    return copy;
-  }
-
-  function applyRowWarp(source, output, profile, progress, seed) {
-    const width = output.width;
-    const height = output.height;
-    const context = output.getContext('2d');
-    const strip = 4;
-    context.clearRect(0, 0, width, height);
-
-    for (let y = 0; y < height; y += strip) {
-      const v = y / height;
-      const face = Math.exp(-Math.pow((v - 0.46) / 0.34, 2));
-      const forehead = Math.exp(-Math.pow((v - 0.27) / 0.17, 2));
-      const jaw = Math.exp(-Math.pow((v - 0.66) / 0.18, 2));
-      let mask = face;
-      let amount = profile.amount * progress * (0.7 + extraDamage * 0.08);
-      let shift = 0;
-
-      if (profile.key === 'forehead') mask = forehead;
-      if (profile.key === 'jawdrop') mask = jaw;
-      if (profile.key === 'accordion') amount *= Math.sin(y * 0.075 + seed) * 0.85;
-      if (profile.key === 'sidepull') shift = Math.sin(v * Math.PI) * width * amount * 0.34;
-      if (profile.key === 'implosion') amount = Math.max(-0.52, amount);
-
-      const drawWidth = width * Math.max(0.5, 1 + amount * mask);
-      const wobble = Math.sin(y * 0.035 + seed * 0.1) * width * 0.028 * progress * face;
-      const dx = (width - drawWidth) / 2 + wobble + shift;
-      context.drawImage(source, 0, y, width, Math.min(strip + 1, height - y), dx, y, drawWidth, Math.min(strip + 1, height - y));
-    }
-  }
-
-  function applyColumnWarp(source, output, profile, progress, seed) {
-    const width = output.width;
-    const height = output.height;
-    const context = output.getContext('2d');
-    const strip = 4;
-    context.clearRect(0, 0, width, height);
-
-    for (let x = 0; x < width; x += strip) {
-      const n = (x - width / 2) / (width * 0.42);
-      const mask = Math.pow(Math.max(0, 1 - n * n), 1.3);
-      const random = 0.38 + ((Math.sin((x + seed) * 12.9898) * 43758.5453) % 1 + 1) % 1 * 0.62;
-      const pull = height * profile.amount * progress * mask * random * (0.56 + extraDamage * 0.08);
-      const sway = profile.key === 'spiral'
-        ? Math.sin(x * 0.04 + seed) * width * 0.035 * progress * mask
-        : Math.sin(x * 0.025 + seed) * width * 0.012 * progress * mask;
-      context.drawImage(source, x, 0, Math.min(strip + 1, width - x), height, x + sway, 0, Math.min(strip + 1, width - x), height + pull);
-    }
-  }
-
-  async function animateExtraWarp(canvas, profile, runId) {
-    const source = copyCanvas(canvas);
-    const output = document.createElement('canvas');
-    output.width = canvas.width;
-    output.height = canvas.height;
-    const duration = reducedMotion() ? 1 : 820;
-    const started = performance.now();
-
-    elements.result.classList.add('extra-warp-progress');
-
-    await new Promise((resolve) => {
-      const frame = (now) => {
-        if (runId !== resultRun) return resolve();
-        const progress = reducedMotion() ? 1 : Math.min(1, (now - started) / duration);
-        const eased = 1 - Math.pow(1 - progress, 3);
-        if (profile.columns) applyColumnWarp(source, output, profile, eased, runId * 17.3);
-        else applyRowWarp(source, output, profile, eased, runId * 17.3);
-        canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
-        canvas.getContext('2d').drawImage(output, 0, 0);
-        if (progress < 1) requestAnimationFrame(frame);
-        else resolve();
-      };
-      requestAnimationFrame(frame);
-    });
-
-    elements.result.classList.remove('extra-warp-progress');
-    return canvasToDataUrl(canvas);
-  }
-
-  function wrapText(context, text, x, y, maxWidth, lineHeight, maxLines) {
-    const words = String(text || '').split(/\s+/);
-    const lines = [];
-    let line = '';
-    words.forEach((word) => {
-      const test = line ? `${line} ${word}` : word;
-      if (context.measureText(test).width > maxWidth && line) {
-        lines.push(line);
-        line = word;
-      } else line = test;
-    });
-    if (line) lines.push(line);
-    const visible = lines.slice(0, maxLines);
-    if (lines.length > maxLines && visible.length) visible[visible.length - 1] = `${visible[visible.length - 1].replace(/[.,!?…]*$/, '')}…`;
-    visible.forEach((item, index) => context.fillText(item, x, y + index * lineHeight));
-  }
-
-  async function rebuildShareCard(imageData) {
-    const image = await loadImage(imageData);
-    const canvas = elements.canvas;
-    const context = canvas.getContext('2d');
-    const width = 1080;
-    const imageHeight = 900;
-    const panelHeight = 450;
-    canvas.width = width;
-    canvas.height = imageHeight + panelHeight;
-
-    const imageRatio = image.width / image.height;
-    const targetRatio = width / imageHeight;
-    let sx = 0;
-    let sy = 0;
-    let sw = image.width;
-    let sh = image.height;
-    if (imageRatio > targetRatio) {
-      sw = image.height * targetRatio;
-      sx = (image.width - sw) / 2;
-    } else {
-      sh = image.width / targetRatio;
-      sy = (image.height - sh) / 2;
-    }
-    context.drawImage(image, sx, sy, sw, sh, 0, 0, width, imageHeight);
-
-    context.fillStyle = 'rgba(2,6,23,0.95)';
-    context.fillRect(0, imageHeight, width, panelHeight);
-    const accent = context.createLinearGradient(0, imageHeight, width, imageHeight);
-    accent.addColorStop(0, '#22d3ee');
-    accent.addColorStop(1, '#34d399');
-    context.fillStyle = accent;
-    context.fillRect(0, imageHeight, width, 8);
-
-    const title = state.lastAnalysisResult?.title || 'Neznámý stav';
-    const description = state.lastAnalysisResult?.description || '';
-    const severity = Math.min(100, Number(state.effectSeverity || state.lastAnalysisResult?.severity || 50) + extraDamage * 7);
-
-    context.textAlign = 'center';
-    context.fillStyle = '#67e8f9';
-    context.font = '700 28px ui-sans-serif, sans-serif';
-    context.fillText(`LOKÁLNÍ DETEKCE DEVASTACE • DAMAGE ${severity}%`, width / 2, imageHeight + 58);
-    context.fillStyle = '#fff';
-    let titleSize = 66;
-    context.font = `900 ${titleSize}px ui-sans-serif, sans-serif`;
-    while (context.measureText(title).width > width - 96 && titleSize > 38) {
-      titleSize -= 2;
-      context.font = `900 ${titleSize}px ui-sans-serif, sans-serif`;
-    }
-    context.fillText(title, width / 2, imageHeight + 145);
-    context.fillStyle = '#d9e1df';
-    context.font = 'italic 38px ui-sans-serif, sans-serif';
-    wrapText(context, description, width / 2, imageHeight + 220, width - 130, 48, 3);
-    context.fillStyle = 'rgba(217,225,223,0.5)';
-    context.font = '28px ui-sans-serif, sans-serif';
-    context.fillText('jsemsmazka.cz • černý humor, ne diagnóza', width / 2, imageHeight + panelHeight - 52);
-  }
-
-  function updateDamageLabel(profile) {
+  function updateDamageLabel(profile, severity) {
     const label = elements.result.querySelector('.effect-label');
-    const severity = Math.min(100, Number(state.effectSeverity || state.lastAnalysisResult?.severity || 50) + extraDamage * 7);
     if (label) label.innerHTML = `<span>${profile.label}</span><strong>${severity}%</strong>`;
     state.effectSeverity = severity;
   }
 
+  async function installUnifiedEffectImage(imageData, severity, label) {
+    const visual = elements.result.querySelector('.result-visual');
+    if (!visual) return;
+    const image = document.createElement('img');
+    image.className = 'unified-face-effect-image';
+    image.alt = `Deformovaný obličej. Intenzita efektu ${severity} procent.`;
+    image.decoding = 'async';
+    const loaded = new Promise((resolve, reject) => {
+      image.addEventListener('load', resolve, { once: true });
+      image.addEventListener('error', reject, { once: true });
+    });
+    image.src = imageData;
+    await loaded;
+    visual.querySelectorAll(':scope > img, :scope > canvas').forEach((media) => media.remove());
+    visual.insertBefore(image, visual.firstChild);
+    visual.dataset.landmarkWarp = state.faceAnalysis?.anchors ? 'anchored' : 'fallback';
+    updateDamageLabel({ label }, severity);
+  }
+
   async function destroyMore(button) {
-    const canvas = elements.result.querySelector('.warp-result-canvas');
-    if (!canvas || button.disabled) return;
+    const faceWarp = window.SmazkaFaceWarp;
+    if (!state.currentImageData || typeof faceWarp?.renderFaceEffect !== 'function' || button.disabled) return;
     button.disabled = true;
     extraDamage = Math.min(5, extraDamage + 1);
-    const profile = extraProfiles[randomIndex(extraProfiles.length)];
     const runId = ++resultRun;
-    updateDamageLabel(profile);
+    const baseSeverity = Number(state.lastAnalysisResult?.severity || 50);
+    const severity = Math.min(100, baseSeverity + extraDamage * 7);
+    const effect = state.lastAnalysisResult?.effect || state.effectProfile?.key || '';
+    const seed = randomIndex(100000) + 1;
 
     try {
-      const finalImage = await animateExtraWarp(canvas, profile, runId);
+      const rendered = await faceWarp.renderFaceEffect({
+        imageData: state.currentImageData,
+        severity,
+        effect,
+        faceAnalysis: state.faceAnalysis,
+        seed,
+        output: { width: 720, height: 960, crop: 'cover' }
+      });
+      if (runId !== resultRun) return;
+      const finalImage = rendered.finalDataUrl;
       state.effectImageData = finalImage;
-      state.shareImagePromise = rebuildShareCard(finalImage);
-      await state.shareImagePromise;
+      state.effectSeed = rendered.seed;
+      state.effectProfile = {
+        ...(state.effectProfile || {}),
+        key: rendered.effect,
+        label: rendered.label
+      };
+      state.shareImagePromise = Promise.resolve(finalImage);
+      await installUnifiedEffectImage(finalImage, severity, rendered.label);
+      elements.result.dataset.warpToken = `${resultRun}|${rendered.seed}|${severity}`;
       button.querySelector('span:last-child').textContent = extraDamage >= 5 ? 'Totální konečná' : 'Ještě víc mě znič';
       button.disabled = extraDamage >= 5;
     } catch (error) {
@@ -1882,47 +1608,56 @@
     }
   }
 
-  function waitFor(predicate, timeout = 900) {
-    const started = performance.now();
-    return new Promise((resolve) => {
-      const inspect = () => {
-        if (predicate()) return resolve(true);
-        if (performance.now() - started >= timeout) return resolve(false);
-        requestAnimationFrame(inspect);
-      };
-      inspect();
-    });
-  }
-
-  async function refreshWarp(previousKey, previousSeed, attempt = 0) {
-    elements.result.removeAttribute('data-warp-token');
-    elements.result.classList.toggle('diagnostic-warp-refresh');
-    await new Promise((resolve) => requestAnimationFrame(resolve));
-    elements.result.classList.toggle('diagnostic-warp-refresh');
-
-    await waitFor(() => state.effectSeed && state.effectSeed !== previousSeed, 1100);
-    const currentKey = state.effectProfile?.key || '';
-    if (currentKey && currentKey === previousKey && attempt < 3) {
-      return refreshWarp(currentKey, state.effectSeed, attempt + 1);
-    }
-
-    await Promise.resolve(state.shareImagePromise).catch(() => undefined);
-    return true;
-  }
-
   async function rerollDeformation(button) {
     if (!state.currentImageData) return app.showError('Fotka už není dostupná. Spusť nový sken.');
 
     const previousText = button.textContent;
-    const previousKey = state.effectProfile?.key || '';
-    const previousSeed = state.effectSeed;
     button.disabled = true;
     button.textContent = 'Přepočítávám…';
     playReroll();
     vibrate([14, 28, 14]);
 
     try {
-      await refreshWarp(previousKey, previousSeed);
+      const faceWarp = window.SmazkaFaceWarp;
+      if (typeof faceWarp?.renderFaceEffect !== 'function') {
+        throw new Error('Jednotný face-warp renderer není dostupný.');
+      }
+      const severity = clamp(
+        Number(state.effectSeverity || state.lastAnalysisResult?.severity || 50),
+        0,
+        100
+      );
+      const seed = (hashText(`${resultToken()}|${performance.now()}|${state.effectSeed || 0}`) % 100000) + 1;
+      const rendered = await faceWarp.renderFaceEffect({
+        imageData: state.currentImageData,
+        severity,
+        effect: state.lastAnalysisResult?.effect || state.effectProfile?.key || '',
+        faceAnalysis: state.faceAnalysis,
+        seed,
+        output: { width: 720, height: 960, crop: 'cover' }
+      });
+      const image = document.createElement('img');
+      image.className = 'unified-face-effect-image';
+      image.alt = `Jiná deformace stejného obličeje. Intenzita efektu ${severity} procent.`;
+      image.decoding = 'async';
+      const loaded = new Promise((resolve, reject) => {
+        image.addEventListener('load', resolve, { once: true });
+        image.addEventListener('error', reject, { once: true });
+      });
+      image.src = rendered.finalDataUrl;
+      await loaded;
+      const visual = elements.result.querySelector('.result-visual');
+      visual?.querySelectorAll(':scope > img, :scope > canvas').forEach((media) => media.remove());
+      visual?.insertBefore(image, visual.firstChild);
+      state.effectImageData = rendered.finalDataUrl;
+      state.effectSeed = rendered.seed;
+      state.effectProfile = {
+        ...(state.effectProfile || {}),
+        key: rendered.effect,
+        label: rendered.label
+      };
+      state.shareImagePromise = Promise.resolve(rendered.finalDataUrl);
+      elements.result.dataset.warpToken = `reroll|${rendered.seed}|${severity}`;
       button.textContent = 'Jiná deformace ✓';
     } catch (error) {
       console.warn('Přegenerování deformace selhalo:', error);

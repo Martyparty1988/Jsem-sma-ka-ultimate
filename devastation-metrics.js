@@ -1,4 +1,14 @@
-const SCHEMA_VERSION = 1;
+const SCHEMA_VERSION = 2;
+
+const SIGNAL_WEIGHTS = Object.freeze({
+  pose: 0.18,
+  eyes: 0.15,
+  mouth: 0.08,
+  asymmetry: 0.15,
+  stability: 0.16,
+  exposure: 0.12,
+  sharpness: 0.16
+});
 
 const FACE_OVAL = Object.freeze([
   10, 338, 297, 332, 284, 251, 389, 356, 454, 323, 361, 288,
@@ -58,6 +68,13 @@ function distance(first, second) {
   return Math.hypot(first.x - second.x, first.y - second.y);
 }
 
+function average(values) {
+  const available = values.filter(Number.isFinite);
+  return available.length
+    ? available.reduce((sum, value) => sum + value, 0) / available.length
+    : 0;
+}
+
 function averagePoint(points, indices) {
   const valid = indices.map((index) => pointAt(points, index)).filter(Boolean);
   if (!valid.length) return null;
@@ -70,6 +87,16 @@ function averagePoint(points, indices) {
     x: total.x / valid.length,
     y: total.y / valid.length,
     z: total.z / valid.length
+  };
+}
+
+function averagePixelPoint(points, indices, width, height) {
+  const value = averagePoint(points, indices);
+  if (!value) return null;
+  return {
+    x: value.x * width,
+    y: value.y * height,
+    z: value.z
   };
 }
 
@@ -124,6 +151,95 @@ function eyeEffectIntensity(apertura, leftRatio, rightRatio) {
   const meanRatio = Math.max(0.04, (leftRatio + rightRatio) / 2);
   const imbalance = clamp(Math.abs(leftRatio - rightRatio) / meanRatio / 0.7, 0, 1);
   return Math.max(closure, widening, imbalance);
+}
+
+function poseSignals(points, width, height) {
+  const rightEye = averagePixelPoint(points, [33, 133, 159, 145], width, height);
+  const leftEye = averagePixelPoint(points, [263, 362, 386, 374], width, height);
+  const nose = pixelPoint(points, 1, width, height);
+  const chin = pixelPoint(points, 152, width, height);
+  const jawLeft = pixelPoint(points, 454, width, height);
+  const jawRight = pixelPoint(points, 234, width, height);
+  if (!rightEye || !leftEye || !nose || !chin || !jawLeft || !jawRight) {
+    return {
+      intensity: 0,
+      rollDegrees: 0,
+      yawImbalance: 0,
+      pitchRatio: 0.46
+    };
+  }
+
+  const rollDegrees = Math.atan2(
+    leftEye.y - rightEye.y,
+    leftEye.x - rightEye.x
+  ) * 180 / Math.PI;
+  const leftDistance = distance(nose, jawLeft);
+  const rightDistance = distance(nose, jawRight);
+  const yawImbalance = Math.abs(leftDistance - rightDistance)
+    / Math.max(1, leftDistance + rightDistance);
+  const eyeMidpoint = {
+    x: (rightEye.x + leftEye.x) / 2,
+    y: (rightEye.y + leftEye.y) / 2
+  };
+  const pitchRatio = distance(eyeMidpoint, chin) > 0
+    ? (nose.y - eyeMidpoint.y) / (chin.y - eyeMidpoint.y || 1)
+    : 0.46;
+
+  const rollIntensity = clamp((Math.abs(rollDegrees) - 3) / 22, 0, 1);
+  const yawIntensity = clamp((yawImbalance - 0.035) / 0.24, 0, 1);
+  const pitchDistance = pitchRatio < 0.3
+    ? 0.3 - pitchRatio
+    : Math.max(0, pitchRatio - 0.62);
+  const pitchIntensity = clamp(pitchDistance / 0.24, 0, 1);
+
+  return {
+    intensity: round(
+      Math.max(rollIntensity, yawIntensity, pitchIntensity) * 0.72
+        + average([rollIntensity, yawIntensity, pitchIntensity]) * 0.28,
+      3
+    ),
+    rollDegrees: round(rollDegrees, 2),
+    yawImbalance: round(yawImbalance, 4),
+    pitchRatio: round(pitchRatio, 4)
+  };
+}
+
+function mouthSignals(points, width, height) {
+  const upper = pixelPoint(points, 13, width, height);
+  const lower = pixelPoint(points, 14, width, height);
+  const left = pixelPoint(points, 61, width, height);
+  const right = pixelPoint(points, 291, width, height);
+  const mouthWidth = distance(left, right);
+  const opennessRatio = mouthWidth > 0 ? distance(upper, lower) / mouthWidth : 0;
+  return {
+    opennessRatio: round(opennessRatio, 4),
+    intensity: round(clamp((opennessRatio - 0.08) / 0.34, 0, 1), 3)
+  };
+}
+
+function combinedAsymmetry(points, width, height, leftEyeRatio, rightEyeRatio, mouthRatio) {
+  const eyeMean = Math.max(0.04, (leftEyeRatio + rightEyeRatio) / 2);
+  const eyeDifference = clamp(Math.abs(leftEyeRatio - rightEyeRatio) / eyeMean / 0.7, 0, 1);
+  const nose = pixelPoint(points, 1, width, height);
+  const leftCheek = averagePixelPoint(points, [454, 323, 361], width, height);
+  const rightCheek = averagePixelPoint(points, [234, 93, 132], width, height);
+  const leftDistance = distance(nose, leftCheek);
+  const rightDistance = distance(nose, rightCheek);
+  const cheekDifference = clamp(
+    Math.abs(leftDistance - rightDistance) / Math.max(1, (leftDistance + rightDistance) / 2) / 0.42,
+    0,
+    1
+  );
+  const mouthDifference = clamp(mouthRatio / 0.16, 0, 1);
+  return {
+    eyeDifference: round(eyeDifference, 4),
+    cheekDifference: round(cheekDifference, 4),
+    intensity: round(
+      Math.max(eyeDifference, cheekDifference, mouthDifference) * 0.68
+        + average([eyeDifference, cheekDifference, mouthDifference]) * 0.32,
+      3
+    )
+  };
 }
 
 function headTilt(points, width, height) {
@@ -196,13 +312,46 @@ function normalizedRandom(random) {
   return clamp(sample, 0, 0.9999999999999999);
 }
 
-function severityScores(lidskost, random) {
-  const signalScore = clamp(100 - lidskost, 0, 100);
+function weightedSignalScore(signals) {
+  const available = Object.entries(SIGNAL_WEIGHTS)
+    .map(([key, weight]) => ({
+      key,
+      weight,
+      rawValue: signals?.[key],
+      value: Number(signals?.[key])
+    }))
+    .filter((signal) => (
+      signal.rawValue !== null
+      && signal.rawValue !== undefined
+      && Number.isFinite(signal.value)
+    ));
+  const totalWeight = available.reduce((sum, signal) => sum + signal.weight, 0);
+  if (!totalWeight) return { score: 0, contributions: {} };
+
+  const contributions = Object.fromEntries(available.map((signal) => [
+    signal.key,
+    round(signal.value * signal.weight / totalWeight * 100, 2)
+  ]));
+  return {
+    score: clamp(round(
+      available.reduce((sum, signal) => sum + signal.value * signal.weight, 0)
+        / totalWeight * 100
+    ), 0, 100),
+    contributions
+  };
+}
+
+function severityScores(signals, random) {
+  const weighted = weightedSignalScore(signals);
+  const signalScore = weighted.score;
   const randomScore = 12 + normalizedRandom(random) * 86;
   return {
     signalScore: round(signalScore),
     randomScore: round(randomScore),
-    severity: clamp(Math.round(signalScore * 0.70 + randomScore * 0.30), 12, 98)
+    severity: clamp(Math.round(signalScore * 0.70 + randomScore * 0.30), 12, 98),
+    mix: Object.freeze({ visual: 0.70, random: 0.30 }),
+    weights: SIGNAL_WEIGHTS,
+    contributions: weighted.contributions
   };
 }
 
@@ -268,7 +417,7 @@ function createSamplingCanvas(width, height) {
   return canvas;
 }
 
-async function sampleFaceExposure(imageSource, faceBounds, canvasFactory = createSamplingCanvas) {
+async function sampleFaceVisualQuality(imageSource, faceBounds, canvasFactory = createSamplingCanvas) {
   const loaded = await loadImage(imageSource);
   const sampleWidth = 96;
   const sampleHeight = 112;
@@ -311,26 +460,59 @@ async function sampleFaceExposure(imageSource, faceBounds, canvasFactory = creat
   let squares = 0;
   let clipped = 0;
   const count = pixels.length / 4;
+  const luma = new Float32Array(count);
 
   for (let index = 0; index < pixels.length; index += 4) {
     const luminance = pixels[index] * 0.2126
       + pixels[index + 1] * 0.7152
       + pixels[index + 2] * 0.0722;
+    luma[index / 4] = luminance;
     sum += luminance;
     squares += luminance * luminance;
     if (luminance < 30 || luminance > 235) clipped += 1;
+  }
+
+  let laplacianSum = 0;
+  let laplacianSquares = 0;
+  let laplacianCount = 0;
+  for (let y = 1; y < sampleHeight - 1; y += 1) {
+    for (let x = 1; x < sampleWidth - 1; x += 1) {
+      const index = y * sampleWidth + x;
+      const laplacian = luma[index] * 4
+        - luma[index - 1]
+        - luma[index + 1]
+        - luma[index - sampleWidth]
+        - luma[index + sampleWidth];
+      laplacianSum += laplacian;
+      laplacianSquares += laplacian * laplacian;
+      laplacianCount += 1;
+    }
   }
 
   loaded.release();
   const meanLuma = sum / count;
   const contrast = Math.sqrt(Math.max(0, squares / count - meanLuma * meanLuma));
   const clippedRatio = clipped / count;
+  const laplacianMean = laplacianCount ? laplacianSum / laplacianCount : 0;
+  const laplacianVariance = laplacianCount
+    ? Math.max(0, laplacianSquares / laplacianCount - laplacianMean * laplacianMean)
+    : 0;
+  const sharpnessQuality = clamp((laplacianVariance - 45) / 605, 0, 1);
+  const hydratace = hydrationFromExposure(meanLuma, clippedRatio, contrast);
   return {
-    available: true,
-    meanLuma: round(meanLuma, 1),
-    contrast: round(contrast, 1),
-    clippedRatio: round(clippedRatio, 3),
-    hydratace: hydrationFromExposure(meanLuma, clippedRatio, contrast)
+    exposure: {
+      available: true,
+      meanLuma: round(meanLuma, 1),
+      contrast: round(contrast, 1),
+      clippedRatio: round(clippedRatio, 3),
+      hydratace,
+      intensity: round(1 - clamp(hydratace / 38, 0, 1), 3)
+    },
+    sharpness: {
+      available: true,
+      laplacianVariance: round(laplacianVariance, 2),
+      intensity: round(1 - sharpnessQuality, 3)
+    }
   };
 }
 
@@ -370,7 +552,17 @@ export function calculateDevastationMetrics(
   const meanEyeRatio = (rightEyeRatio + leftEyeRatio) / 2;
   const apertura = clamp(round(apertureFromRatio(meanEyeRatio)), 0, 100);
   const gravitace = round(headTilt(normalizedLandmarks, width, height), 1);
+  const pose = poseSignals(normalizedLandmarks, width, height);
+  const mouth = mouthSignals(normalizedLandmarks, width, height);
   const asymmetryRatio = mouthAsymmetry(normalizedLandmarks, width, height);
+  const combined = combinedAsymmetry(
+    normalizedLandmarks,
+    width,
+    height,
+    leftEyeRatio,
+    rightEyeRatio,
+    asymmetryRatio
+  );
   const asymetrie = asymmetryLabel(asymmetryRatio);
   const safeHydration = clamp(round(finite(hydratace, 18)), 0, 100);
   const lidskost = round(calculateHumanity({
@@ -392,16 +584,38 @@ export function calculateDevastationMetrics(
       rightEyeRatio: round(rightEyeRatio, 4),
       leftEyeRatio: round(leftEyeRatio, 4),
       meanEyeRatio: round(meanEyeRatio, 4),
-      mouthAsymmetryRatio: round(asymmetryRatio, 4)
+      mouthAsymmetryRatio: round(asymmetryRatio, 4),
+      mouthOpennessRatio: mouth.opennessRatio,
+      eyeAsymmetryRatio: combined.eyeDifference,
+      cheekAsymmetryRatio: combined.cheekDifference,
+      rollDegrees: pose.rollDegrees,
+      yawImbalance: pose.yawImbalance,
+      pitchRatio: pose.pitchRatio
     },
     signals: {
       // Every signal is effect intensity: higher means stronger visual input,
       // never a judgment about the person in the photo.
       eyes: round(eyeEffectIntensity(apertura, leftEyeRatio, rightEyeRatio), 3),
-      pose: round(gravitace / 45, 3),
-      asymmetry: round(clamp(asymmetryRatio / 0.16, 0, 1), 3),
+      pose: pose.intensity,
+      mouth: mouth.intensity,
+      asymmetry: combined.intensity,
       exposure: round(1 - clamp(safeHydration / 38, 0, 1), 3)
     }
+  };
+}
+
+function normalizeSignalObservation(observation, { available = true } = {}) {
+  const rawValue = observation?.intensity ?? observation?.value;
+  const value = Number(rawValue);
+  const isAvailable = available
+    && observation?.available !== false
+    && rawValue !== null
+    && rawValue !== undefined
+    && Number.isFinite(value);
+  return {
+    ...(observation && typeof observation === 'object' ? observation : {}),
+    available: isAvailable,
+    value: isAvailable ? round(clamp(value, 0, 1), 3) : null
   };
 }
 
@@ -412,9 +626,12 @@ export function buildFaceAnalysis({
   sourceWidth = 1,
   sourceHeight = 1,
   exposure = null,
+  sharpness = null,
+  stability = null,
   random = randomUnit,
   timestamp = new Date().toISOString()
 }) {
+  const normalizedSourceKind = sourceKind === 'upload' ? 'upload' : 'camera';
   const normalizedLandmarks = normalizeLandmarks(landmarks, { mirrorX });
   const faceBounds = calculateBounds(normalizedLandmarks);
   if (!faceBounds) throw new Error('Z landmarků nejde sestavit oblast obličeje.');
@@ -424,7 +641,21 @@ export function buildFaceAnalysis({
     sourceHeight,
     hydratace: exposure?.hydratace
   });
-  const scores = severityScores(measurement.metrics.lidskost, random);
+  const exposureObservation = normalizeSignalObservation(exposure ? {
+    ...exposure,
+    intensity: exposure.intensity ?? measurement.signals.exposure
+  } : null);
+  const sharpnessObservation = normalizeSignalObservation(sharpness);
+  const stabilityObservation = normalizeSignalObservation(stability, {
+    available: normalizedSourceKind === 'camera'
+  });
+  const signals = {
+    ...measurement.signals,
+    exposure: exposureObservation.value,
+    sharpness: sharpnessObservation.value,
+    stability: stabilityObservation.value
+  };
+  const scores = severityScores(signals, random);
   const anchors = Object.fromEntries(
     Object.entries(ANCHOR_GROUPS).map(([name, indices]) => [
       name,
@@ -434,7 +665,7 @@ export function buildFaceAnalysis({
 
   return {
     schemaVersion: SCHEMA_VERSION,
-    sourceKind: sourceKind === 'upload' ? 'upload' : 'camera',
+    sourceKind: normalizedSourceKind,
     timestamp,
     normalizedLandmarks,
     faceBounds,
@@ -447,9 +678,17 @@ export function buildFaceAnalysis({
         contrast: null,
         clippedRatio: null,
         hydratace: measurement.metrics.hydratace
-      }
+      },
+      sharpness: sharpnessObservation,
+      stability: stabilityObservation
     },
-    signals: measurement.signals,
+    signals,
+    signalAvailability: Object.fromEntries(
+      Object.keys(SIGNAL_WEIGHTS).map((key) => [
+        key,
+        typeof signals[key] === 'number' && Number.isFinite(signals[key])
+      ])
+    ),
     metrics: measurement.metrics,
     scores,
     disclaimer: 'Satirický vizuální výpočet; nejde o diagnózu ani detekci užití látek.'
@@ -461,26 +700,37 @@ export async function analyzeFaceImage({
   imageSource,
   sourceKind = 'camera',
   mirrorX = false,
+  stability = null,
   random = randomUnit,
   canvasFactory = createSamplingCanvas
 }) {
   const loaded = await loadImage(imageSource);
+  const sourceWidth = loaded.width;
+  const sourceHeight = loaded.height;
   const normalizedLandmarks = normalizeLandmarks(landmarks, { mirrorX });
   const faceBounds = calculateBounds(normalizedLandmarks);
   loaded.release();
   if (!faceBounds) throw new Error('Z landmarků nejde sestavit oblast obličeje.');
 
-  let exposure;
+  let visualQuality;
   try {
-    exposure = await sampleFaceExposure(imageSource, faceBounds, canvasFactory);
+    visualQuality = await sampleFaceVisualQuality(imageSource, faceBounds, canvasFactory);
   } catch (error) {
-    console.warn('Lokální jas obličeje se nepovedlo změřit:', error);
-    exposure = {
-      available: false,
-      meanLuma: null,
-      contrast: null,
-      clippedRatio: null,
-      hydratace: 18
+    console.warn('Lokální jas a ostrost obličeje se nepovedly změřit:', error);
+    visualQuality = {
+      exposure: {
+        available: false,
+        meanLuma: null,
+        contrast: null,
+        clippedRatio: null,
+        hydratace: 18,
+        intensity: null
+      },
+      sharpness: {
+        available: false,
+        laplacianVariance: null,
+        intensity: null
+      }
     };
   }
 
@@ -488,9 +738,11 @@ export async function analyzeFaceImage({
     landmarks,
     sourceKind,
     mirrorX,
-    sourceWidth: loaded.width,
-    sourceHeight: loaded.height,
-    exposure,
+    sourceWidth,
+    sourceHeight,
+    exposure: visualQuality.exposure,
+    sharpness: visualQuality.sharpness,
+    stability,
     random
   });
 }

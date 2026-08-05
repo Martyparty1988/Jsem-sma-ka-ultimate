@@ -68,6 +68,13 @@ Statické a datové kontrakty používají vestavěný Node test runner:
 npm test
 ```
 
+Kompletní Face Reactor kontrakt včetně response packů, sedmi vizuálních signálů,
+70/30 mixu, landmark rendereru a local-only hranice ověří přísný audit:
+
+```bash
+npm run audit:face-reactor
+```
+
 Mobilní výsledek se navíc ověřuje ve WebKitu na 393×852 a 393×700:
 
 ```bash
@@ -77,6 +84,7 @@ npm run test:e2e
 Důležité kontrakty:
 
 - `tests/devastation-metrics.test.mjs` – metriky a severity.
+- `tests/face-reactor-contract.test.mjs` – end-to-end Face Reactor kontrakt a jediný vlastník deformace.
 - `tests/face-warp-geometry.test.mjs` – mapování landmarků do rendereru.
 - `tests/face-aware-crop.test.mjs` – crop pro obličej vlevo, vpravo a transformace landmarků.
 - `tests/pwa-cache.test.mjs` – shoda HTML, runtime souborů a offline cache.

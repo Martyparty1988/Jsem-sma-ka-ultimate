@@ -763,10 +763,11 @@
   const SVG_NS = 'http://www.w3.org/2000/svg';
   const MODEL_ROOT = 'vendor/mediapipe-face-mesh/';
   const FACE_RUNTIME_URL = `${MODEL_ROOT}face_mesh.js?v=0.4.1633559619`;
-  const METRICS_MODULE_URL = './devastation-metrics.js?v=64';
+  const METRICS_MODULE_URL = './devastation-metrics.js?v=65';
   const DETECTION_MAX_AGE = 620;
   const STILL_DETECTION_TIMEOUT = 8000;
   const SCAN_DURATION = 3000;
+  const MOTION_SAMPLE_LIMIT = 18;
 
   const FACE_OVAL = [
     10, 338, 297, 332, 284, 251, 389, 356, 454, 323, 361, 288,
@@ -888,6 +889,7 @@
   let landmarkCount = 0;
   let lastDetectionAt = 0;
   let lastRawLandmarks = null;
+  const motionSamples = [];
   let metricsModulePromise = null;
   let faceRuntimePromise = null;
   let faceMeshInitPromise = null;
@@ -929,6 +931,93 @@
       y: Number(point?.y || 0),
       z: Number(point?.z || 0)
     }));
+  }
+
+  function meanLandmark(landmarks, indices) {
+    const points = indices.map((index) => landmarks[index]).filter(Boolean);
+    if (!points.length) return null;
+    return points.reduce((value, point) => ({
+      x: value.x + Number(point.x || 0) / points.length,
+      y: value.y + Number(point.y || 0) / points.length
+    }), { x: 0, y: 0 });
+  }
+
+  function createMotionSample(landmarks, capturedAt = performance.now()) {
+    const outline = FACE_OVAL.map((index) => landmarks[index]).filter(Boolean);
+    const rightEye = meanLandmark(landmarks, [33, 133, 159, 145]);
+    const leftEye = meanLandmark(landmarks, [263, 362, 386, 374]);
+    const nose = landmarks[1];
+    if (outline.length < 12 || !rightEye || !leftEye || !nose) return null;
+
+    const bounds = outline.reduce((value, point) => ({
+      minX: Math.min(value.minX, Number(point.x || 0)),
+      minY: Math.min(value.minY, Number(point.y || 0)),
+      maxX: Math.max(value.maxX, Number(point.x || 0)),
+      maxY: Math.max(value.maxY, Number(point.y || 0))
+    }), { minX: 1, minY: 1, maxX: 0, maxY: 0 });
+    const width = Math.max(0.01, bounds.maxX - bounds.minX);
+    const height = Math.max(0.01, bounds.maxY - bounds.minY);
+    const roll = Math.atan2(leftEye.y - rightEye.y, leftEye.x - rightEye.x);
+    const yaw = (Number(nose.x || 0) - (bounds.minX + bounds.maxX) / 2) / width;
+    return {
+      capturedAt,
+      centerX: bounds.minX + width / 2,
+      centerY: bounds.minY + height / 2,
+      scale: Math.hypot(width, height),
+      roll,
+      yaw
+    };
+  }
+
+  function recordMotionSample(landmarks, capturedAt = performance.now()) {
+    const sample = createMotionSample(landmarks, capturedAt);
+    if (!sample) return;
+    const previous = motionSamples[motionSamples.length - 1];
+    if (previous && sample.capturedAt - previous.capturedAt > DETECTION_MAX_AGE) {
+      motionSamples.length = 0;
+    }
+    motionSamples.push(sample);
+    if (motionSamples.length > MOTION_SAMPLE_LIMIT) motionSamples.shift();
+  }
+
+  function motionStabilitySnapshot() {
+    if (motionSamples.length < 4) {
+      return Object.freeze({ available: false, value: null, sampleCount: motionSamples.length });
+    }
+
+    const deltas = [];
+    for (let index = 1; index < motionSamples.length; index += 1) {
+      const previous = motionSamples[index - 1];
+      const current = motionSamples[index];
+      if (current.capturedAt - previous.capturedAt > DETECTION_MAX_AGE) continue;
+      const scale = Math.max(0.02, (previous.scale + current.scale) / 2);
+      const centerDelta = Math.hypot(
+        current.centerX - previous.centerX,
+        current.centerY - previous.centerY
+      ) / scale;
+      const scaleDelta = Math.abs(Math.log(Math.max(0.01, current.scale / previous.scale)));
+      const rollDelta = Math.abs(current.roll - previous.roll) / (Math.PI / 7.2);
+      const yawDelta = Math.abs(current.yaw - previous.yaw) / 0.32;
+      deltas.push(
+        centerDelta * 0.48
+          + scaleDelta * 0.2
+          + rollDelta * 0.17
+          + yawDelta * 0.15
+      );
+    }
+
+    if (deltas.length < 3) {
+      return Object.freeze({ available: false, value: null, sampleCount: motionSamples.length });
+    }
+    deltas.sort((first, second) => first - second);
+    const robust = deltas.slice(0, Math.max(3, Math.ceil(deltas.length * 0.82)));
+    const robustDelta = robust.reduce((sum, value) => sum + value, 0) / robust.length;
+    return Object.freeze({
+      available: true,
+      value: Math.max(0, Math.min(1, (robustDelta - 0.008) / 0.095)),
+      sampleCount: motionSamples.length,
+      robustDelta: Math.round(robustDelta * 10000) / 10000
+    });
   }
 
   function validateFaceAnalysisScores(faceAnalysis) {
@@ -1114,6 +1203,7 @@
     overlay.classList.remove('has-landmarks');
     landmarkCount = 0;
     lastRawLandmarks = null;
+    motionSamples.length = 0;
     setGuidedFrame();
   }
 
@@ -1135,6 +1225,7 @@
       landmarkCount = landmarks.length;
       lastRawLandmarks = landmarks;
       lastDetectionAt = performance.now();
+      recordMotionSample(landmarks, lastDetectionAt);
       stableFaceFrames = Math.min(3, stableFaceFrames + 1);
       setDetected(stableFaceFrames >= 2);
       return;
@@ -1438,6 +1529,7 @@
     lastAnimationAt = 0;
     scanElapsed = 0;
     lostFaceAt = 0;
+    motionSamples.length = 0;
     progress = 0;
     isScanning = false;
     currentStage = '';
@@ -1500,7 +1592,8 @@
         landmarks,
         imageSource: dataUrl,
         sourceKind: 'camera',
-        mirrorX
+        mirrorX,
+        stability: motionStabilitySnapshot()
       }));
       app.runAnalysis({
         skipImageCheck: true,
@@ -1613,6 +1706,7 @@
     reset,
     analyzeStillImage,
     ensureReady: initializeFaceMesh,
+    getStability: motionStabilitySnapshot,
     get mode() {
       return modelState === 'ready' ? 'mediapipe-landmarks' : modelState;
     },
@@ -2293,7 +2387,7 @@
   const result = app?.elements?.result;
   if (!app?.state || !faceScan || !feed || !stage || !result) return;
 
-  const METRICS_MODULE_URL = './devastation-metrics.js?v=64';
+  const METRICS_MODULE_URL = './devastation-metrics.js?v=65';
   const WATCHDOG_MS = 4700;
   const patchedCanvases = new WeakSet();
   let watchdogTimer = 0;
@@ -2409,6 +2503,7 @@
     fallbackRunning = true;
     const snapshot = feed.getSnapshot();
     const landmarks = snapshot?.landmarks;
+    const stability = faceScan.getStability?.() || null;
 
     try {
       faceScan.reset?.();
@@ -2431,7 +2526,8 @@
         landmarks: cloneLandmarks(landmarks),
         imageSource: imageData,
         sourceKind: 'camera',
-        mirrorX: app.state.facingMode === 'user'
+        mirrorX: app.state.facingMode === 'user',
+        stability
       });
 
       if (sequence !== scanSequence || resultIsOpen()) return;

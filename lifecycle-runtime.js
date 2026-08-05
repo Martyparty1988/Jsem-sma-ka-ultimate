@@ -2404,12 +2404,19 @@
 })();
 
 /* === junkie-polish-v55.js === */
-/* Smažka v55 — unified original-to-JUNKIE morph and forensic finishing pass. */
+/* Retired fallback: SmazkaFaceWarp now owns preview, final, reroll and share photo. */
 (() => {
   'use strict';
 
   const app = window.SmazkaApp;
   if (!app?.state || !app?.elements?.result) return;
+  if (typeof window.SmazkaFaceWarp?.renderFaceEffect === 'function') {
+    window.SmazkaJunkiePolish = Object.freeze({
+      version: 55,
+      retiredBy: 'SmazkaFaceWarp'
+    });
+    return;
+  }
 
   const { state, elements } = app;
   const result = elements.result;

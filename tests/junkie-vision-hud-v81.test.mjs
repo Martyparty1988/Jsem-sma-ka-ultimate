@@ -102,7 +102,7 @@ test('Junkie Vision keeps patch order while Face Mesh stays lazy in PWA v87', ()
   assert.match(scanner, /FACE_RUNTIME_URL = `\$\{MODEL_ROOT\}face_mesh\.js\?v=0\.4\.1633559619`/);
   assert.match(scanner, /photoRuntimeUrl = 'junkie-vision-photo-v81\.js\?v=81'/);
   assert.match(scanner, /noiseRuntimeUrl = 'junkie-vision-noise-v81\.js\?v=81'/);
-  assert.match(serviceWorker, /\.\/scanner-runtime\.js\?v=87/);
+  assert.match(serviceWorker, /\.\/scanner-runtime\.js\?v=105/);
   assert.match(serviceWorker, /requestUrl\.pathname\.includes\('\/vendor\/mediapipe-face-mesh\/'\)/);
   assert.doesNotMatch(serviceWorker, /face_mesh_solution_.*\.wasm/);
 });

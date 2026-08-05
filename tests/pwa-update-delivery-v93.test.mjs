@@ -5,7 +5,7 @@ import { readRoot } from './bundle-source.mjs';
 test('installed PWA updates activate automatically and reload existing clients once', () => {
   const serviceWorker = readRoot('service-worker.js');
 
-  assert.match(serviceWorker, /const UPDATE_STATE_KEY = '\.\/__smazka-update-state-v104'/);
+  assert.match(serviceWorker, /const UPDATE_STATE_KEY = '\.\/__smazka-update-state-v105'/);
   assert.match(serviceWorker, /const isUpdate = Boolean\(self\.registration\.active\)/);
   assert.match(serviceWorker, /cache\.put\(UPDATE_STATE_KEY, new Response\(isUpdate \? 'reload' : 'first-install'\)\)/);
   assert.match(serviceWorker, /await self\.skipWaiting\(\)/);
