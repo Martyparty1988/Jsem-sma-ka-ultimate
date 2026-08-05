@@ -1,4 +1,4 @@
-/* Smažka v102 — visible detail control + compact two-row action dock. */
+/* Smažka v103 — compact, readable detail analysis and two-row action dock. */
 .result,
 .result * {
   box-sizing: border-box;
@@ -578,8 +578,110 @@
 
   .result-poster-v99.details-open .result-actions {
     display: grid !important;
-    grid-template-columns: 1fr !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
     gap: 8px !important;
+    margin-top: 2px !important;
+  }
+
+  .result-poster-v99.details-open .share-button {
+    grid-column: 1 / -1 !important;
+    grid-row: 1 !important;
+    min-height: 50px !important;
+  }
+
+  .result-poster-v99.details-open .destroy-more-button {
+    grid-column: 1 !important;
+    grid-row: 2 !important;
+  }
+
+  .result-poster-v99.details-open .new-scan-button {
+    grid-column: 2 !important;
+    grid-row: 2 !important;
+  }
+
+  .result-poster-v99.details-open .diagnostic-panel {
+    margin-top: 2px !important;
+    padding: 14px !important;
+    overflow: hidden;
+    border: 1px solid rgba(72, 223, 237, 0.22) !important;
+    border-radius: 18px !important;
+    background:
+      linear-gradient(145deg, rgba(8, 25, 39, 0.94), rgba(4, 12, 23, 0.98)),
+      #06101b !important;
+    box-shadow: inset 3px 0 rgba(51, 235, 239, 0.72), inset 0 1px rgba(255, 255, 255, 0.045), 0 12px 30px rgba(0, 0, 0, 0.24) !important;
+  }
+
+  .result-poster-v99.details-open .diagnostic-heading {
+    margin-bottom: 12px !important;
+  }
+
+  .result-poster-v99.details-open .diagnostic-heading strong {
+    color: #dffcff !important;
+    font-size: 0.75rem !important;
+    font-weight: 900 !important;
+    letter-spacing: 0.09em !important;
+  }
+
+  .result-poster-v99.details-open .diagnostic-heading small,
+  .result-poster-v99.details-open .diagnostic-copy span {
+    color: rgba(220, 238, 242, 0.72) !important;
+  }
+
+  .result-poster-v99.details-open .diagnostic-list {
+    gap: 10px !important;
+  }
+
+  .result-poster-v99.details-open .diagnostic-row {
+    gap: 6px;
+    opacity: 1 !important;
+  }
+
+  .result-poster-v99.details-open .diagnostic-copy strong {
+    color: #f6fbff !important;
+  }
+
+  .result-poster-v99.details-open .diagnostic-row.is-danger .diagnostic-copy strong {
+    color: #ff9bbb !important;
+  }
+
+  .result-poster-v99.details-open .diagnostic-meter {
+    height: 4px !important;
+    background: rgba(194, 225, 232, 0.11) !important;
+  }
+
+  .result-poster-v99.details-open .diagnostic-meter i {
+    background: linear-gradient(90deg, #2edaf0, #30f2a0) !important;
+    box-shadow: 0 0 12px rgba(51, 235, 239, 0.2) !important;
+  }
+
+  .result-poster-v99.details-open .diagnostic-row.is-danger .diagnostic-meter i {
+    background: linear-gradient(90deg, #ff4386, #ff8c42) !important;
+  }
+
+  .result-poster-v99.details-open .result-tool-grid {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 8px !important;
+    margin: 0 !important;
+  }
+
+  .result-poster-v99.details-open .result-tool-button {
+    min-width: 0;
+    min-height: 44px !important;
+    padding: 8px 10px !important;
+    border-radius: 14px !important;
+    font-size: clamp(0.66rem, 2.9vw, 0.76rem) !important;
+    line-height: 1.12;
+  }
+
+  .result-poster-v99.details-open .result-tool-button:first-child {
+    grid-column: 1 / -1 !important;
+  }
+
+  .result-poster-v99.details-open .result-tool-button .ui-icon {
+    flex: 0 0 auto;
+    width: 16px;
+    height: 16px;
   }
 
   .result-poster-v99 .diagnostic-panel,

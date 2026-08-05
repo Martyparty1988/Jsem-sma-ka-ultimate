@@ -141,10 +141,37 @@ test('mobile result keeps the visible detail control and compact action dock ins
   }));
   expect(diagnosticGeometry.visibleRows).toBeGreaterThan(0);
   expect(diagnosticGeometry.clientHeight).toBeGreaterThanOrEqual(diagnosticGeometry.scrollHeight - 1);
+  const toolGrid = page.locator('.result-tool-grid');
+  const toolButtons = toolGrid.locator('.result-tool-button');
+  const detailActions = page.locator('.result-actions');
+  const toolColumns = await toolGrid.evaluate((node) => getComputedStyle(node).gridTemplateColumns.split(/\s+/).filter(Boolean));
+  const detailActionColumns = await detailActions.evaluate((node) => getComputedStyle(node).gridTemplateColumns.split(/\s+/).filter(Boolean));
+  expect(toolColumns).toHaveLength(2);
+  expect(detailActionColumns).toHaveLength(2);
+  expect(await toolButtons.count()).toBe(3);
+
+  const [primaryToolBox, originalToolBox, warpedToolBox] = await Promise.all([
+    toolButtons.nth(0).boundingBox(),
+    toolButtons.nth(1).boundingBox(),
+    toolButtons.nth(2).boundingBox()
+  ]);
+  const [detailShareBox, detailDestroyBox, detailRetryBox] = await Promise.all([
+    share.boundingBox(),
+    destroy.boundingBox(),
+    retry.boundingBox()
+  ]);
+  expect(primaryToolBox && originalToolBox && warpedToolBox && detailShareBox && detailDestroyBox && detailRetryBox).toBeTruthy();
+  expect(primaryToolBox.height).toBeGreaterThanOrEqual(44);
+  expect(originalToolBox.height).toBeGreaterThanOrEqual(44);
+  expect(warpedToolBox.height).toBeGreaterThanOrEqual(44);
+  expect(primaryToolBox.y).toBeLessThan(originalToolBox.y);
+  expect(Math.abs(originalToolBox.y - warpedToolBox.y)).toBeLessThanOrEqual(1);
+  expect(detailShareBox.y).toBeLessThan(detailDestroyBox.y);
+  expect(Math.abs(detailDestroyBox.y - detailRetryBox.y)).toBeLessThanOrEqual(1);
   await page.screenshot({ path: testInfo.outputPath('result-details.png'), fullPage: false });
 });
 
-test('v102 poster keeps score below the photo even if legacy result-in-frame returns', async ({ page }, testInfo) => {
+test('v103 poster keeps score below the photo even if legacy result-in-frame returns', async ({ page }, testInfo) => {
   await openDeterministicResult(page);
 
   await page.evaluate(() => {

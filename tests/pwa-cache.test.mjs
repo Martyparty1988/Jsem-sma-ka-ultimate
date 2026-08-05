@@ -24,16 +24,16 @@ function serviceWorkerContract() {
   return context.__PWA_TEST__;
 }
 
-test('PWA v102 precaches one compact production shell with no retired entries', () => {
+test('PWA v103 precaches one compact production shell with no retired entries', () => {
   const { CACHE_NAME, APP_SHELL } = serviceWorkerContract();
   const assets = new Set(APP_SHELL);
 
-  assert.equal(CACHE_NAME, 'jsem-smazka-v102');
+  assert.equal(CACHE_NAME, 'jsem-smazka-v103');
   [
     './foundation.css?v=87',
     './components.css?v=87',
     './screens.css?v=100',
-    './result-poster.css?v=102',
+    './result-poster.css?v=103',
     './app.js?v=98',
     './scanner-runtime.js?v=87',
     './result-runtime.js?v=87',
@@ -52,6 +52,7 @@ test('PWA v102 precaches one compact production shell with no retired entries', 
     './result-poster.css?v=93',
     './result-poster.css?v=94',
     './result-poster.css?v=101',
+    './result-poster.css?v=102',
     './result-poster-runtime.js?v=89',
     './result-poster-runtime.js?v=91',
     './result-poster-runtime.js?v=92',
@@ -85,7 +86,7 @@ test('MediaPipe uses a stable request-driven cache and never install-precaches W
   assert.match(serviceWorker, /key !== CACHE_NAME && key !== FACE_MODEL_CACHE/);
 });
 
-test('HTML entries, bundle sections and dynamic files agree with the v102 cache graph', () => {
+test('HTML entries, bundle sections and dynamic files agree with the v103 cache graph', () => {
   const { APP_SHELL } = serviceWorkerContract();
   const appAssets = new Set(APP_SHELL);
   const index = readRoot('index.html');
@@ -117,7 +118,7 @@ test('HTML entries, bundle sections and dynamic files agree with the v102 cache 
   });
 });
 
-test('v102 stylesheet and v100 runtime keep the v99 poster authoritative', () => {
+test('v103 stylesheet and v100 runtime keep the v99 poster authoritative', () => {
   const index = readRoot('index.html');
   const css = readRoot('result-poster.css');
   const screens = readRoot('screens.css');
@@ -127,7 +128,7 @@ test('v102 stylesheet and v100 runtime keep the v99 poster authoritative', () =>
   assert.equal(fs.existsSync(new URL('result-layout.css', root)), false);
   assert.doesNotMatch(index, /result-layout\.css/);
   assert.doesNotMatch(serviceWorker, /result-layout\.css/);
-  assert.ok(index.indexOf('result-poster.css?v=102') > index.indexOf('screens.css?v=100'));
+  assert.ok(index.indexOf('result-poster.css?v=103') > index.indexOf('screens.css?v=100'));
   assert.ok(index.indexOf('result-poster-runtime.js?v=100') > index.indexOf('lifecycle-runtime.js?v=98'));
   assert.match(index, /class="result result-poster-v99 hidden"/);
   assert.match(index, /data-result-poster="v99"/);
@@ -175,6 +176,11 @@ test('v102 stylesheet and v100 runtime keep the v99 poster authoritative', () =>
   assert.match(css, /\.result-poster-v99\.details-open \.effect-label,[\s\S]{0,160}position:\s*relative\s*!important/);
   assert.doesNotMatch(css, /\.result-poster-v99\.details-open \.effect-label,[\s\S]{0,180}bottom:\s*12px\s*!important/);
   assert.match(css, /\.result-poster-v99\.details-open \.result-content > \*\s*\{\s*flex:\s*0 0 auto/);
+  assert.match(css, /\.result-poster-v99\.details-open \.result-actions\s*\{[\s\S]{0,160}grid-template-columns:\s*repeat\(2, minmax\(0, 1fr\)\)\s*!important/);
+  assert.match(css, /\.result-poster-v99\.details-open \.share-button\s*\{[\s\S]{0,120}grid-column:\s*1 \/ -1\s*!important/);
+  assert.match(css, /\.result-poster-v99\.details-open \.result-tool-grid\s*\{[\s\S]{0,160}grid-template-columns:\s*repeat\(2, minmax\(0, 1fr\)\)\s*!important/);
+  assert.match(css, /\.result-poster-v99\.details-open \.result-tool-button:first-child\s*\{[\s\S]{0,80}grid-column:\s*1 \/ -1\s*!important/);
+  assert.match(css, /\.result-poster-v99\.details-open \.diagnostic-row\s*\{[\s\S]{0,100}opacity:\s*1\s*!important/);
   assert.match(css, /grid-template-columns:\s*auto minmax\(0, 1fr\)/);
   assert.match(css, /linear-gradient\(100deg, #2edaf0 0%, #22e8d0 53%, #30f2a0 100%\)/);
   assert.doesNotMatch(css, /bottom:\s*calc\(var\(--result-safe-bottom\) \+ 278px\)/);
@@ -191,7 +197,7 @@ test('result, crop, recovery, single-pass, impact and share keep authoritative o
     'foundation.css?v=87',
     'components.css?v=87',
     'screens.css?v=100',
-    'result-poster.css?v=102'
+    'result-poster.css?v=103'
   ];
   const indexOrder = [
     'app.js?v=98',
