@@ -75,6 +75,19 @@ test('Face Warp v108 keeps deliberately stronger power identical across GPU and 
   assert.match(experience, /const EXTRA_DAMAGE_STEP = 12/);
 });
 
+test('Face Warp v109 never reuses a failed WebGL canvas for the 2D fallback', () => {
+  const faceWarp = readBundleSection('face-warp.js');
+
+  assert.match(faceWarp, /function createFallbackCanvas\(webglCanvas\)/);
+  assert.match(faceWarp, /\[\.\.\.webglCanvas\.attributes\]/);
+  assert.match(faceWarp, /if \(webglCanvas\.isConnected\) webglCanvas\.replaceWith\(fallbackCanvas\)/);
+  assert.equal(
+    (faceWarp.match(/canvas = createFallbackCanvas\(canvas\)/g) || []).length,
+    2,
+    'animated and exported renders must both switch to a fresh 2D canvas'
+  );
+});
+
 test('live scan records bounded motion while uploads require exactly one face', () => {
   const scanner = readBundleSection('face-scan.js');
 

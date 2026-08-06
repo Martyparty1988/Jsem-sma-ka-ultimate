@@ -593,6 +593,18 @@
     return canvas;
   }
 
+  function createFallbackCanvas(webglCanvas) {
+    const fallbackCanvas = document.createElement('canvas');
+    [...webglCanvas.attributes].forEach(({ name, value }) => {
+      fallbackCanvas.setAttribute(name, value);
+    });
+    fallbackCanvas.width = webglCanvas.width;
+    fallbackCanvas.height = webglCanvas.height;
+    fallbackCanvas.dataset.warpRenderer = 'canvas';
+    if (webglCanvas.isConnected) webglCanvas.replaceWith(fallbackCanvas);
+    return fallbackCanvas;
+  }
+
   function compileShader(gl, type, source) {
     const shader = gl.createShader(type);
     gl.shaderSource(shader, source);
@@ -1029,6 +1041,7 @@
     } catch (error) {
       console.warn('GPU deformace není dostupná:', error);
     }
+    if (!renderer) canvas = createFallbackCanvas(canvas);
     canvas.dataset.warpRenderer = renderer ? 'webgl' : 'canvas';
 
     const render = (progress) => {
@@ -1076,7 +1089,7 @@
     const image = await loadImage(imageData);
     const width = clamp(Math.round(Number(output?.width) || 720), 120, 1440);
     const height = clamp(Math.round(Number(output?.height) || 960), 160, 1920);
-    const canvas = document.createElement('canvas');
+    let canvas = document.createElement('canvas');
     canvas.width = width;
     canvas.height = height;
     const source = createSource(image, width, height);
@@ -1103,6 +1116,7 @@
       renderer.finish();
       renderer.destroy();
     } else {
+      canvas = createFallbackCanvas(canvas);
       renderFallback(canvas, source, profile, safeSeverity, 1, geometry, safeSeed);
     }
 
