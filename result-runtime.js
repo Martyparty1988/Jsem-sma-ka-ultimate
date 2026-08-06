@@ -210,6 +210,8 @@
     maximumY: 1.68
   });
 
+  const GPU_COLLAPSE_GAIN = 2.6;
+
   const VERTEX_SHADER = `
     attribute vec2 a_position;
     varying vec2 v_uv;
@@ -269,7 +271,8 @@
     vec2 radialWarp(vec2 point, vec2 center, vec2 radius, float amount) {
       vec2 normalized = (point - center) / radius;
       float falloff = pow(max(0.0, 1.0 - dot(normalized, normalized)), 2.25);
-      return point - normalized * radius * amount * falloff;
+      float signedGain = amount < 0.0 ? ${GPU_COLLAPSE_GAIN.toFixed(2)} : 1.0;
+      return point - normalized * radius * amount * signedGain * falloff;
     }
 
     vec2 rotateAround(vec2 point, vec2 center, float angle) {
@@ -414,6 +417,12 @@
           u_lipLower.xy,
           u_lipLower.zw,
           -(0.035 + abs(u_shape.z) * 0.36) * strength * mouthStage
+        );
+        point = radialWarp(
+          point,
+          u_jaw.xy,
+          u_jaw.zw,
+          -(0.04 + abs(u_shape.z) * 0.22 + abs(u_flow.w) * 0.3) * strength * jawStage
         );
       } else if (u_mode < 3.5) {
         /* SHEAR: measured side differences pull individual features apart. */

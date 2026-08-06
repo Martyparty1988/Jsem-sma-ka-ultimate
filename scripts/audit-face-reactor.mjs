@@ -197,6 +197,7 @@ add(
     && /async function destroyMore[\s\S]{0,1800}faceWarp\.renderFaceEffect\(/.test(experience)
     && /async function rerollDeformation[\s\S]{0,2200}faceWarp\.renderFaceEffect\(/.test(diagnostics)
     && /retiredBy:\s*'SmazkaFaceWarp'/.test(junkiePolish)
+    && !/timeout-fallback-v84|patchFaceWarp|Promise\.race\(\[nativeRender/.test(lifecycle)
     && !/function computeSeverity\(/.test(result)
     && !/function (?:applyRowWarp|applyColumnWarp|animateExtraWarp|rebuildShareCard)\(/.test(experience)
     && !/function refreshWarp\(/.test(diagnostics),

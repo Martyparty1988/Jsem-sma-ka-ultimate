@@ -580,7 +580,6 @@
   const stage = elements?.cameraStage;
   if (!state || !elements?.app || !result || !stage) return;
 
-  const WARP_TIMEOUT_MS = 2400;
   const ANALYSIS_TIMEOUT_MS = 7200;
   const REVEAL_TIMEOUT_MS = 1450;
   const revealClasses = [
@@ -859,44 +858,6 @@
     }, REVEAL_TIMEOUT_MS);
   }
 
-  function patchFaceWarp() {
-    const faceWarp = window.SmazkaFaceWarp;
-    if (!faceWarp || typeof faceWarp.renderFaceEffect !== 'function' || faceWarp.__completionGuardV84) return;
-    const nativeRender = faceWarp.renderFaceEffect.bind(faceWarp);
-
-    async function guardedRender(options = {}) {
-      let timer = 0;
-      const fallback = new Promise((resolve) => {
-        timer = window.setTimeout(() => {
-          const profile = effectProfile({ effect: options.effect });
-          resolve({
-            previewDataUrl: options.imageData,
-            finalDataUrl: options.imageData,
-            renderer: 'timeout-fallback-v84',
-            effect: typeof options.effect === 'string' ? options.effect : profile.key,
-            label: profile.label || 'Nouzový VOID efekt',
-            seed: Number(options.seed) || Number(state.effectSeed) || 1,
-            anchored: Boolean(options.faceAnalysis?.anchors),
-            crop: 'cover',
-            timedOut: true
-          });
-        }, WARP_TIMEOUT_MS);
-      });
-
-      try {
-        return await Promise.race([nativeRender(options), fallback]);
-      } finally {
-        window.clearTimeout(timer);
-      }
-    }
-
-    window.SmazkaFaceWarp = Object.freeze({
-      ...faceWarp,
-      renderFaceEffect: guardedRender,
-      __completionGuardV84: true
-    });
-  }
-
   function syncLifecycle() {
     const busy = state.isAnalyzing || elements.app.getAttribute('aria-busy') === 'true';
     if (resultIsOpen()) {
@@ -922,8 +883,6 @@
     if (!busy) clearTimer('analysis');
   }
 
-  patchFaceWarp();
-
   const observer = new (window.SmazkaMutationObserver || window.MutationObserver)(syncLifecycle);
   observer.observe(elements.app, { attributes: true, attributeFilter: ['aria-busy'] });
   observer.observe(document.body, { attributes: true, attributeFilter: ['class'] });
@@ -944,7 +903,6 @@
 
   window.SmazkaAnalysisCompletionGuard = Object.freeze({
     version: 84,
-    warpTimeoutMs: WARP_TIMEOUT_MS,
     analysisTimeoutMs: ANALYSIS_TIMEOUT_MS,
     revealTimeoutMs: REVEAL_TIMEOUT_MS,
     recoverNow() {

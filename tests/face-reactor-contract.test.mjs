@@ -88,6 +88,15 @@ test('Face Warp v109 never reuses a failed WebGL canvas for the 2D fallback', ()
   );
 });
 
+test('Face Warp v110 gives GPU collapse enough negative radial gain to remain visible', () => {
+  const faceWarp = readBundleSection('face-warp.js');
+
+  assert.match(faceWarp, /const GPU_COLLAPSE_GAIN = 2\.6/);
+  assert.match(faceWarp, /float signedGain = amount < 0\.0 \? \$\{GPU_COLLAPSE_GAIN\.toFixed\(2\)\} : 1\.0/);
+  assert.match(faceWarp, /amount \* signedGain \* falloff/);
+  assert.match(faceWarp, /u_jaw\.xy,[\s\S]{0,100}u_jaw\.zw,[\s\S]{0,160}strength \* jawStage/);
+});
+
 test('live scan records bounded motion while uploads require exactly one face', () => {
   const scanner = readBundleSection('face-scan.js');
 

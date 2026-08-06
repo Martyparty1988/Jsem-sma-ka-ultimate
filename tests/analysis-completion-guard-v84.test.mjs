@@ -3,15 +3,14 @@ import test from 'node:test';
 import vm from 'node:vm';
 import { readBundleSection, readRoot } from './bundle-source.mjs';
 
-test('v84 completion guard is valid JavaScript and bounds every blocking stage', () => {
+test('v110 completion guard leaves slow face-warp rendering to its single owner', () => {
   const runtime = readBundleSection('analysis-completion-guard-v84.js');
 
   assert.doesNotThrow(() => new Function(runtime));
-  assert.match(runtime, /const WARP_TIMEOUT_MS = 2400/);
   assert.match(runtime, /const ANALYSIS_TIMEOUT_MS = 7200/);
   assert.match(runtime, /const REVEAL_TIMEOUT_MS = 1450/);
-  assert.match(runtime, /Promise\.race\(\[nativeRender\(options\), fallback\]\)/);
-  assert.match(runtime, /renderer: 'timeout-fallback-v84'/);
+  assert.doesNotMatch(runtime, /WARP_TIMEOUT_MS|timeout-fallback-v84/);
+  assert.doesNotMatch(runtime, /Promise\.race\(|patchFaceWarp|SmazkaFaceWarp/);
   assert.match(runtime, /revealClasses\.some\(\(className\) => stage\.classList\.contains\(className\)\)/);
   assert.match(runtime, /if \(overlay && overlay\.getAttribute\('aria-hidden'\) !== 'true'\)/);
   assert.match(runtime, /stage\.classList\.remove\(\.\.\.revealClasses\)/);
@@ -165,7 +164,7 @@ test('v84 removes the obsolete reveal presentation and keeps v82 as final transi
   assert.ok(singlePass > guard);
   assert.ok(impact > singlePass);
 
-  assert.match(serviceWorker, /const CACHE_VERSION = 'v109'/);
-  assert.match(serviceWorker, /\.\/lifecycle-runtime\.js\?v=105/);
+  assert.match(serviceWorker, /const CACHE_VERSION = 'v110'/);
+  assert.match(serviceWorker, /\.\/lifecycle-runtime\.js\?v=106/);
   assert.match(serviceWorker, /\.\/result-poster-runtime\.js\?v=100/);
 });

@@ -24,18 +24,32 @@ async function openDeterministicResult(page) {
         label: 'Posun proporcí'
       })
     };
+    const faceAnalysis = {
+      schemaVersion: 3,
+      sourceKind: 'upload',
+      normalizedLandmarks: Array.from({ length: 468 }, () => ({ x: 0.5, y: 0.5, z: 0 })),
+      metrics: {
+        apertura: 50,
+        lidskost: 50,
+        gravitace: 10,
+        asymetrie: 'střední',
+        hydratace: 50
+      },
+      signals: {
+        pose: 0.4,
+        eyes: 0.5,
+        mouth: 0.3,
+        asymmetry: 0.4,
+        stability: null,
+        exposure: 0.2,
+        sharpness: 0.3
+      },
+      scores: { severity: 61 }
+    };
     window.SmazkaApp.setCurrentImageData(image);
     window.SmazkaApp.runAnalysis({
       skipImageCheck: true,
-      severity: 61,
-      verdict: {
-        id: 'layout-contract',
-        category: 'Čistá lajna',
-        description: 'Zorníčky jak měsíční krajina. Na orbitě, ale s úsměvem.',
-        severity: { min: 61, max: 61 },
-        effect: 'facial-drift',
-        signals: []
-      }
+      faceAnalysis
     });
   }, photo);
   await expect(page.locator('#result')).toBeVisible({ timeout: 10_000 });
