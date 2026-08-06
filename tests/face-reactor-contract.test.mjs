@@ -60,6 +60,21 @@ test('Face Warp v2 owns five explicit modes, expanded anchors, face masking and 
   assert.match(faceWarp, /mode: profile\.mode/);
 });
 
+test('Face Warp v108 keeps deliberately stronger power identical across GPU and canvas paths', () => {
+  const faceWarp = readBundleSection('face-warp.js');
+  const experience = readBundleSection('experience-upgrades.js');
+
+  assert.match(faceWarp, /const WARP_POWER = Object\.freeze\(\{\s*base: 0\.18,\s*severity: 1\.22,\s*curve: 0\.72,\s*maximum: 1\.92/);
+  ['melt: 1.16', 'bloom: 1.12', 'collapse: 1.2', 'shear: 1.22', 'lens: 1.16']
+    .forEach((power) => assert.match(faceWarp, new RegExp(power.replace('.', '\\.')), power));
+  assert.match(faceWarp, /float severityCurve = pow\(clamp\(u_severity, 0\.0, 1\.0\)/);
+  assert.match(faceWarp, /uniform float u_modePower/);
+  assert.match(faceWarp, /const strength = warpPowerFor\(severity, progress, profile\.mode\)/);
+  assert.match(faceWarp, /minimum: 0\.58,\s*maximumX: 1\.58,\s*maximumY: 1\.68/);
+  assert.match(experience, /extraDamage >= EXTRA_DAMAGE_LIMIT\s*\? 100/);
+  assert.match(experience, /const EXTRA_DAMAGE_STEP = 12/);
+});
+
 test('live scan records bounded motion while uploads require exactly one face', () => {
   const scanner = readBundleSection('face-scan.js');
 

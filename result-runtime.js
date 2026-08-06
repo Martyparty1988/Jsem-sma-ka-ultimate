@@ -189,6 +189,27 @@
     'total-drift': 'shear'
   });
 
+  const WARP_POWER = Object.freeze({
+    base: 0.18,
+    severity: 1.22,
+    curve: 0.72,
+    maximum: 1.92
+  });
+
+  const MODE_POWER = Object.freeze({
+    melt: 1.16,
+    bloom: 1.12,
+    collapse: 1.2,
+    shear: 1.22,
+    lens: 1.16
+  });
+
+  const WARP_SCALE_LIMITS = Object.freeze({
+    minimum: 0.58,
+    maximumX: 1.58,
+    maximumY: 1.68
+  });
+
   const VERTEX_SHADER = `
     attribute vec2 a_position;
     varying vec2 v_uv;
@@ -207,6 +228,7 @@
     uniform float u_severity;
     uniform float u_seed;
     uniform float u_mode;
+    uniform float u_modePower;
     uniform vec4 u_shape;
     uniform vec4 u_flow;
     uniform float u_twist;
@@ -260,7 +282,13 @@
     void main() {
       float amplitude = clamp(u_progress, 0.0, 1.12);
       float reveal = clamp(u_progress, 0.0, 1.0);
-      float strength = (0.3 + u_severity * 0.82) * amplitude;
+      float severityCurve = pow(clamp(u_severity, 0.0, 1.0), ${WARP_POWER.curve.toFixed(2)});
+      float strength = min(
+        ${WARP_POWER.maximum.toFixed(2)},
+        (${WARP_POWER.base.toFixed(2)} + severityCurve * ${WARP_POWER.severity.toFixed(2)})
+          * amplitude
+          * u_modePower
+      );
       float seedWave = fract(sin(u_seed * 12.9898) * 43758.5453);
       float seedDirection = seedWave * 2.0 - 1.0;
       vec2 uv = vec2(v_uv.x, 1.0 - v_uv.y);
@@ -470,6 +498,17 @@
     return bounded * bounded * (3 - 2 * bounded);
   }
 
+  function warpPowerFor(severity, progress, mode) {
+    const severityCurve = Math.pow(clamp(Number(severity) / 100, 0, 1), WARP_POWER.curve);
+    const modePower = MODE_POWER[mode] || MODE_POWER.shear;
+    return Math.min(
+      WARP_POWER.maximum,
+      (WARP_POWER.base + severityCurve * WARP_POWER.severity)
+        * clamp(progress, 0, 1.12)
+        * modePower
+    );
+  }
+
   function organicRevealProgress(linearProgress) {
     const linear = clamp(linearProgress, 0, 1);
     if (linear <= 0.62) {
@@ -638,6 +677,10 @@
       gl.getUniformLocation(program, 'u_mode'),
       WARP_MODE_IDS[profile.mode] ?? WARP_MODE_IDS.shear
     );
+    gl.uniform1f(
+      gl.getUniformLocation(program, 'u_modePower'),
+      MODE_POWER[profile.mode] || MODE_POWER.shear
+    );
     gl.uniform4fv(gl.getUniformLocation(program, 'u_shape'), new Float32Array(profile.shape));
     gl.uniform4fv(gl.getUniformLocation(program, 'u_flow'), new Float32Array(profile.flow));
     gl.uniform1f(gl.getUniformLocation(program, 'u_twist'), profile.twist);
@@ -742,8 +785,8 @@
     drawContext.translate(centerX + translateX * width, centerY + translateY * height);
     drawContext.rotate(rotation);
     drawContext.scale(
-      clamp(scaleX, 0.76, 1.28),
-      clamp(scaleY, 0.76, 1.32)
+      clamp(scaleX, WARP_SCALE_LIMITS.minimum, WARP_SCALE_LIMITS.maximumX),
+      clamp(scaleY, WARP_SCALE_LIMITS.minimum, WARP_SCALE_LIMITS.maximumY)
     );
     drawContext.translate(-centerX, -centerY);
     drawContext.drawImage(source, 0, 0, width, height);
@@ -810,8 +853,7 @@
     layerContext.imageSmoothingEnabled = true;
     layerContext.imageSmoothingQuality = 'high';
     const layer = { canvas: layerCanvas, context: layerContext };
-    const amplitude = clamp(progress, 0, 1.12);
-    const strength = (0.3 + severity / 100 * 0.55) * amplitude;
+    const strength = warpPowerFor(severity, progress, profile.mode);
     const controls = geometry.controls || {};
     const seedDirection = seededUnit(seed) * 2 - 1;
     const side = Math.abs(controls.yaw || 0) > 0.08
@@ -1663,6 +1705,8 @@
   const reducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   let resultRun = 0;
   let extraDamage = 0;
+  const EXTRA_DAMAGE_LIMIT = 5;
+  const EXTRA_DAMAGE_STEP = 12;
   let diagnosisTimer = null;
 
   const secondaryDiagnoses = [
@@ -1727,10 +1771,12 @@
     const faceWarp = window.SmazkaFaceWarp;
     if (!state.currentImageData || typeof faceWarp?.renderFaceEffect !== 'function' || button.disabled) return;
     button.disabled = true;
-    extraDamage = Math.min(5, extraDamage + 1);
+    extraDamage = Math.min(EXTRA_DAMAGE_LIMIT, extraDamage + 1);
     const runId = ++resultRun;
     const baseSeverity = Number(state.lastAnalysisResult?.severity || 50);
-    const severity = Math.min(100, baseSeverity + extraDamage * 7);
+    const severity = extraDamage >= EXTRA_DAMAGE_LIMIT
+      ? 100
+      : Math.min(100, baseSeverity + extraDamage * EXTRA_DAMAGE_STEP);
     const effect = state.lastAnalysisResult?.effect || state.effectProfile?.key || '';
     const seed = randomIndex(100000) + 1;
 
@@ -1755,8 +1801,8 @@
       state.shareImagePromise = Promise.resolve(finalImage);
       await installUnifiedEffectImage(finalImage, severity, rendered.label);
       elements.result.dataset.warpToken = `${resultRun}|${rendered.seed}|${severity}`;
-      button.querySelector('span:last-child').textContent = extraDamage >= 5 ? 'Totální konečná' : 'Ještě víc mě znič';
-      button.disabled = extraDamage >= 5;
+      button.querySelector('span:last-child').textContent = extraDamage >= EXTRA_DAMAGE_LIMIT ? 'Totální konečná' : 'Ještě víc mě znič';
+      button.disabled = extraDamage >= EXTRA_DAMAGE_LIMIT;
     } catch (error) {
       console.warn('Další destrukce obličeje selhala:', error);
       button.disabled = false;
