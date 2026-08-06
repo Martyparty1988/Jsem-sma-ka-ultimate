@@ -1,7 +1,7 @@
-const CACHE_VERSION = 'v105';
+const CACHE_VERSION = 'v106';
 const CACHE_NAME = `jsem-smazka-${CACHE_VERSION}`;
 const FACE_MODEL_CACHE = 'jsem-smazka-face-model-v1';
-const UPDATE_STATE_KEY = './__smazka-update-state-v105';
+const UPDATE_STATE_KEY = './__smazka-update-state-v106';
 
 const APP_SHELL = [
   './',
@@ -12,8 +12,7 @@ const APP_SHELL = [
   './icon.svg',
   './foundation.css?v=104',
   './components.css?v=87',
-  './screens.css?v=104',
-  './result-poster.css?v=103',
+  './screens.css?v=106',
   './app.js?v=104',
   './scanner-runtime.js?v=105',
   './result-runtime.js?v=88',

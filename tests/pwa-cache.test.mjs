@@ -24,16 +24,15 @@ function serviceWorkerContract() {
   return context.__PWA_TEST__;
 }
 
-test('PWA v105 precaches one compact production shell with no retired entries', () => {
+test('PWA v106 precaches one compact production shell with three CSS authorities', () => {
   const { CACHE_NAME, APP_SHELL } = serviceWorkerContract();
   const assets = new Set(APP_SHELL);
 
-  assert.equal(CACHE_NAME, 'jsem-smazka-v105');
+  assert.equal(CACHE_NAME, 'jsem-smazka-v106');
   [
     './foundation.css?v=104',
     './components.css?v=87',
-    './screens.css?v=104',
-    './result-poster.css?v=103',
+    './screens.css?v=106',
     './app.js?v=104',
     './scanner-runtime.js?v=105',
     './result-runtime.js?v=88',
@@ -46,6 +45,7 @@ test('PWA v105 precaches one compact production shell with no retired entries', 
 
   [
     './result-layout.css?v=88',
+    './result-poster.css?v=103',
     './result-poster.css?v=89',
     './result-poster.css?v=91',
     './result-poster.css?v=92',
@@ -91,7 +91,7 @@ test('MediaPipe uses a stable request-driven cache and never install-precaches W
   assert.match(serviceWorker, /key !== CACHE_NAME && key !== FACE_MODEL_CACHE/);
 });
 
-test('HTML entries, bundle sections and dynamic files agree with the v105 cache graph', () => {
+test('HTML entries, bundle sections and dynamic files agree with the v106 cache graph', () => {
   const { APP_SHELL } = serviceWorkerContract();
   const appAssets = new Set(APP_SHELL);
   const index = readRoot('index.html');
@@ -123,17 +123,24 @@ test('HTML entries, bundle sections and dynamic files agree with the v105 cache 
   });
 });
 
-test('v105 shell keeps the v103 stylesheet and v100 runtime authoritative', () => {
+test('v106 shell keeps the consolidated poster rules and v100 runtime authoritative', () => {
   const index = readRoot('index.html');
-  const css = readRoot('result-poster.css');
-  const screens = readRoot('screens.css');
+  const css = readRoot('screens.css');
+  const screens = css;
   const runtime = readRoot('result-poster-runtime.js');
   const serviceWorker = readRoot('service-worker.js');
 
   assert.equal(fs.existsSync(new URL('result-layout.css', root)), false);
+  assert.equal(fs.existsSync(new URL('result-poster.css', root)), false);
   assert.doesNotMatch(index, /result-layout\.css/);
+  assert.doesNotMatch(index, /result-poster\.css/);
   assert.doesNotMatch(serviceWorker, /result-layout\.css/);
-  assert.ok(index.indexOf('result-poster.css?v=103') > index.indexOf('screens.css?v=104'));
+  assert.doesNotMatch(serviceWorker, /result-poster\.css/);
+  assert.match(index, /screens\.css\?v=106/);
+  assert.deepEqual(
+    [...index.matchAll(/<link rel="stylesheet" href="([^"]+)"/g)].map((match) => match[1]),
+    ['foundation.css?v=104', 'components.css?v=87', 'screens.css?v=106']
+  );
   assert.ok(index.indexOf('result-poster-runtime.js?v=100') > index.indexOf('lifecycle-runtime.js?v=105'));
   assert.match(index, /class="result result-poster-v99 hidden"/);
   assert.match(index, /data-result-poster="v99"/);
@@ -191,7 +198,7 @@ test('v105 shell keeps the v103 stylesheet and v100 runtime authoritative', () =
   assert.doesNotMatch(css, /bottom:\s*calc\(var\(--result-safe-bottom\) \+ 278px\)/);
   assert.doesNotMatch(css, /top:\s*48%\s*!important/);
 
-  assert.doesNotMatch(index, /result-poster\.css\?v=(?:89|91|92|93|94|95|98|101)|result-poster-runtime\.js\?v=(?:89|91|92|93|94|95|98|99)/);
+  assert.doesNotMatch(index, /result-poster\.css|result-poster-runtime\.js\?v=(?:89|91|92|93|94|95|98|99)/);
   assert.doesNotMatch(css, /result-poster-v(?:89|91|92|93|94|95|98)/);
 });
 
@@ -201,8 +208,7 @@ test('result, crop, recovery, single-pass, impact and share keep authoritative o
   const stylesheetOrder = [
     'foundation.css?v=104',
     'components.css?v=87',
-    'screens.css?v=104',
-    'result-poster.css?v=103'
+    'screens.css?v=106'
   ];
   const indexOrder = [
     'app.js?v=104',
@@ -282,6 +288,7 @@ test('all DOM watchers share one native MutationObserver', () => {
 test('retired source files and result layout layers cannot return', () => {
   [
     'result-layout.css',
+    'result-poster.css',
     'junkie-face-effect.js',
     'share-card.png',
     'bundle-base.css',
@@ -294,7 +301,7 @@ test('retired source files and result layout layers cannot return', () => {
   ].forEach((file) => assert.equal(fs.existsSync(new URL(file, root)), false, file));
 
   const index = readRoot('index.html');
-  assert.doesNotMatch(index, /share-card\.png|result-layout\.css|result-poster\.css\?v=(?:89|91|92|93|94|95|98)/);
+  assert.doesNotMatch(index, /share-card\.png|result-layout\.css|result-poster\.css/);
   assert.match(index, /icon-512\.png/);
 });
 

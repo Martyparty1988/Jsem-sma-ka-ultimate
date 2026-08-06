@@ -19,8 +19,7 @@ Satirická mobilní webová aplikace, která lokálně změří MediaPipe Face M
 
 - `foundation.css` – tokeny, reset, typografie, přístupnost a společné prvky.
 - `components.css` – kamera, skenovací HUD, ovládání a sdílené komponenty.
-- `screens.css` – obecné obrazovky a starší sdílené výsledkové komponenty.
-- `result-poster.css` – jediná mobilní kompozice výsledku, safe-area a detailní režim.
+- `screens.css` – obrazovky, jediná mobilní kompozice výsledku, safe-area a detailní režim.
 
 ### Detekce a verdikt
 

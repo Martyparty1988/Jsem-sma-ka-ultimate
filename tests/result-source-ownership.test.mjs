@@ -6,8 +6,7 @@ test('result semantics and order are owned by app render source', () => {
   const app = readRoot('app.js');
   const lifecycle = readRoot('lifecycle-runtime.js');
   const poster = readRoot('result-poster-runtime.js');
-  const css = readRoot('result-poster.css');
-  const screens = readRoot('screens.css');
+  const css = readRoot('screens.css');
 
   assert.match(app, /badge\.textContent = 'SMAŽKA FAKTOR'/);
   assert.match(app, /effectLabel\.className = 'effect-label result-score'/);
@@ -23,5 +22,5 @@ test('result semantics and order are owned by app render source', () => {
   assert.match(poster, /classList\.remove\('result-in-frame'\)/);
   assert.doesNotMatch(poster, /classList\.add\('result-in-frame'\)/);
   assert.doesNotMatch(css, /result-badge::after|content:\s*'SMAŽKA FAKTOR'/);
-  assert.doesNotMatch(screens, /body\.result-in-frame[^,{]*\.effect-label/);
+  assert.doesNotMatch(css, /body\.result-in-frame[^,{]*\.effect-label/);
 });
