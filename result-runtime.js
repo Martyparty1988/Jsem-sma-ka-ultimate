@@ -1952,23 +1952,6 @@
       low: 'Podezřele funkční', worn: 'Čelist na přesčase', junky: 'Perníkovej rozpad potvrzen', critical: 'Člověk nenalezen'
     }[state.visualDamageTier]);
 
-    const details = elements.result.querySelector('.in-frame-details-label');
-    if (details) setText(details, elements.result.classList.contains('details-open') ? 'Skrýt pitevní zprávu' : 'Otevřít pitevní zprávu');
-    const heading = elements.result.querySelector('.diagnostic-heading');
-    if (heading) {
-      setText(heading.querySelector('strong'), 'PITEVNÍ AI ROZBOR');
-      setText(heading.querySelector('small'), '100% nevědecký · 0% diagnóza');
-    }
-    const labels = {
-      'Stabilita zorniček': 'Zorničky pod dohledem',
-      'Kontakt s realitou': 'Signál z planety Země',
-      'Koordinace pohybu': 'Schopnost dojít bez svědků',
-      'Pravděpodobnost příchodu domů': 'Šance poznat vlastní adresu',
-      'Riziko ztráty klíčů': 'Klíče už mají nového majitele',
-      'Zbytková důstojnost': 'Zbytková lidskost',
-      'Mozkový ping': 'Odezva posledního neuronu'
-    };
-    elements.result.querySelectorAll('.diagnostic-copy span').forEach((label) => replaceExact(label, labels));
     elements.result.querySelectorAll('.result-tool-button span').forEach((label) => replaceExact(label, {
       'Jiná deformace': 'Další porucha',
       'Ještě víc mě znič': 'Dorazit zbytky'
@@ -2254,15 +2237,15 @@
     const keys = clamp(Math.round(8 + severity * 0.9 + jitter(4, 10)), 3, 99);
     const ping = clamp(Math.round(75 + severity * 9.7 + seeded(seed, 5) * 210), 90, 1240);
 
-    const reality = severity < 28
-      ? 'podezřele stabilní'
+    const toxicology = severity < 28
+      ? 'podezřele čisto'
       : severity < 50
-        ? 'lehce mimo osu'
+        ? 'stopové množství chaosu'
         : severity < 72
-          ? 'nestabilní'
+          ? 'laboratoř znejistěla'
           : severity < 88
-            ? 'kritický'
-            : 'spojení přerušeno';
+            ? 'vzorek hoří'
+            : 'přístroj dal výpověď';
 
     const dignity = severity < 32
       ? 'ještě dohledatelná'
@@ -2273,13 +2256,13 @@
           : 'nenalezena';
 
     return [
-      { label: 'Stabilita zorniček', value: `${pupils} %`, score: pupils },
-      { label: 'Kontakt s realitou', value: reality, score: clamp(100 - severity, 3, 96) },
-      { label: 'Koordinace pohybu', value: `${coordination} %`, score: coordination },
-      { label: 'Pravděpodobnost příchodu domů', value: `${home} %`, score: home },
-      { label: 'Riziko ztráty klíčů', value: `${keys} %`, score: keys, danger: true },
-      { label: 'Zbytková důstojnost', value: dignity, score: clamp(100 - severity * 1.08, 0, 94) },
-      { label: 'Mozkový ping', value: `${ping} ms${severity >= 74 ? '+' : ''}`, score: clamp(100 - ping / 13, 4, 82), danger: true }
+      { label: 'Zorničkový nález', value: `${pupils} %`, score: pupils },
+      { label: 'Toxikologický poplach', value: toxicology, score: clamp(100 - severity, 3, 96) },
+      { label: 'Motorika subjektu', value: `${coordination} %`, score: coordination },
+      { label: 'Šance trefit domů', value: `${home} %`, score: home },
+      { label: 'Cizí věci v kapsách', value: `${keys} %`, score: keys, danger: true },
+      { label: 'Zbytková lidskost', value: dignity, score: clamp(100 - severity * 1.08, 0, 94) },
+      { label: 'Odezva posledního neuronu', value: `${ping} ms${severity >= 74 ? '+' : ''}`, score: clamp(100 - ping / 13, 4, 82), danger: true }
     ];
   }
 
@@ -2459,11 +2442,11 @@
   function buildDiagnostics(diagnostics) {
     const section = document.createElement('section');
     section.className = 'diagnostic-panel';
-    section.setAttribute('aria-label', 'Falešný detailní AI rozbor');
+    section.setAttribute('aria-label', 'Satirický SMAŽKA protokol');
 
     const heading = document.createElement('div');
     heading.className = 'diagnostic-heading';
-    heading.innerHTML = '<span class="diagnostic-pulse" aria-hidden="true"></span><div><strong>AI ROZBOR</strong><small>100% nevědecký</small></div>';
+    heading.innerHTML = '<span class="diagnostic-pulse" aria-hidden="true"></span><div><strong>SMAŽKA PROTOKOL</strong><small>toxikologie z benzínky · 0 % diagnóza</small></div>';
 
     const list = document.createElement('div');
     list.className = 'diagnostic-list';

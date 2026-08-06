@@ -73,6 +73,7 @@ test('mobile result keeps the visible detail control and compact action dock ins
   await expect(scoreValue).toHaveText(/^(?:100|[1-9]?\d)%$/);
   await expect(details).toBeVisible();
   await expect(details).toHaveAttribute('aria-expanded', 'false');
+  await expect(details.locator('.in-frame-details-label')).toHaveText('Otevřít protokol smažky');
   await expect(destroy).toBeVisible();
   expect(await score.evaluate((node) => node.parentElement?.classList.contains('result-content'))).toBe(true);
 
@@ -146,8 +147,12 @@ test('mobile result keeps the visible detail control and compact action dock ins
   await details.click();
   await expect(page.locator('#result')).toHaveClass(/details-open/);
   await expect(details).toHaveAttribute('aria-expanded', 'true');
+  await expect(details.locator('.in-frame-details-label')).toHaveText('Skrýt protokol smažky');
   const diagnosticPanel = page.locator('.diagnostic-panel');
   await expect(diagnosticPanel).toBeVisible();
+  await expect(diagnosticPanel.locator('.diagnostic-heading strong')).toHaveText('SMAŽKA PROTOKOL');
+  await expect(diagnosticPanel.locator('.diagnostic-heading small')).toHaveText('toxikologie z benzínky · 0 % diagnóza');
+  await expect(diagnosticPanel.getByText('Toxikologický poplach', { exact: true })).toBeVisible();
   const diagnosticGeometry = await diagnosticPanel.evaluate((node) => ({
     clientHeight: node.clientHeight,
     scrollHeight: node.scrollHeight,
@@ -182,6 +187,11 @@ test('mobile result keeps the visible detail control and compact action dock ins
   expect(Math.abs(originalToolBox.y - warpedToolBox.y)).toBeLessThanOrEqual(1);
   expect(detailShareBox.y).toBeLessThan(detailDestroyBox.y);
   expect(Math.abs(detailDestroyBox.y - detailRetryBox.y)).toBeLessThanOrEqual(1);
+  const detailOverflow = await page.evaluate(() => ({
+    scrollWidth: document.documentElement.scrollWidth,
+    clientWidth: document.documentElement.clientWidth
+  }));
+  expect(detailOverflow.scrollWidth).toBeLessThanOrEqual(detailOverflow.clientWidth + 1);
   await page.screenshot({ path: testInfo.outputPath('result-details.png'), fullPage: false });
 });
 

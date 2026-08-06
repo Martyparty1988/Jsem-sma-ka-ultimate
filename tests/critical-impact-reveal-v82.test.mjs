@@ -55,7 +55,7 @@ test('Critical Impact Reveal keeps authoritative order inside the v87 lifecycle 
   assert.ok(impact > singlePass);
   assert.ok(share > impact);
   assert.match(readRoot('screens.css'), /impact-negative-flash-v82/);
-  assert.match(serviceWorker, /const CACHE_VERSION = 'v113'/);
+  assert.match(serviceWorker, /const CACHE_VERSION = 'v114'/);
   assert.match(serviceWorker, /\.\/lifecycle-runtime\.js\?v=106/);
-  assert.match(serviceWorker, /\.\/result-poster-runtime\.js\?v=100/);
+  assert.match(serviceWorker, /\.\/result-poster-runtime\.js\?v=101/);
 });

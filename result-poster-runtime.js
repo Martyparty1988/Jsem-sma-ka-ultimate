@@ -1,8 +1,8 @@
-/* Smažka runtime v100 — source DOM owns composition; runtime owns identity and detail state only. */
+/* Smažka runtime v101 — source DOM owns composition; runtime owns identity and detail state only. */
 (() => {
   'use strict';
 
-  const VERSION = 'v100';
+  const VERSION = 'v101';
   const POSTER_CLASS = 'result-poster-v99';
   const app = window.SmazkaApp;
   const result = app?.elements?.result;
@@ -38,7 +38,7 @@
     const expanded = String(open);
     if (button.getAttribute('aria-expanded') !== expanded) button.setAttribute('aria-expanded', expanded);
     const label = button.querySelector('.in-frame-details-label');
-    const text = open ? 'Skrýt detailní rozbor' : 'Zobrazit detailní rozbor';
+    const text = open ? 'Skrýt protokol smažky' : 'Otevřít protokol smažky';
     if (label && label.textContent !== text) label.textContent = text;
   }
 
@@ -73,7 +73,7 @@
       replacement.type = 'button';
       replacement.className = 'in-frame-details-toggle';
       replacement.dataset.posterOwner = VERSION;
-      replacement.innerHTML = '<svg class="ui-icon" aria-hidden="true"><use href="#icon-zap"></use></svg><span class="in-frame-details-label">Zobrazit detailní rozbor</span><i aria-hidden="true">⌄</i>';
+      replacement.innerHTML = '<svg class="ui-icon" aria-hidden="true"><use href="#icon-zap"></use></svg><span class="in-frame-details-label">Otevřít protokol smažky</span><i aria-hidden="true">⌄</i>';
       replacement.addEventListener('click', () => {
         setDetailsOpen(!result.classList.contains('details-open'));
       });
@@ -150,6 +150,6 @@
     animationFrame = 0;
   }, { once: true });
 
-  window.SmazkaResultPoster = Object.freeze({ version: 100, sync: scheduleSync });
+  window.SmazkaResultPoster = Object.freeze({ version: 101, sync: scheduleSync });
   scheduleSync();
 })();

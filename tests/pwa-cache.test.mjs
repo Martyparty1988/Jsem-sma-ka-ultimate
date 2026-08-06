@@ -24,20 +24,20 @@ function serviceWorkerContract() {
   return context.__PWA_TEST__;
 }
 
-test('PWA v113 precaches one compact production shell with three CSS authorities', () => {
+test('PWA v114 precaches one compact production shell with three CSS authorities', () => {
   const { CACHE_NAME, APP_SHELL } = serviceWorkerContract();
   const assets = new Set(APP_SHELL);
 
-  assert.equal(CACHE_NAME, 'jsem-smazka-v113');
+  assert.equal(CACHE_NAME, 'jsem-smazka-v114');
   [
     './foundation.css?v=104',
     './components.css?v=87',
     './screens.css?v=106',
     './app.js?v=104',
     './scanner-runtime.js?v=113',
-    './result-runtime.js?v=113',
+    './result-runtime.js?v=114',
     './lifecycle-runtime.js?v=106',
-    './result-poster-runtime.js?v=100',
+    './result-poster-runtime.js?v=101',
     './devastation-metrics.js?v=113',
     './face-warp-geometry.js?v=113',
     './junkie-vision-photo-v81.js?v=81',
@@ -96,7 +96,7 @@ test('MediaPipe uses a stable request-driven cache and never install-precaches W
   assert.match(serviceWorker, /key !== CACHE_NAME && key !== FACE_MODEL_CACHE/);
 });
 
-test('HTML entries, bundle sections and dynamic files agree with the v113 cache graph', () => {
+test('HTML entries, bundle sections and dynamic files agree with the v114 cache graph', () => {
   const { APP_SHELL } = serviceWorkerContract();
   const appAssets = new Set(APP_SHELL);
   const index = readRoot('index.html');
@@ -130,7 +130,7 @@ test('HTML entries, bundle sections and dynamic files agree with the v113 cache 
   });
 });
 
-test('v113 shell keeps the consolidated poster rules and v100 runtime authoritative', () => {
+test('v114 shell keeps the consolidated poster rules and v101 runtime authoritative', () => {
   const index = readRoot('index.html');
   const css = readRoot('screens.css');
   const screens = css;
@@ -148,18 +148,18 @@ test('v113 shell keeps the consolidated poster rules and v100 runtime authoritat
     [...index.matchAll(/<link rel="stylesheet" href="([^"]+)"/g)].map((match) => match[1]),
     ['foundation.css?v=104', 'components.css?v=87', 'screens.css?v=106']
   );
-  assert.ok(index.indexOf('result-poster-runtime.js?v=100') > index.indexOf('lifecycle-runtime.js?v=106'));
+  assert.ok(index.indexOf('result-poster-runtime.js?v=101') > index.indexOf('lifecycle-runtime.js?v=106'));
   assert.match(index, /class="result result-poster-v99 hidden"/);
   assert.match(index, /data-result-poster="v99"/);
 
   assert.doesNotThrow(() => new Function(runtime));
-  assert.match(runtime, /const VERSION = 'v100'/);
+  assert.match(runtime, /const VERSION = 'v101'/);
   assert.match(runtime, /const POSTER_CLASS = 'result-poster-v99'/);
   assert.match(runtime, /badge\.textContent !== 'SMAŽKA FAKTOR'/);
   assert.match(runtime, /replacement\.dataset\.posterOwner = VERSION/);
   assert.match(runtime, /document\.body\.classList\.remove\('result-in-frame'\)/);
   assert.doesNotMatch(runtime, /document\.body\.classList\.add\('result-in-frame'\)/);
-  assert.match(runtime, /window\.SmazkaResultPoster = Object\.freeze\(\{ version: 100/);
+  assert.match(runtime, /window\.SmazkaResultPoster = Object\.freeze\(\{ version: 101/);
   assert.doesNotMatch(runtime, /setImportant|viewportMetrics|syncClosedComposition|syncDetailsComposition/);
   assert.doesNotMatch(runtime, /padding-top|object-position|100dvh|visualViewport\?\.width/);
 
@@ -220,9 +220,9 @@ test('result, crop, recovery, single-pass, impact and share keep authoritative o
   const indexOrder = [
     'app.js?v=104',
     'scanner-runtime.js?v=113',
-    'result-runtime.js?v=113',
+    'result-runtime.js?v=114',
     'lifecycle-runtime.js?v=106',
-    'result-poster-runtime.js?v=100'
+    'result-poster-runtime.js?v=101'
   ];
   const lifecycleOrder = [
     'face-aware-crop-runtime.js',
