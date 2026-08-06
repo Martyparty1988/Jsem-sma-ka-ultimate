@@ -173,6 +173,20 @@ add(
   'stored-image anchors use the same cover transform as pixels'
 );
 
+add(
+  'directional-warp-v2',
+  /directions:\s*measurement\.directions/.test(metrics)
+    && /mouthLeft/.test(metrics)
+    && /leftTemple/.test(metrics)
+    && /controls:\s*\{/.test(geometry)
+    && /const WARP_MODE_IDS = Object\.freeze\(\{[\s\S]{0,180}melt:[\s\S]{0,180}bloom:[\s\S]{0,180}collapse:[\s\S]{0,180}shear:[\s\S]{0,180}lens:/.test(result)
+    && /if \(u_mode < 0\.5\)[\s\S]{0,12000}else if \(u_mode < 3\.5\)/.test(result)
+    && !/modeWeight\(/.test(result)
+    && /float softEllipseMask\(/.test(result)
+    && /function organicRevealProgress\(/.test(result),
+  'signed directions, expanded anchors, five warp modes, face mask and organic reveal are present'
+);
+
 const faceWarp = section(result, 'face-warp.js');
 const experience = section(result, 'experience-upgrades.js');
 const diagnostics = section(result, 'diagnostic-upgrades.js');

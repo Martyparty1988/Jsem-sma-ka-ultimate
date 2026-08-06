@@ -24,18 +24,18 @@ function serviceWorkerContract() {
   return context.__PWA_TEST__;
 }
 
-test('PWA v106 precaches one compact production shell with three CSS authorities', () => {
+test('PWA v107 precaches one compact production shell with three CSS authorities', () => {
   const { CACHE_NAME, APP_SHELL } = serviceWorkerContract();
   const assets = new Set(APP_SHELL);
 
-  assert.equal(CACHE_NAME, 'jsem-smazka-v106');
+  assert.equal(CACHE_NAME, 'jsem-smazka-v107');
   [
     './foundation.css?v=104',
     './components.css?v=87',
     './screens.css?v=106',
     './app.js?v=104',
-    './scanner-runtime.js?v=105',
-    './result-runtime.js?v=88',
+    './scanner-runtime.js?v=106',
+    './result-runtime.js?v=89',
     './lifecycle-runtime.js?v=105',
     './result-poster-runtime.js?v=100',
     './responses.json',
@@ -91,7 +91,7 @@ test('MediaPipe uses a stable request-driven cache and never install-precaches W
   assert.match(serviceWorker, /key !== CACHE_NAME && key !== FACE_MODEL_CACHE/);
 });
 
-test('HTML entries, bundle sections and dynamic files agree with the v106 cache graph', () => {
+test('HTML entries, bundle sections and dynamic files agree with the v107 cache graph', () => {
   const { APP_SHELL } = serviceWorkerContract();
   const appAssets = new Set(APP_SHELL);
   const index = readRoot('index.html');
@@ -123,7 +123,7 @@ test('HTML entries, bundle sections and dynamic files agree with the v106 cache 
   });
 });
 
-test('v106 shell keeps the consolidated poster rules and v100 runtime authoritative', () => {
+test('v107 shell keeps the consolidated poster rules and v100 runtime authoritative', () => {
   const index = readRoot('index.html');
   const css = readRoot('screens.css');
   const screens = css;
@@ -212,8 +212,8 @@ test('result, crop, recovery, single-pass, impact and share keep authoritative o
   ];
   const indexOrder = [
     'app.js?v=104',
-    'scanner-runtime.js?v=105',
-    'result-runtime.js?v=88',
+    'scanner-runtime.js?v=106',
+    'result-runtime.js?v=89',
     'lifecycle-runtime.js?v=105',
     'result-poster-runtime.js?v=100'
   ];

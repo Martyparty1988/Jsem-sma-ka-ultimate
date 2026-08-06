@@ -11,6 +11,9 @@ function fixture() {
   const points = Array.from({ length: 478 }, () => ({ x: 0.5, y: 0.5, z: 0 }));
   Object.assign(points[10], { x: 0.5, y: 0.18 });
   Object.assign(points[152], { x: 0.5, y: 0.84 });
+  Object.assign(points[1], { x: 0.5, y: 0.5 });
+  Object.assign(points[454], { x: 0.74, y: 0.57 });
+  Object.assign(points[234], { x: 0.26, y: 0.57 });
 
   Object.assign(points[33], { x: 0.34, y: 0.39 });
   Object.assign(points[133], { x: 0.45, y: 0.39 });
@@ -79,6 +82,36 @@ test('front-camera mirroring flips stored x once and preserves absolute metrics'
   assert.deepEqual(metrics(points), metrics(points, { mirrorX: true }));
 });
 
+test('signed warp directions follow the stored image without changing signal intensity', () => {
+  const points = rotate(fixture(), 12);
+  points[1] = { ...points[1], x: points[1].x + 0.065 };
+  points[386] = { ...points[386], y: points[386].y - 0.018 };
+  points[374] = { ...points[374], y: points[374].y + 0.018 };
+  points[291] = { ...points[291], y: points[291].y + 0.05 };
+
+  const original = calculateDevastationMetrics(normalizeLandmarks(points), {
+    sourceWidth: 1000,
+    sourceHeight: 1000,
+    hydratace: 22
+  });
+  const mirrored = calculateDevastationMetrics(normalizeLandmarks(points, { mirrorX: true }), {
+    sourceWidth: 1000,
+    sourceHeight: 1000,
+    hydratace: 22
+  });
+
+  assert.ok(original.directions.yaw > 0);
+  assert.ok(mirrored.directions.yaw < 0);
+  assert.ok(original.directions.roll > 0);
+  assert.ok(mirrored.directions.roll < 0);
+  assert.notEqual(original.directions.eyes, 0);
+  assert.notEqual(original.directions.mouth, 0);
+  Object.values(original.directions).forEach((value) => {
+    assert.ok(value >= -1 && value <= 1);
+  });
+  assert.deepEqual(original.signals, mirrored.signals);
+});
+
 test('visual signals increase with effect intensity, not image quality', () => {
   const neutral = calculateDevastationMetrics(normalizeLandmarks(fixture()), {
     sourceWidth: 1000,
@@ -129,7 +162,7 @@ test('faceAnalysis stores the shared contract and explicit 70/30 severity', () =
     timestamp: '2026-07-28T12:00:00.000Z'
   });
 
-  assert.equal(analysis.schemaVersion, 2);
+  assert.equal(analysis.schemaVersion, 3);
   assert.equal(analysis.normalizedLandmarks.length, 478);
   assert.equal(analysis.scores.randomScore, 55);
   assert.equal(
@@ -145,6 +178,12 @@ test('faceAnalysis stores the shared contract and explicit 70/30 severity', () =
     });
   assert.equal(analysis.metrics.asymetrie, 'nízká');
   assert.ok(analysis.anchors.leftEye);
+  ['noseTip', 'mouthLeft', 'mouthRight', 'upperLip', 'lowerLip', 'leftTemple', 'rightTemple', 'leftBrow', 'rightBrow']
+    .forEach((anchor) => assert.ok(analysis.anchors[anchor], anchor));
+  ['yaw', 'roll', 'pitch', 'eyes', 'cheeks', 'mouth'].forEach((direction) => {
+    assert.equal(typeof analysis.directions[direction], 'number', direction);
+    assert.ok(analysis.directions[direction] >= -1 && analysis.directions[direction] <= 1, direction);
+  });
   assert.ok(analysis.faceBounds);
 });
 

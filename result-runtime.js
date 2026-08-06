@@ -9,7 +9,7 @@
   if (!app?.state || !app?.elements?.result || !app?.elements?.canvas) return;
 
   const { state, elements } = app;
-  const GEOMETRY_MODULE_URL = './face-warp-geometry.js?v=63';
+  const GEOMETRY_MODULE_URL = './face-warp-geometry.js?v=64';
   const reducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const clamp = (value, minimum, maximum) => Math.max(minimum, Math.min(maximum, value));
   let activeRun = 0;
@@ -159,6 +159,36 @@
     ]
   };
 
+  const WARP_MODE_IDS = Object.freeze({
+    melt: 0,
+    bloom: 1,
+    collapse: 2,
+    shear: 3,
+    lens: 4
+  });
+
+  const EFFECT_MODES = Object.freeze({
+    'soft-drift': 'shear',
+    'late-night': 'melt',
+    'micro-asymmetry': 'shear',
+    'facial-drift': 'shear',
+    'cheek-pressure': 'bloom',
+    'jaw-offset': 'melt',
+    'lens-bloom': 'lens',
+    'signal-glitch': 'shear',
+    'kebab-lens': 'lens',
+    'gravity-drop': 'melt',
+    'soft-collapse': 'collapse',
+    'wide-lens': 'lens',
+    'asymmetric-drag': 'shear',
+    'gravity-loss': 'bloom',
+    'eye-sink': 'collapse',
+    'liquid-gravity': 'melt',
+    'cranial-bloom': 'bloom',
+    'deep-collapse': 'collapse',
+    'total-drift': 'shear'
+  });
+
   const VERTEX_SHADER = `
     attribute vec2 a_position;
     varying vec2 v_uv;
@@ -176,16 +206,29 @@
     uniform float u_progress;
     uniform float u_severity;
     uniform float u_seed;
+    uniform float u_mode;
     uniform vec4 u_shape;
     uniform vec4 u_flow;
     uniform float u_twist;
+    uniform vec4 u_direction;
+    uniform vec4 u_detail;
+    uniform vec4 u_mask;
     uniform vec4 u_face;
     uniform vec4 u_forehead;
+    uniform vec4 u_templeL;
+    uniform vec4 u_templeR;
+    uniform vec4 u_browL;
+    uniform vec4 u_browR;
     uniform vec4 u_eyeL;
     uniform vec4 u_eyeR;
     uniform vec4 u_cheekL;
     uniform vec4 u_cheekR;
+    uniform vec4 u_nose;
     uniform vec4 u_mouth;
+    uniform vec4 u_mouthL;
+    uniform vec4 u_mouthR;
+    uniform vec4 u_lipUpper;
+    uniform vec4 u_lipLower;
     uniform vec4 u_jaw;
 
     varying vec2 v_uv;
@@ -194,6 +237,11 @@
       vec2 p = (point - center) / radius;
       float distanceSquared = dot(p, p);
       return pow(max(0.0, 1.0 - distanceSquared), 2.15);
+    }
+
+    float softEllipseMask(vec2 point, vec2 center, vec2 radius) {
+      vec2 p = (point - center) / radius;
+      return 1.0 - smoothstep(0.72, 1.06, dot(p, p));
     }
 
     vec2 radialWarp(vec2 point, vec2 center, vec2 radius, float amount) {
@@ -210,45 +258,198 @@
     }
 
     void main() {
-      float eased = u_progress * u_progress * (3.0 - 2.0 * u_progress);
-      float strength = (0.34 + u_severity * 0.78) * eased;
+      float amplitude = clamp(u_progress, 0.0, 1.12);
+      float reveal = clamp(u_progress, 0.0, 1.0);
+      float strength = (0.3 + u_severity * 0.82) * amplitude;
       float seedWave = fract(sin(u_seed * 12.9898) * 43758.5453);
+      float seedDirection = seedWave * 2.0 - 1.0;
       vec2 uv = vec2(v_uv.x, 1.0 - v_uv.y);
       vec2 center = u_face.xy;
       vec2 point = uv;
 
-      float face = ellipseMask(uv, u_face.xy, u_face.zw);
-      float lowerFace = ellipseMask(uv, u_jaw.xy, u_jaw.zw);
-      float leftEye = ellipseMask(uv, u_eyeL.xy, u_eyeL.zw);
-      float rightEye = ellipseMask(uv, u_eyeR.xy, u_eyeR.zw);
-      float eyes = leftEye + rightEye;
-      float mouth = ellipseMask(uv, u_mouth.xy, u_mouth.zw);
+      float guard = softEllipseMask(uv, u_mask.xy, u_mask.zw);
 
-      point.x -= (uv.x - center.x) * u_flow.x * strength * face;
-      point.y -= (uv.y - center.y) * u_flow.y * strength * face;
+      float foreheadStage = smoothstep(0.0, 0.64, reveal);
+      float eyeStage = smoothstep(0.06, 0.76, reveal);
+      float cheekStage = smoothstep(0.14, 0.86, reveal);
+      float mouthStage = smoothstep(0.2, 0.92, reveal);
+      float jawStage = smoothstep(0.26, 1.0, reveal);
 
-      point = radialWarp(point, u_forehead.xy, u_forehead.zw, u_shape.x * strength);
+      float side = abs(u_direction.x) > 0.08 ? u_direction.x : seedDirection * 0.28;
+      float eyeBias = clamp(u_direction.z + seedDirection * 0.14, -1.0, 1.0);
+      float cheekBias = clamp(u_detail.x + seedDirection * 0.12, -1.0, 1.0);
 
-      float cheekDifference = 1.0 + (seedWave - 0.5) * 0.34;
-      point = radialWarp(point, u_cheekL.xy, u_cheekL.zw, u_shape.y * strength * cheekDifference);
-      point = radialWarp(point, u_cheekR.xy, u_cheekR.zw, u_shape.y * strength / cheekDifference);
-      point = radialWarp(point, u_jaw.xy, u_jaw.zw, u_shape.z * strength);
-
-      point.y -= u_shape.w * strength * (
-        leftEye * (0.84 + seedWave * 0.16)
-        + rightEye * (1.0 - seedWave * 0.16)
-      );
-
-      float organic = 0.88 + 0.12 * sin((uv.x + u_seed * 0.00013) * 12.56637);
-      point.y -= u_flow.w * strength * lowerFace * organic;
-      point.x -= u_flow.z * strength * face * (uv.y - center.y) * (0.75 + 0.25 * seedWave);
-      point.x -= u_flow.z * strength * 0.24 * mouth * (seedWave - 0.5);
-
-      float rotationMask = face * (0.6 + 0.4 * lowerFace);
-      point = rotateAround(point, center, -u_twist * strength * rotationMask);
+      if (u_mode < 0.5) {
+        /* MELT: eyes, lips and jaw descend in staggered local streams. */
+        float face = ellipseMask(uv, u_face.xy, u_face.zw);
+        float lowerFace = ellipseMask(uv, u_jaw.xy, u_jaw.zw);
+        float eyes = ellipseMask(uv, u_eyeL.xy, u_eyeL.zw)
+          + ellipseMask(uv, u_eyeR.xy, u_eyeR.zw);
+        float leftCheek = ellipseMask(uv, u_cheekL.xy, u_cheekL.zw);
+        float rightCheek = ellipseMask(uv, u_cheekR.xy, u_cheekR.zw);
+        float mouth = ellipseMask(uv, u_mouth.xy, u_mouth.zw);
+        float mouthLeft = ellipseMask(uv, u_mouthL.xy, u_mouthL.zw);
+        float mouthRight = ellipseMask(uv, u_mouthR.xy, u_mouthR.zw);
+        float lips = ellipseMask(uv, u_lipUpper.xy, u_lipUpper.zw)
+          + ellipseMask(uv, u_lipLower.xy, u_lipLower.zw);
+        float organic = 0.88 + 0.12 * sin((uv.x + u_seed * 0.00013) * 12.56637);
+        float meltMask = eyes * eyeStage * 0.3
+          + (leftCheek + rightCheek) * cheekStage * 0.42
+          + (mouth + lips) * mouthStage * (0.46 + u_detail.z * 0.2)
+          + lowerFace * jawStage * 0.72;
+        point.y -= strength * (0.018 + abs(u_flow.w) * 0.72 + abs(u_shape.z) * 0.12)
+          * meltMask * organic * (1.0 + u_detail.y * 0.14);
+        point.x -= strength * side * (0.012 + abs(u_flow.z) * 0.1)
+          * (leftCheek + rightCheek + mouth + lowerFace) * jawStage;
+        point.y -= strength * u_direction.w * 0.018
+          * (mouthLeft - mouthRight) * mouthStage;
+        float rotationMask = face * (0.5 + lowerFace * 0.5);
+        point = rotateAround(point, center, -strength * rotationMask * u_direction.y * 0.014);
+      } else if (u_mode < 1.5) {
+        /* BLOOM: forehead, temples and cheeks inflate around their real anchors. */
+        point = radialWarp(
+          point,
+          u_forehead.xy,
+          u_forehead.zw,
+          (0.035 + abs(u_shape.x)) * strength * foreheadStage
+        );
+        point = radialWarp(
+          point,
+          u_templeL.xy,
+          u_templeL.zw,
+          (0.022 + abs(u_shape.x) * 0.55) * strength * foreheadStage * (1.0 + side * 0.18)
+        );
+        point = radialWarp(
+          point,
+          u_templeR.xy,
+          u_templeR.zw,
+          (0.022 + abs(u_shape.x) * 0.55) * strength * foreheadStage * (1.0 - side * 0.18)
+        );
+        point = radialWarp(
+          point,
+          u_cheekL.xy,
+          u_cheekL.zw,
+          (0.04 + abs(u_shape.y)) * strength * cheekStage * (1.0 + cheekBias * 0.24)
+        );
+        point = radialWarp(
+          point,
+          u_cheekR.xy,
+          u_cheekR.zw,
+          (0.04 + abs(u_shape.y)) * strength * cheekStage * (1.0 - cheekBias * 0.24)
+        );
+        point = radialWarp(
+          point,
+          u_nose.xy,
+          u_nose.zw,
+          (0.025 + abs(u_flow.x) * 0.34) * strength * cheekStage
+        );
+      } else if (u_mode < 2.5) {
+        /* COLLAPSE: brows, eyes, nose and lips fold toward their own centers. */
+        point = radialWarp(
+          point,
+          u_browL.xy,
+          u_browL.zw,
+          -(0.035 + abs(u_shape.w)) * strength * eyeStage * (1.0 + eyeBias * 0.24)
+        );
+        point = radialWarp(
+          point,
+          u_browR.xy,
+          u_browR.zw,
+          -(0.035 + abs(u_shape.w)) * strength * eyeStage * (1.0 - eyeBias * 0.24)
+        );
+        point = radialWarp(
+          point,
+          u_eyeL.xy,
+          u_eyeL.zw,
+          -(0.055 + abs(u_shape.w)) * strength * eyeStage * (1.0 + eyeBias * 0.32)
+        );
+        point = radialWarp(
+          point,
+          u_eyeR.xy,
+          u_eyeR.zw,
+          -(0.055 + abs(u_shape.w)) * strength * eyeStage * (1.0 - eyeBias * 0.32)
+        );
+        point = radialWarp(
+          point,
+          u_nose.xy,
+          u_nose.zw,
+          -(0.045 + abs(u_shape.x) * 0.45) * strength * cheekStage
+        );
+        point = radialWarp(
+          point,
+          u_lipUpper.xy,
+          u_lipUpper.zw,
+          -(0.035 + abs(u_shape.z) * 0.32) * strength * mouthStage
+        );
+        point = radialWarp(
+          point,
+          u_lipLower.xy,
+          u_lipLower.zw,
+          -(0.035 + abs(u_shape.z) * 0.36) * strength * mouthStage
+        );
+      } else if (u_mode < 3.5) {
+        /* SHEAR: measured side differences pull individual features apart. */
+        float face = ellipseMask(uv, u_face.xy, u_face.zw);
+        float lowerFace = ellipseMask(uv, u_jaw.xy, u_jaw.zw);
+        float leftEye = ellipseMask(uv, u_eyeL.xy, u_eyeL.zw);
+        float rightEye = ellipseMask(uv, u_eyeR.xy, u_eyeR.zw);
+        float leftBrow = ellipseMask(uv, u_browL.xy, u_browL.zw);
+        float rightBrow = ellipseMask(uv, u_browR.xy, u_browR.zw);
+        float leftCheek = ellipseMask(uv, u_cheekL.xy, u_cheekL.zw);
+        float rightCheek = ellipseMask(uv, u_cheekR.xy, u_cheekR.zw);
+        float mouth = ellipseMask(uv, u_mouth.xy, u_mouth.zw);
+        float mouthLeft = ellipseMask(uv, u_mouthL.xy, u_mouthL.zw);
+        float mouthRight = ellipseMask(uv, u_mouthR.xy, u_mouthR.zw);
+        point.x -= strength * (0.015 + abs(u_flow.z) * 0.16)
+          * ((leftEye + leftBrow) * (0.72 + eyeBias * 0.28)
+            - (rightEye + rightBrow) * (0.72 - eyeBias * 0.28)) * eyeStage;
+        point.x -= strength * side * (0.018 + abs(u_flow.z) * 0.2)
+          * (face * 0.3 + leftCheek + rightCheek + lowerFace * 0.55) * cheekStage;
+        point.y -= strength * cheekBias * 0.025
+          * (leftCheek - rightCheek) * cheekStage;
+        point.y -= strength * u_direction.w * (0.02 + u_detail.w * 0.016)
+          * (mouthLeft - mouthRight) * mouthStage;
+        point.x -= strength * seedDirection * (0.012 + abs(u_flow.x) * 0.08)
+          * (mouth + lowerFace) * jawStage;
+        float rotationMask = face * (0.5 + lowerFace * 0.5);
+        point = rotateAround(
+          point,
+          center,
+          -strength * rotationMask * (u_twist + u_direction.y * 0.035)
+        );
+      } else {
+        /* LENS: the nose and the visually dominant eye become local lenses. */
+        point = radialWarp(
+          point,
+          u_nose.xy,
+          u_nose.zw,
+          (0.1 + abs(u_shape.x) * 0.72 + abs(u_flow.x) * 0.22) * strength * cheekStage
+        );
+        point = radialWarp(
+          point,
+          u_eyeL.xy,
+          u_eyeL.zw,
+          (0.035 + abs(u_shape.y) * 0.3) * strength * eyeStage * (0.82 + eyeBias * 0.32)
+        );
+        point = radialWarp(
+          point,
+          u_eyeR.xy,
+          u_eyeR.zw,
+          (0.035 + abs(u_shape.y) * 0.3) * strength * eyeStage * (0.82 - eyeBias * 0.32)
+        );
+        point = radialWarp(
+          point,
+          u_face.xy,
+          u_face.zw,
+          (0.018 + abs(u_flow.x) * 0.12) * strength * foreheadStage
+        );
+      }
 
       point = clamp(point, vec2(0.0015), vec2(0.9985));
-      gl_FragColor = texture2D(u_texture, vec2(point.x, 1.0 - point.y));
+      vec4 originalColor = texture2D(u_texture, vec2(uv.x, 1.0 - uv.y));
+      vec4 warpedColor = texture2D(u_texture, vec2(point.x, 1.0 - point.y));
+      float effectMix = guard * smoothstep(0.015, 0.16, strength);
+      gl_FragColor = mix(originalColor, warpedColor, clamp(effectMix, 0.0, 1.0));
     }
   `;
 
@@ -264,6 +465,23 @@
     return value - Math.floor(value);
   }
 
+  function smoothStep(value) {
+    const bounded = clamp(value, 0, 1);
+    return bounded * bounded * (3 - 2 * bounded);
+  }
+
+  function organicRevealProgress(linearProgress) {
+    const linear = clamp(linearProgress, 0, 1);
+    if (linear <= 0.62) {
+      const local = linear / 0.62;
+      return (1 - Math.pow(1 - local, 3)) * 1.08;
+    }
+    if (linear <= 0.82) {
+      return 1.08 + (0.96 - 1.08) * smoothStep((linear - 0.62) / 0.2);
+    }
+    return 0.96 + (1 - 0.96) * smoothStep((linear - 0.82) / 0.18);
+  }
+
   function loadGeometryModule() {
     geometryModulePromise ||= import(GEOMETRY_MODULE_URL);
     return geometryModulePromise;
@@ -272,11 +490,18 @@
   function chooseProfile(_severity, _seed, preferredKey = '') {
     const profiles = Object.values(tiers).flat();
     const preferred = profiles.find((profile) => profile.key === preferredKey);
-    if (preferred) return preferred;
+    if (preferred) return {
+      ...preferred,
+      mode: EFFECT_MODES[preferred.key] || 'shear'
+    };
 
     // Missing response metadata is intentionally visible as one documented
     // neutral fallback. The renderer never guesses an effect from severity.
-    return profiles.find((profile) => profile.key === 'facial-drift');
+    const fallback = profiles.find((profile) => profile.key === 'facial-drift');
+    return {
+      ...fallback,
+      mode: EFFECT_MODES[fallback.key]
+    };
   }
 
   async function geometryFor(image, width, height, faceAnalysis = state.faceAnalysis) {
@@ -409,16 +634,43 @@
     gl.uniform1i(gl.getUniformLocation(program, 'u_texture'), 0);
     gl.uniform1f(gl.getUniformLocation(program, 'u_severity'), severity / 100);
     gl.uniform1f(gl.getUniformLocation(program, 'u_seed'), seed);
+    gl.uniform1f(
+      gl.getUniformLocation(program, 'u_mode'),
+      WARP_MODE_IDS[profile.mode] ?? WARP_MODE_IDS.shear
+    );
     gl.uniform4fv(gl.getUniformLocation(program, 'u_shape'), new Float32Array(profile.shape));
     gl.uniform4fv(gl.getUniformLocation(program, 'u_flow'), new Float32Array(profile.flow));
     gl.uniform1f(gl.getUniformLocation(program, 'u_twist'), profile.twist);
+    const controls = geometry.controls || {};
+    gl.uniform4fv(gl.getUniformLocation(program, 'u_direction'), new Float32Array([
+      controls.yaw || 0,
+      controls.roll || 0,
+      controls.eyes || 0,
+      controls.mouth || 0
+    ]));
+    gl.uniform4fv(gl.getUniformLocation(program, 'u_detail'), new Float32Array([
+      controls.cheeks || 0,
+      controls.pitch || 0,
+      controls.mouthOpen || 0,
+      controls.asymmetry || 0
+    ]));
+    setRegion(gl, program, 'u_mask', geometry.mask);
     setRegion(gl, program, 'u_face', geometry.face);
     setRegion(gl, program, 'u_forehead', geometry.forehead);
+    setRegion(gl, program, 'u_templeL', geometry.leftTemple);
+    setRegion(gl, program, 'u_templeR', geometry.rightTemple);
+    setRegion(gl, program, 'u_browL', geometry.leftBrow);
+    setRegion(gl, program, 'u_browR', geometry.rightBrow);
     setRegion(gl, program, 'u_eyeL', geometry.leftEye);
     setRegion(gl, program, 'u_eyeR', geometry.rightEye);
     setRegion(gl, program, 'u_cheekL', geometry.leftCheek);
     setRegion(gl, program, 'u_cheekR', geometry.rightCheek);
+    setRegion(gl, program, 'u_nose', geometry.nose);
     setRegion(gl, program, 'u_mouth', geometry.mouth);
+    setRegion(gl, program, 'u_mouthL', geometry.mouthLeft);
+    setRegion(gl, program, 'u_mouthR', geometry.mouthRight);
+    setRegion(gl, program, 'u_lipUpper', geometry.upperLip);
+    setRegion(gl, program, 'u_lipLower', geometry.lowerLip);
     setRegion(gl, program, 'u_jaw', geometry.jaw);
     const progressLocation = gl.getUniformLocation(program, 'u_progress');
 
@@ -428,7 +680,7 @@
     return {
       render(progress) {
         gl.useProgram(program);
-        gl.uniform1f(progressLocation, Math.max(0, Math.min(1, progress)));
+        gl.uniform1f(progressLocation, Math.max(0, Math.min(1.12, progress)));
         gl.clear(gl.COLOR_BUFFER_BIT);
         gl.drawArrays(gl.TRIANGLES, 0, 6);
       },
@@ -465,74 +717,252 @@
       scaleY = 1,
       translateX = 0,
       translateY = 0,
-      rotation = 0
+      rotation = 0,
+      guardRegion = null,
+      opacity = 1,
+      layer = null
     } = {}
   ) {
     const width = source.width;
     const height = source.height;
     const centerX = region[0] * width;
     const centerY = region[1] * height;
-    context.save();
-    ellipsePath(context, region, width, height);
-    context.clip();
-    context.translate(centerX + translateX * width, centerY + translateY * height);
-    context.rotate(rotation);
-    context.scale(
+    const drawContext = layer?.context || context;
+    if (layer) drawContext.clearRect(0, 0, width, height);
+    drawContext.save();
+    if (!layer) {
+      if (guardRegion) {
+        ellipsePath(drawContext, guardRegion, width, height);
+        drawContext.clip();
+      }
+      ellipsePath(drawContext, region, width, height);
+      drawContext.clip();
+      drawContext.globalAlpha = clamp(opacity, 0, 1);
+    }
+    drawContext.translate(centerX + translateX * width, centerY + translateY * height);
+    drawContext.rotate(rotation);
+    drawContext.scale(
       clamp(scaleX, 0.76, 1.28),
       clamp(scaleY, 0.76, 1.32)
     );
-    context.translate(-centerX, -centerY);
-    context.drawImage(source, 0, 0, width, height);
+    drawContext.translate(-centerX, -centerY);
+    drawContext.drawImage(source, 0, 0, width, height);
+    drawContext.restore();
+
+    if (!layer) return;
+    applySoftRegionMask(drawContext, region, width, height);
+    context.save();
+    context.globalAlpha = clamp(opacity, 0, 1);
+    context.drawImage(layer.canvas, 0, 0, width, height);
     context.restore();
   }
 
+  function applyFeatheredEllipseMask(
+    context,
+    region,
+    width,
+    height,
+    { solidUntil = 0.72, fadeFrom = 0.82, fadeTo = 1.06 } = {}
+  ) {
+    const centerX = region[0] * width;
+    const centerY = region[1] * height;
+    const radiusX = Math.max(1, region[2] * width);
+    const radiusY = Math.max(1, region[3] * height);
+    context.save();
+    context.globalCompositeOperation = 'destination-in';
+    context.translate(centerX, centerY);
+    context.scale(radiusX, radiusY);
+    const feather = context.createRadialGradient(0, 0, solidUntil, 0, 0, fadeTo);
+    feather.addColorStop(0, 'rgba(0, 0, 0, 1)');
+    feather.addColorStop(
+      clamp((fadeFrom - solidUntil) / Math.max(0.001, fadeTo - solidUntil), 0, 1),
+      'rgba(0, 0, 0, 0.96)'
+    );
+    feather.addColorStop(1, 'rgba(0, 0, 0, 0)');
+    context.fillStyle = feather;
+    context.fillRect(-fadeTo, -fadeTo, fadeTo * 2, fadeTo * 2);
+    context.restore();
+  }
+
+  function applySoftRegionMask(context, region, width, height) {
+    applyFeatheredEllipseMask(context, region, width, height, {
+      solidUntil: 0.58,
+      fadeFrom: 0.7,
+      fadeTo: 1.04
+    });
+  }
+
+  function applySoftFaceMask(context, region, width, height) {
+    applyFeatheredEllipseMask(context, region, width, height);
+  }
+
   function renderFallback(canvas, source, profile, severity, progress, geometry, seed) {
-    const context = canvas.getContext('2d', { alpha: false });
-    if (!context) return;
-    const eased = progress * progress * (3 - 2 * progress);
-    const strength = (0.3 + severity / 100 * 0.55) * eased;
-    context.clearRect(0, 0, canvas.width, canvas.height);
+    const outputContext = canvas.getContext('2d', { alpha: false });
+    const effectCanvas = document.createElement('canvas');
+    effectCanvas.width = canvas.width;
+    effectCanvas.height = canvas.height;
+    const context = effectCanvas.getContext('2d');
+    const layerCanvas = document.createElement('canvas');
+    layerCanvas.width = canvas.width;
+    layerCanvas.height = canvas.height;
+    const layerContext = layerCanvas.getContext('2d');
+    if (!outputContext || !context || !layerContext) return;
+    layerContext.imageSmoothingEnabled = true;
+    layerContext.imageSmoothingQuality = 'high';
+    const layer = { canvas: layerCanvas, context: layerContext };
+    const amplitude = clamp(progress, 0, 1.12);
+    const strength = (0.3 + severity / 100 * 0.55) * amplitude;
+    const controls = geometry.controls || {};
+    const seedDirection = seededUnit(seed) * 2 - 1;
+    const side = Math.abs(controls.yaw || 0) > 0.08
+      ? controls.yaw
+      : seedDirection * 0.28;
+    const eyeBias = clamp((controls.eyes || 0) + seedDirection * 0.14, -1, 1);
+    const cheekBias = clamp((controls.cheeks || 0) + seedDirection * 0.12, -1, 1);
+    const mouthBias = controls.mouth || 0;
+    const guardRegion = geometry.mask || geometry.face;
+    const warp = (region, options = {}) => drawRegionWarp(context, source, region, {
+      ...options,
+      guardRegion,
+      opacity: options.opacity ?? 0.96,
+      layer
+    });
+    outputContext.clearRect(0, 0, canvas.width, canvas.height);
+    outputContext.drawImage(source, 0, 0, canvas.width, canvas.height);
     context.drawImage(source, 0, 0, canvas.width, canvas.height);
 
-    drawRegionWarp(context, source, geometry.face, {
-      scaleX: 1 + profile.flow[0] * strength,
-      scaleY: 1 + profile.flow[1] * strength,
-      translateX: profile.flow[2] * strength * 0.08,
-      translateY: profile.flow[3] * strength * 0.08,
-      rotation: -profile.twist * strength * 0.42
-    });
-    drawRegionWarp(context, source, geometry.forehead, {
-      scaleX: 1 + profile.shape[0] * strength,
-      scaleY: 1 + profile.shape[0] * strength * 0.55
-    });
+    switch (profile.mode) {
+      case 'melt': {
+        const drop = (0.018 + Math.abs(profile.flow[3]) * 0.72 + Math.abs(profile.shape[2]) * 0.12)
+          * strength;
+        warp(geometry.face, {
+          translateX: side * drop * 0.32,
+          translateY: drop * 0.2,
+          scaleY: 1 + drop * 0.26
+        });
+        warp(geometry.leftEye, { translateY: drop * (0.42 + eyeBias * 0.08) });
+        warp(geometry.rightEye, { translateY: drop * (0.42 - eyeBias * 0.08) });
+        warp(geometry.leftCheek, { translateX: side * drop * 0.22, translateY: drop * 0.62 });
+        warp(geometry.rightCheek, { translateX: side * drop * 0.22, translateY: drop * 0.62 });
+        warp(geometry.upperLip, { translateY: drop * (0.75 + (controls.mouthOpen || 0) * 0.12) });
+        warp(geometry.lowerLip, { translateY: drop * (0.94 + (controls.mouthOpen || 0) * 0.18) });
+        warp(geometry.mouthLeft, { translateY: drop * (0.82 + mouthBias * 0.2) });
+        warp(geometry.mouthRight, { translateY: drop * (0.82 - mouthBias * 0.2) });
+        warp(geometry.jaw, {
+          translateX: side * drop * 0.38,
+          translateY: drop,
+          scaleY: 1 + drop * 0.5,
+          rotation: -(controls.roll || 0) * drop * 0.22
+        });
+        break;
+      }
+      case 'bloom': {
+        warp(geometry.face, {
+          scaleX: 1 + Math.abs(profile.flow[0]) * strength * 0.18,
+          scaleY: 1 + Math.abs(profile.flow[1]) * strength * 0.12
+        });
+        warp(geometry.forehead, {
+          scaleX: 1 + (0.035 + Math.abs(profile.shape[0])) * strength,
+          scaleY: 1 + (0.025 + Math.abs(profile.shape[0]) * 0.55) * strength
+        });
+        warp(geometry.leftTemple, {
+          scaleX: 1 + (0.025 + Math.abs(profile.shape[0]) * 0.45) * strength * (1 + side * 0.18)
+        });
+        warp(geometry.rightTemple, {
+          scaleX: 1 + (0.025 + Math.abs(profile.shape[0]) * 0.45) * strength * (1 - side * 0.18)
+        });
+        warp(geometry.leftCheek, {
+          scaleX: 1 + (0.04 + Math.abs(profile.shape[1])) * strength * (1 + cheekBias * 0.24),
+          scaleY: 1 + (0.025 + Math.abs(profile.shape[1]) * 0.58) * strength
+        });
+        warp(geometry.rightCheek, {
+          scaleX: 1 + (0.04 + Math.abs(profile.shape[1])) * strength * (1 - cheekBias * 0.24),
+          scaleY: 1 + (0.025 + Math.abs(profile.shape[1]) * 0.58) * strength
+        });
+        warp(geometry.nose, {
+          scaleX: 1 + (0.025 + Math.abs(profile.flow[0]) * 0.34) * strength,
+          scaleY: 1 + (0.02 + Math.abs(profile.flow[0]) * 0.2) * strength
+        });
+        break;
+      }
+      case 'collapse': {
+        const eyeCollapse = (0.055 + Math.abs(profile.shape[3])) * strength;
+        warp(geometry.leftBrow, { scaleX: 1 - eyeCollapse * (0.55 + eyeBias * 0.12) });
+        warp(geometry.rightBrow, { scaleX: 1 - eyeCollapse * (0.55 - eyeBias * 0.12) });
+        warp(geometry.leftEye, {
+          scaleX: 1 - eyeCollapse * (0.82 + eyeBias * 0.18),
+          scaleY: 1 - eyeCollapse * (0.68 + eyeBias * 0.12)
+        });
+        warp(geometry.rightEye, {
+          scaleX: 1 - eyeCollapse * (0.82 - eyeBias * 0.18),
+          scaleY: 1 - eyeCollapse * (0.68 - eyeBias * 0.12)
+        });
+        warp(geometry.nose, {
+          scaleX: 1 - (0.045 + Math.abs(profile.shape[0]) * 0.45) * strength,
+          scaleY: 1 - (0.035 + Math.abs(profile.shape[0]) * 0.3) * strength
+        });
+        warp(geometry.upperLip, { scaleX: 1 - (0.035 + Math.abs(profile.shape[2]) * 0.32) * strength });
+        warp(geometry.lowerLip, { scaleX: 1 - (0.035 + Math.abs(profile.shape[2]) * 0.36) * strength });
+        warp(geometry.jaw, {
+          scaleX: 1 - Math.abs(profile.shape[2]) * strength * 0.28,
+          scaleY: 1 + Math.abs(profile.flow[3]) * strength * 0.24,
+          translateY: Math.abs(profile.flow[3]) * strength * 0.1
+        });
+        break;
+      }
+      case 'lens': {
+        warp(geometry.face, {
+          scaleX: 1 + (0.018 + Math.abs(profile.flow[0]) * 0.12) * strength,
+          scaleY: 1 + (0.012 + Math.abs(profile.flow[1]) * 0.08) * strength
+        });
+        warp(geometry.nose, {
+          scaleX: 1 + (0.1 + Math.abs(profile.shape[0]) * 0.72) * strength,
+          scaleY: 1 + (0.075 + Math.abs(profile.shape[0]) * 0.48) * strength,
+          translateX: side * 0.008 * strength
+        });
+        warp(geometry.leftEye, {
+          scaleX: 1 + (0.035 + Math.abs(profile.shape[1]) * 0.3) * strength * (0.82 + eyeBias * 0.32),
+          scaleY: 1 + (0.025 + Math.abs(profile.shape[1]) * 0.18) * strength
+        });
+        warp(geometry.rightEye, {
+          scaleX: 1 + (0.035 + Math.abs(profile.shape[1]) * 0.3) * strength * (0.82 - eyeBias * 0.32),
+          scaleY: 1 + (0.025 + Math.abs(profile.shape[1]) * 0.18) * strength
+        });
+        warp(geometry.leftCheek, { scaleX: 1 + Math.abs(profile.flow[0]) * strength * 0.22 });
+        warp(geometry.rightCheek, { scaleX: 1 + Math.abs(profile.flow[0]) * strength * 0.22 });
+        break;
+      }
+      case 'shear':
+      default: {
+        const pull = (0.018 + Math.abs(profile.flow[2]) * 0.2) * strength;
+        warp(geometry.face, {
+          translateX: side * pull * 0.42,
+          rotation: -(profile.twist + (controls.roll || 0) * 0.035) * strength * 0.32
+        });
+        warp(geometry.leftEye, { translateX: pull * (0.72 + eyeBias * 0.28) });
+        warp(geometry.rightEye, { translateX: -pull * (0.72 - eyeBias * 0.28) });
+        warp(geometry.leftBrow, { translateX: pull * (0.62 + eyeBias * 0.22) });
+        warp(geometry.rightBrow, { translateX: -pull * (0.62 - eyeBias * 0.22) });
+        warp(geometry.leftCheek, {
+          translateX: side * pull,
+          translateY: cheekBias * pull * 0.42
+        });
+        warp(geometry.rightCheek, {
+          translateX: side * pull,
+          translateY: -cheekBias * pull * 0.42
+        });
+        warp(geometry.mouthLeft, { translateX: pull * 0.46, translateY: mouthBias * pull * 0.72 });
+        warp(geometry.mouthRight, { translateX: -pull * 0.46, translateY: -mouthBias * pull * 0.72 });
+        warp(geometry.jaw, {
+          translateX: (side + seedDirection * 0.3) * pull,
+          translateY: Math.abs(profile.flow[3]) * strength * 0.08,
+          rotation: -profile.twist * strength * 0.72
+        });
+      }
+    }
 
-    const cheekBias = 1 + ((seededUnit(seed) * 2 - 1) * 0.17);
-    drawRegionWarp(context, source, geometry.leftCheek, {
-      scaleX: 1 + profile.shape[1] * strength * cheekBias,
-      scaleY: 1 + profile.shape[1] * strength * 0.58
-    });
-    drawRegionWarp(context, source, geometry.rightCheek, {
-      scaleX: 1 + profile.shape[1] * strength / cheekBias,
-      scaleY: 1 + profile.shape[1] * strength * 0.58
-    });
-    drawRegionWarp(context, source, geometry.jaw, {
-      scaleX: 1 + profile.shape[2] * strength,
-      scaleY: 1 + profile.shape[2] * strength * 0.55,
-      translateX: profile.flow[2] * strength * 0.1,
-      translateY: profile.flow[3] * strength * 0.18,
-      rotation: -profile.twist * strength * 0.7
-    });
-    drawRegionWarp(context, source, geometry.leftEye, {
-      translateY: -profile.shape[3] * strength * 0.14
-    });
-    drawRegionWarp(context, source, geometry.rightEye, {
-      translateY: -profile.shape[3] * strength * 0.11
-    });
-    drawRegionWarp(context, source, geometry.mouth, {
-      translateX: profile.flow[2] * strength * 0.06,
-      translateY: profile.flow[3] * strength * 0.08,
-      rotation: -profile.twist * strength * 0.5
-    });
+    applySoftFaceMask(context, guardRegion, canvas.width, canvas.height);
+    outputContext.drawImage(effectCanvas, 0, 0, canvas.width, canvas.height);
   }
 
   async function animateCanvas(canvas, imageData, profile, severity, seed, runId, faceAnalysis) {
@@ -549,6 +979,7 @@
     image.removeAttribute('src');
     if (runId !== activeRun) return;
     canvas.dataset.warpAnchored = String(geometry.anchored);
+    canvas.dataset.warpMode = profile.mode;
     let renderer = null;
 
     try {
@@ -579,8 +1010,7 @@
       const frame = (now) => {
         if (runId !== activeRun) return resolve();
         const linear = Math.min(1, (now - started) / duration);
-        const cinematic = 1 - Math.pow(1 - linear, 3.2);
-        render(cinematic);
+        render(organicRevealProgress(linear));
         if (linear < 1) requestAnimationFrame(frame);
         else resolve();
       };
@@ -640,6 +1070,7 @@
       finalDataUrl,
       renderer: renderer ? 'webgl' : 'canvas',
       effect: profile.key,
+      mode: profile.mode,
       label: profile.label,
       seed: safeSeed,
       anchored: geometry.anchored,

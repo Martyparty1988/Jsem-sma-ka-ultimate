@@ -1,4 +1,4 @@
-const SCHEMA_VERSION = 2;
+const SCHEMA_VERSION = 3;
 
 const SIGNAL_WEIGHTS = Object.freeze({
   pose: 0.18,
@@ -24,6 +24,14 @@ const ANCHOR_GROUPS = Object.freeze({
   forehead: Object.freeze([10]),
   noseTip: Object.freeze([1]),
   mouth: Object.freeze([61, 291, 13, 14]),
+  mouthLeft: Object.freeze([291]),
+  mouthRight: Object.freeze([61]),
+  upperLip: Object.freeze([13, 0, 267, 37]),
+  lowerLip: Object.freeze([14, 17, 314, 84]),
+  leftTemple: Object.freeze([356, 389, 454]),
+  rightTemple: Object.freeze([127, 162, 234]),
+  leftBrow: Object.freeze([282, 295, 285]),
+  rightBrow: Object.freeze([52, 65, 55]),
   chin: Object.freeze([152]),
   jawLeft: Object.freeze([454]),
   jawRight: Object.freeze([234])
@@ -165,18 +173,27 @@ function poseSignals(points, width, height) {
       intensity: 0,
       rollDegrees: 0,
       yawImbalance: 0,
+      yawOffset: 0,
+      yawDirection: 0,
       pitchRatio: 0.46
     };
   }
 
-  const rollDegrees = Math.atan2(
+  let rollDegrees = Math.atan2(
     leftEye.y - rightEye.y,
     leftEye.x - rightEye.x
   ) * 180 / Math.PI;
+  if (rollDegrees > 90) rollDegrees -= 180;
+  if (rollDegrees < -90) rollDegrees += 180;
   const leftDistance = distance(nose, jawLeft);
   const rightDistance = distance(nose, jawRight);
   const yawImbalance = Math.abs(leftDistance - rightDistance)
     / Math.max(1, leftDistance + rightDistance);
+  const jawWidth = distance(jawLeft, jawRight);
+  const jawCenterX = (jawLeft.x + jawRight.x) / 2;
+  const yawOffset = jawWidth > 0 ? (nose.x - jawCenterX) / jawWidth : 0;
+  const yawDirection = Math.sign(yawOffset)
+    * clamp((Math.abs(yawOffset) - 0.012) / 0.16, 0, 1);
   const eyeMidpoint = {
     x: (rightEye.x + leftEye.x) / 2,
     y: (rightEye.y + leftEye.y) / 2
@@ -200,6 +217,8 @@ function poseSignals(points, width, height) {
     ),
     rollDegrees: round(rollDegrees, 2),
     yawImbalance: round(yawImbalance, 4),
+    yawOffset: round(yawOffset, 4),
+    yawDirection: round(yawDirection, 3),
     pitchRatio: round(pitchRatio, 4)
   };
 }
@@ -219,21 +238,25 @@ function mouthSignals(points, width, height) {
 
 function combinedAsymmetry(points, width, height, leftEyeRatio, rightEyeRatio, mouthRatio) {
   const eyeMean = Math.max(0.04, (leftEyeRatio + rightEyeRatio) / 2);
-  const eyeDifference = clamp(Math.abs(leftEyeRatio - rightEyeRatio) / eyeMean / 0.7, 0, 1);
+  const eyeBalance = clamp((leftEyeRatio - rightEyeRatio) / eyeMean / 0.7, -1, 1);
+  const eyeDifference = Math.abs(eyeBalance);
   const nose = pixelPoint(points, 1, width, height);
   const leftCheek = averagePixelPoint(points, [454, 323, 361], width, height);
   const rightCheek = averagePixelPoint(points, [234, 93, 132], width, height);
   const leftDistance = distance(nose, leftCheek);
   const rightDistance = distance(nose, rightCheek);
-  const cheekDifference = clamp(
-    Math.abs(leftDistance - rightDistance) / Math.max(1, (leftDistance + rightDistance) / 2) / 0.42,
-    0,
+  const cheekBalance = clamp(
+    (leftDistance - rightDistance) / Math.max(1, (leftDistance + rightDistance) / 2) / 0.42,
+    -1,
     1
   );
-  const mouthDifference = clamp(mouthRatio / 0.16, 0, 1);
+  const cheekDifference = Math.abs(cheekBalance);
+  const mouthDifference = clamp(Math.abs(mouthRatio) / 0.16, 0, 1);
   return {
     eyeDifference: round(eyeDifference, 4),
+    eyeBalance: round(eyeBalance, 4),
     cheekDifference: round(cheekDifference, 4),
+    cheekBalance: round(cheekBalance, 4),
     intensity: round(
       Math.max(eyeDifference, cheekDifference, mouthDifference) * 0.68
         + average([eyeDifference, cheekDifference, mouthDifference]) * 0.32,
@@ -252,7 +275,7 @@ function headTilt(points, width, height) {
   return clamp(Math.abs(Math.atan2(deltaX, deltaY) * 180 / Math.PI), 0, 45);
 }
 
-function mouthAsymmetry(points, width, height) {
+function signedMouthAsymmetry(points, width, height) {
   const forehead = pixelPoint(points, 10, width, height);
   const chin = pixelPoint(points, 152, width, height);
   const left = pixelPoint(points, 61, width, height);
@@ -271,7 +294,7 @@ function mouthAsymmetry(points, width, height) {
   // This removes ordinary head roll before classifying corner asymmetry.
   const verticalX = axisX / axisLength;
   const verticalY = axisY / axisLength;
-  return clamp(Math.abs(mouthX * verticalX + mouthY * verticalY) / mouthLength, 0, 1);
+  return clamp((mouthX * verticalX + mouthY * verticalY) / mouthLength, -1, 1);
 }
 
 function asymmetryLabel(ratio) {
@@ -554,7 +577,8 @@ export function calculateDevastationMetrics(
   const gravitace = round(headTilt(normalizedLandmarks, width, height), 1);
   const pose = poseSignals(normalizedLandmarks, width, height);
   const mouth = mouthSignals(normalizedLandmarks, width, height);
-  const asymmetryRatio = mouthAsymmetry(normalizedLandmarks, width, height);
+  const mouthAsymmetryDirection = signedMouthAsymmetry(normalizedLandmarks, width, height);
+  const asymmetryRatio = Math.abs(mouthAsymmetryDirection);
   const combined = combinedAsymmetry(
     normalizedLandmarks,
     width,
@@ -585,12 +609,24 @@ export function calculateDevastationMetrics(
       leftEyeRatio: round(leftEyeRatio, 4),
       meanEyeRatio: round(meanEyeRatio, 4),
       mouthAsymmetryRatio: round(asymmetryRatio, 4),
+      mouthAsymmetryDirection: round(mouthAsymmetryDirection, 4),
       mouthOpennessRatio: mouth.opennessRatio,
       eyeAsymmetryRatio: combined.eyeDifference,
+      eyeAsymmetryDirection: combined.eyeBalance,
       cheekAsymmetryRatio: combined.cheekDifference,
+      cheekAsymmetryDirection: combined.cheekBalance,
       rollDegrees: pose.rollDegrees,
       yawImbalance: pose.yawImbalance,
+      yawOffset: pose.yawOffset,
       pitchRatio: pose.pitchRatio
+    },
+    directions: {
+      yaw: pose.yawDirection,
+      roll: round(clamp(pose.rollDegrees / 25, -1, 1), 3),
+      pitch: round(clamp((pose.pitchRatio - 0.46) / 0.22, -1, 1), 3),
+      eyes: round(combined.eyeBalance, 3),
+      cheeks: round(combined.cheekBalance, 3),
+      mouth: round(clamp(mouthAsymmetryDirection / 0.16, -1, 1), 3)
     },
     signals: {
       // Every signal is effect intensity: higher means stronger visual input,
@@ -670,6 +706,7 @@ export function buildFaceAnalysis({
     normalizedLandmarks,
     faceBounds,
     anchors,
+    directions: measurement.directions,
     raw: {
       ...measurement.raw,
       exposure: exposure || {

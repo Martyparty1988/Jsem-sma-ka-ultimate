@@ -23,14 +23,52 @@ function analysis(offsetX = 0) {
       leftCheek: shift({ x: 0.66, y: 0.53 }),
       rightCheek: shift({ x: 0.34, y: 0.53 }),
       forehead: shift({ x: 0.5, y: 0.2 }),
+      leftTemple: shift({ x: 0.76, y: 0.37 }),
+      rightTemple: shift({ x: 0.24, y: 0.37 }),
+      leftBrow: shift({ x: 0.61, y: 0.34 }),
+      rightBrow: shift({ x: 0.39, y: 0.34 }),
       noseTip: shift({ x: 0.5, y: 0.47 }),
       mouth: shift({ x: 0.5, y: 0.64 }),
+      mouthLeft: shift({ x: 0.61, y: 0.64 }),
+      mouthRight: shift({ x: 0.39, y: 0.64 }),
+      upperLip: shift({ x: 0.5, y: 0.625 }),
+      lowerLip: shift({ x: 0.5, y: 0.655 }),
       chin: shift({ x: 0.5, y: 0.82 }),
       jawLeft: shift({ x: 0.74, y: 0.68 }),
       jawRight: shift({ x: 0.26, y: 0.68 })
-    }
+    },
+    directions: {
+      yaw: 0.62,
+      roll: -0.24,
+      pitch: 0.18,
+      eyes: 0.42,
+      cheeks: -0.36,
+      mouth: 0.28
+    },
+    signals: { mouth: 0.44, asymmetry: 0.58 }
   };
 }
+
+const WARP_REGIONS = [
+  'mask',
+  'face',
+  'forehead',
+  'leftTemple',
+  'rightTemple',
+  'leftBrow',
+  'rightBrow',
+  'leftEye',
+  'rightEye',
+  'leftCheek',
+  'rightCheek',
+  'nose',
+  'mouth',
+  'mouthLeft',
+  'mouthRight',
+  'upperLip',
+  'lowerLip',
+  'jaw'
+];
 
 test('cover transform preserves normalized points when aspect ratios match', () => {
   const transform = createCoverTransform({
@@ -71,13 +109,25 @@ test('landmark anchors produce bounded warp regions', () => {
   assert.ok(geometry.leftEye[0] > geometry.rightEye[0]);
   assert.ok(geometry.forehead[1] < geometry.mouth[1]);
   assert.ok(geometry.jaw[1] > geometry.mouth[1]);
-  Object.values(geometry)
-    .filter((value) => Array.isArray(value))
-    .forEach((value) => {
+  assert.ok(geometry.leftTemple[0] > geometry.rightTemple[0]);
+  assert.ok(geometry.leftBrow[1] < geometry.leftEye[1]);
+  assert.ok(geometry.upperLip[1] < geometry.lowerLip[1]);
+  WARP_REGIONS.forEach((name) => {
+      const value = geometry[name];
       assert.equal(value.length, 4);
       assert.ok(value.every(Number.isFinite));
       assert.ok(value[2] > 0 && value[3] > 0);
     });
+  assert.deepEqual(geometry.controls, {
+    yaw: 0.62,
+    roll: -0.24,
+    pitch: 0.18,
+    eyes: 0.42,
+    cheeks: -0.36,
+    mouth: 0.28,
+    mouthOpen: 0.44,
+    asymmetry: 0.58
+  });
 });
 
 test('moving the analyzed face moves every deformation anchor', () => {
@@ -95,8 +145,7 @@ test('moving the analyzed face moves every deformation anchor', () => {
     targetWidth: 480,
     targetHeight: 640
   });
-  const regions = ['face', 'forehead', 'leftEye', 'rightEye', 'leftCheek', 'rightCheek', 'mouth', 'jaw'];
-  regions.forEach((name) => {
+  WARP_REGIONS.forEach((name) => {
     assert.ok(Math.abs((moved[name][0] - base[name][0]) - 0.12) < 1e-10);
   });
 });
@@ -122,12 +171,43 @@ test('partially cropped faces keep bounded usable regions', () => {
     targetHeight: 640
   });
   assert.equal(geometry.anchored, true);
-  ['face', 'forehead', 'leftEye', 'rightEye', 'leftCheek', 'rightCheek', 'mouth', 'jaw']
-    .forEach((name) => {
+  WARP_REGIONS.forEach((name) => {
       assert.ok(geometry[name].every(Number.isFinite));
       assert.ok(geometry[name][0] >= -0.2 && geometry[name][0] <= 1.2);
       assert.ok(geometry[name][1] >= -0.2 && geometry[name][1] <= 1.2);
     });
+});
+
+test('directional controls are clamped and never inferred by the renderer', () => {
+  const input = analysis();
+  input.directions = {
+    yaw: 4,
+    roll: -3,
+    pitch: Number.NaN,
+    eyes: 2,
+    cheeks: -2,
+    mouth: 0.4
+  };
+  input.signals = { mouth: 5, asymmetry: -1 };
+
+  const geometry = createWarpGeometry({
+    faceAnalysis: input,
+    sourceWidth: 1200,
+    sourceHeight: 1600,
+    targetWidth: 480,
+    targetHeight: 640
+  });
+
+  assert.deepEqual(geometry.controls, {
+    yaw: 1,
+    roll: -1,
+    pitch: 0,
+    eyes: 1,
+    cheeks: -1,
+    mouth: 0.4,
+    mouthOpen: 1,
+    asymmetry: 0
+  });
 });
 
 test('missing or degenerate analysis uses the documented bounded fallback', () => {
