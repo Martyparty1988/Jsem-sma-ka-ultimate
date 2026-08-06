@@ -1441,91 +1441,6 @@
     return rendered.finalDataUrl;
   }
 
-  function wrapText(context, text, x, y, maxWidth, lineHeight, maxLines) {
-    const words = String(text).split(' ');
-    const lines = [];
-    let line = '';
-
-    words.forEach((word) => {
-      const test = line ? `${line} ${word}` : word;
-      if (context.measureText(test).width > maxWidth && line) {
-        lines.push(line);
-        line = word;
-      } else {
-        line = test;
-      }
-    });
-
-    if (line) lines.push(line);
-    const visible = lines.slice(0, maxLines);
-    if (lines.length > maxLines) {
-      visible[maxLines - 1] = `${visible[maxLines - 1].replace(/[.,!?…]*$/, '')}…`;
-    }
-    visible.forEach((item, index) => context.fillText(item, x, y + index * lineHeight));
-  }
-
-  async function drawShareCard(imageData, title, description, severity, profile) {
-    const image = await loadImage(imageData);
-    const canvas = elements.canvas;
-    const context = canvas.getContext('2d');
-    const width = 1080;
-    const imageHeight = 900;
-    const panelHeight = 450;
-    canvas.width = width;
-    canvas.height = imageHeight + panelHeight;
-
-    const background = context.createLinearGradient(0, 0, width, canvas.height);
-    background.addColorStop(0, '#0f172a');
-    background.addColorStop(0.55, '#071426');
-    background.addColorStop(1, '#020617');
-    context.fillStyle = background;
-    context.fillRect(0, 0, width, canvas.height);
-    drawCover(context, image, 0, 0, width, imageHeight);
-
-    const vignette = context.createRadialGradient(width / 2, imageHeight * 0.44, 120, width / 2, imageHeight * 0.46, 680);
-    vignette.addColorStop(0, 'rgba(2, 6, 23, 0)');
-    vignette.addColorStop(1, 'rgba(2, 6, 23, 0.42)');
-    context.fillStyle = vignette;
-    context.fillRect(0, 0, width, imageHeight);
-
-    context.fillStyle = 'rgba(2,6,23,0.76)';
-    context.fillRect(42, 42, 580, 62);
-    context.fillStyle = '#67e8f9';
-    context.font = '800 24px ui-monospace, monospace';
-    context.textAlign = 'left';
-    context.fillText(`SMŽK / ${profile.key.toUpperCase()} / DAMAGE ${severity}%`, 64, 82);
-
-    context.fillStyle = 'rgba(2,6,23,0.97)';
-    context.fillRect(0, imageHeight, width, panelHeight);
-    const accent = context.createLinearGradient(0, imageHeight, width, imageHeight);
-    accent.addColorStop(0, '#22d3ee');
-    accent.addColorStop(1, '#34d399');
-    context.fillStyle = accent;
-    context.fillRect(0, imageHeight, width, 8);
-
-    context.textAlign = 'center';
-    context.fillStyle = '#67e8f9';
-    context.font = '700 28px ui-sans-serif, sans-serif';
-    context.fillText('LOKÁLNÍ AI DETEKCE DEVASTACE', width / 2, imageHeight + 58);
-
-    context.fillStyle = '#fff';
-    let titleSize = 66;
-    context.font = `800 ${titleSize}px ui-sans-serif, sans-serif`;
-    while (context.measureText(title).width > width - 96 && titleSize > 38) {
-      titleSize -= 2;
-      context.font = `800 ${titleSize}px ui-sans-serif, sans-serif`;
-    }
-    context.fillText(title, width / 2, imageHeight + 145);
-
-    context.fillStyle = '#d9e1df';
-    context.font = 'italic 38px ui-sans-serif, sans-serif';
-    wrapText(context, description, width / 2, imageHeight + 220, width - 130, 48, 3);
-
-    context.fillStyle = 'rgba(217,225,223,0.5)';
-    context.font = '28px ui-sans-serif, sans-serif';
-    context.fillText('jsemsmazka.cz • jen pro srandu, ne diagnóza', width / 2, imageHeight + panelHeight - 52);
-  }
-
   function resultToken() {
     const title = state.lastAnalysisResult?.title || '';
     const severity = Number(state.lastAnalysisResult?.severity || state.effectSeverity || 50);
@@ -1586,16 +1501,10 @@
       seed,
       faceAnalysis
     )
-      .then(async (finalImage) => {
+      .then((finalImage) => {
         if (runId !== activeRun) return;
         state.effectImageData = finalImage;
-        await drawShareCard(
-          finalImage,
-          state.lastAnalysisResult?.title || 'Neznámý stav',
-          state.lastAnalysisResult?.description || '',
-          severity,
-          profile
-        );
+        return finalImage;
       })
       .catch((error) => {
         console.warn('Příprava deformovaného PNG selhala:', error);

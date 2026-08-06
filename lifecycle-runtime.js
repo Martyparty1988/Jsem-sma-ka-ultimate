@@ -1902,12 +1902,12 @@
 })();
 
 /* === share-cover-v77.js === */
-/* Smažka v77 — lazy, cached 1080×1920 share cover with released legacy buffers. */
+/* Smažka v115 — lazy 1080×1350 SMAŽKA protocol driven by the current warped result. */
 (() => {
   'use strict';
 
   const WIDTH = 1080;
-  const HEIGHT = 1920;
+  const HEIGHT = 1350;
   const app = window.SmazkaApp;
   const state = app?.state;
   const result = app?.elements?.result || document.getElementById('result');
@@ -1921,6 +1921,86 @@
   let shareBusy = false;
 
   const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
+
+  function finite(value, fallback = 0) {
+    const number = Number(value);
+    return Number.isFinite(number) ? number : fallback;
+  }
+
+  function hashText(text) {
+    let hash = 2166136261;
+    for (let index = 0; index < text.length; index += 1) {
+      hash ^= text.charCodeAt(index);
+      hash = Math.imul(hash, 16777619);
+    }
+    return hash >>> 0;
+  }
+
+  function protocolStamp(severity) {
+    if (severity >= 78) return 'PŘÍSTROJ DAL VÝPOVĚĎ';
+    if (severity >= 45) return 'VZOREK HOŘÍ';
+    return 'STOPOVÉ MNOŽSTVÍ CHAOSU';
+  }
+
+  function protocolTime(date = new Date()) {
+    return new Intl.DateTimeFormat('cs-CZ', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    }).format(date).replace(',', ' ·');
+  }
+
+  function collectBiometricFindings(faceAnalysis) {
+    const metrics = faceAnalysis?.metrics || state.lastDevastationMetrics || {};
+    const apertura = clamp(finite(metrics.apertura, 50), 0, 100);
+    const gravitace = clamp(finite(metrics.gravitace, 0), 0, 45);
+    const lidskost = clamp(finite(metrics.lidskost, 50), 0, 100);
+    const hydratace = clamp(finite(metrics.hydratace, 50), 0, 100);
+    const asymetrie = String(metrics.asymetrie || 'střední').toLocaleLowerCase('cs-CZ');
+    const asymmetryScores = { 'nízká': 22, 'střední': 58, 'vysoká': 96 };
+
+    return [
+      {
+        label: 'OČNÍ APERTURA',
+        value: `${Math.round(apertura)} %`,
+        score: clamp(Math.abs(apertura - 50) * 2, 0, 100)
+      },
+      {
+        label: 'GRAVITAČNÍ POSUN',
+        value: `${Math.round(gravitace)} / 45`,
+        score: gravitace / 45 * 100
+      },
+      {
+        label: 'TVÁŘOVÁ ASYMETRIE',
+        value: asymetrie.toLocaleUpperCase('cs-CZ'),
+        score: asymmetryScores[asymetrie] || 58
+      },
+      {
+        label: 'ZBYTKOVÁ LIDSKOST',
+        value: `${Math.round(lidskost)} %`,
+        score: 100 - lidskost
+      },
+      {
+        label: 'HYDRATAČNÍ POPLACH',
+        value: `${Math.round(100 - hydratace)} %`,
+        score: 100 - hydratace
+      }
+    ]
+      .sort((first, second) => second.score - first.score)
+      .slice(0, 3);
+  }
+
+  function protocolCaseId(verdict) {
+    const seed = hashText([
+      verdict.title,
+      verdict.severity,
+      state.effectSeed || 0,
+      String(verdict.imageSrc).slice(-48)
+    ].join('|'));
+    return seed.toString(36).toLocaleUpperCase('cs-CZ').padStart(7, '0').slice(-7);
+  }
 
   function roundedRect(ctx, x, y, width, height, radius) {
     const r = Math.min(radius, width / 2, height / 2);
@@ -1998,8 +2078,15 @@
 
   function collectVerdict() {
     const visual = result.querySelector('.result-visual');
-    const severityText = visual?.querySelector('.effect-label strong')?.textContent || '0%';
-    const severity = clamp(Number.parseInt(severityText, 10) || 0, 0, 100);
+    const severityText = result.querySelector('.effect-label strong')?.textContent || '0%';
+    const stateSeverity = Number(state.effectSeverity || state.lastAnalysisResult?.severity);
+    const severity = clamp(
+      Number.isFinite(stateSeverity) && stateSeverity > 0
+        ? stateSeverity
+        : Number.parseInt(severityText, 10) || 0,
+      0,
+      100
+    );
     const visibleImage = visual?.querySelector('img:not(.junkie-share-source)');
     const imageSrc = visibleImage?.currentSrc
       || visibleImage?.src
@@ -2007,15 +2094,21 @@
       || state.currentImageData
       || '';
 
-    return {
+    const faceAnalysis = state.effectFaceAnalysis || state.faceAnalysis || null;
+    const verdict = {
       title: result.querySelector('h2')?.textContent?.trim() || 'Rozsudek odmítl vypovídat',
       description: result.querySelector('.description')?.textContent?.trim()
         || 'Lokální pseudo AI zachytila stav, který se věda rozhodla dál nekomentovat.',
       severity,
       imageSrc,
-      faceAnalysis: state.effectFaceAnalysis || state.faceAnalysis || null,
+      faceAnalysis,
+      findings: collectBiometricFindings(faceAnalysis),
+      stamp: protocolStamp(severity),
+      printedAt: protocolTime(),
       accent: severity >= 80 ? '#f7768e' : '#70e1cf'
     };
+    verdict.caseId = protocolCaseId(verdict);
+    return verdict;
   }
 
   function verdictToken(verdict) {
@@ -2023,6 +2116,8 @@
       verdict.title,
       verdict.description,
       verdict.severity,
+      verdict.caseId,
+      verdict.findings.map((finding) => `${finding.label}:${finding.value}`).join(','),
       String(verdict.imageSrc).slice(-64)
     ].join('|');
   }
@@ -2049,7 +2144,24 @@
     ctx.fillRect(x, y, width, height);
   }
 
-  async function renderCoverBlob(verdict) {
+  function drawFakeBarcode(ctx, x, y, width, height, caseId) {
+    const seed = hashText(caseId);
+    ctx.fillStyle = 'rgba(244, 247, 246, 0.08)';
+    ctx.fillRect(x, y, width, height);
+    let cursor = x + 8;
+    let index = 0;
+    while (cursor < x + width - 8) {
+      const shifted = seed >>> (index % 24);
+      const barWidth = 2 + (shifted & 3) * 2;
+      const gap = 2 + ((shifted >>> 2) & 3);
+      ctx.fillStyle = index % 5 === 0 ? '#70e1cf' : 'rgba(244, 247, 246, 0.78)';
+      ctx.fillRect(cursor, y + 7, Math.min(barWidth, x + width - 8 - cursor), height - 14);
+      cursor += barWidth + gap;
+      index += 1;
+    }
+  }
+
+  async function renderProtocolBlob(verdict) {
     const canvas = document.createElement('canvas');
     canvas.width = WIDTH;
     canvas.height = HEIGHT;
@@ -2059,27 +2171,33 @@
     ctx.fillStyle = '#070a0f';
     ctx.fillRect(0, 0, WIDTH, HEIGHT);
 
-    const ambient = ctx.createRadialGradient(870, 120, 20, 870, 120, 540);
+    const ambient = ctx.createRadialGradient(870, 90, 20, 870, 90, 480);
     ambient.addColorStop(0, `${verdict.accent}1f`);
     ambient.addColorStop(1, 'rgba(7, 10, 15, 0)');
     ctx.fillStyle = ambient;
-    ctx.fillRect(0, 0, WIDTH, 720);
+    ctx.fillRect(0, 0, WIDTH, 540);
 
     ctx.textAlign = 'left';
     ctx.fillStyle = '#f4f7f6';
-    ctx.font = '800 34px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
-    ctx.fillText('SMAŽKA', 58, 80);
+    ctx.font = '900 36px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
+    ctx.fillText('SMAŽKA PROTOKOL', 58, 68);
     ctx.fillStyle = 'rgba(226, 235, 234, 0.5)';
-    ctx.font = '700 20px ui-monospace, SFMono-Regular, Menlo, monospace';
-    ctx.fillText('LOKÁLNÍ PSEUDO AI // VOID SCAN', 58, 116);
+    ctx.font = '700 18px ui-monospace, SFMono-Regular, Menlo, monospace';
+    ctx.fillText('TOXIKOLOGIE Z BENZÍNKY · 0 % DIAGNÓZA', 58, 101);
+
+    drawFakeBarcode(ctx, 736, 42, 286, 48, verdict.caseId);
+    ctx.textAlign = 'right';
+    ctx.fillStyle = 'rgba(226, 235, 234, 0.58)';
+    ctx.font = '700 16px ui-monospace, SFMono-Regular, Menlo, monospace';
+    ctx.fillText(`VZOREK #${verdict.caseId} · ${verdict.printedAt}`, 1022, 116);
 
     const photoX = 48;
-    const photoY = 156;
+    const photoY = 142;
     const photoWidth = 984;
-    const photoHeight = 1116;
+    const photoHeight = 638;
 
     ctx.save();
-    roundedRect(ctx, photoX, photoY, photoWidth, photoHeight, 38);
+    roundedRect(ctx, photoX, photoY, photoWidth, photoHeight, 32);
     ctx.clip();
 
     if (verdict.imageSrc) {
@@ -2104,57 +2222,105 @@
 
     ctx.strokeStyle = 'rgba(226, 235, 234, 0.16)';
     ctx.lineWidth = 2;
-    roundedRect(ctx, photoX, photoY, photoWidth, photoHeight, 38);
+    roundedRect(ctx, photoX, photoY, photoWidth, photoHeight, 32);
     ctx.stroke();
 
     ctx.fillStyle = 'rgba(7, 10, 15, 0.76)';
-    roundedRect(ctx, 76, 188, 250, 58, 29);
+    roundedRect(ctx, 76, 170, 292, 52, 26);
     ctx.fill();
     ctx.strokeStyle = `${verdict.accent}66`;
     ctx.stroke();
     ctx.fillStyle = verdict.accent;
-    ctx.font = '800 22px ui-monospace, SFMono-Regular, Menlo, monospace';
+    ctx.font = '800 18px ui-monospace, SFMono-Regular, Menlo, monospace';
     ctx.textAlign = 'center';
-    ctx.fillText('VOID VERDIKT', 201, 225);
+    ctx.fillText('LOKÁLNÍ VZOREK', 222, 203);
 
-    ctx.textAlign = 'right';
+    ctx.fillStyle = 'rgba(7, 10, 15, 0.82)';
+    roundedRect(ctx, 76, 625, 400, 124, 28);
+    ctx.fill();
+    ctx.textAlign = 'left';
+    ctx.fillStyle = verdict.accent;
+    ctx.font = '800 19px ui-monospace, SFMono-Regular, Menlo, monospace';
+    ctx.fillText('SMAŽKA FAKTOR', 104, 662);
     ctx.fillStyle = '#f7faf9';
-    ctx.font = '900 142px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
-    ctx.fillText(`${verdict.severity}%`, 966, 1190);
+    ctx.font = '900 68px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
+    ctx.fillText(`${verdict.severity}%`, 104, 727);
+
+    ctx.save();
+    ctx.translate(786, 706);
+    ctx.rotate(-0.075);
+    ctx.strokeStyle = verdict.accent;
+    ctx.lineWidth = 4;
+    roundedRect(ctx, -224, -43, 448, 86, 12);
+    ctx.stroke();
+    ctx.fillStyle = verdict.accent;
+    ctx.textAlign = 'center';
+    ctx.font = '900 25px ui-monospace, SFMono-Regular, Menlo, monospace';
+    ctx.fillText(verdict.stamp, 0, 10);
+    ctx.restore();
 
     ctx.textAlign = 'left';
     ctx.fillStyle = verdict.accent;
-    ctx.fillRect(58, 1324, 100, 8);
+    ctx.fillRect(58, 826, 112, 7);
 
-    let titleSize = 86;
+    ctx.fillStyle = 'rgba(226, 235, 234, 0.48)';
+    ctx.font = '800 18px ui-monospace, SFMono-Regular, Menlo, monospace';
+    ctx.fillText('HLAVNÍ VERDIKT', 58, 868);
+
+    let titleSize = 64;
     let titleLines = [];
     do {
       ctx.font = `900 ${titleSize}px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif`;
       titleLines = lineBreaks(ctx, verdict.title, 964, 3);
-      if (titleLines.length <= 2 || titleSize <= 64) break;
-      titleSize -= 4;
-    } while (titleSize >= 64);
+      if (titleLines.length <= 2 || titleSize <= 46) break;
+      titleSize -= 3;
+    } while (titleSize >= 46);
+    titleLines = lineBreaks(ctx, verdict.title, 964, 2);
 
     ctx.fillStyle = '#f7faf9';
-    const titleHeight = drawLines(ctx, titleLines, 58, 1420, Math.round(titleSize * 0.98));
-    ctx.fillStyle = 'rgba(226, 235, 234, 0.72)';
-    ctx.font = '500 38px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
-    drawLines(ctx, lineBreaks(ctx, verdict.description, 930, 4), 58, 1420 + titleHeight + 48, 50);
+    const titleLineHeight = Math.round(titleSize * 1.02);
+    const titleHeight = drawLines(ctx, titleLines, 58, 934, titleLineHeight);
+    const findingsTop = 934 + titleHeight + 28;
+
+    ctx.fillStyle = 'rgba(226, 235, 234, 0.42)';
+    ctx.font = '800 16px ui-monospace, SFMono-Regular, Menlo, monospace';
+    ctx.fillText('3 NEJSILNĚJŠÍ BIOMETRICKÉ NÁLEZY', 58, findingsTop);
+
+    verdict.findings.forEach((finding, index) => {
+      const y = findingsTop + 32 + index * 62;
+      ctx.fillStyle = 'rgba(226, 235, 234, 0.12)';
+      ctx.fillRect(58, y + 36, 964, 2);
+      ctx.fillStyle = 'rgba(226, 235, 234, 0.72)';
+      ctx.font = '800 20px ui-monospace, SFMono-Regular, Menlo, monospace';
+      ctx.textAlign = 'left';
+      ctx.fillText(finding.label, 58, y + 23);
+      ctx.fillStyle = verdict.accent;
+      ctx.textAlign = 'right';
+      ctx.fillText(finding.value, 1022, y + 23);
+
+      const meterWidth = 280;
+      const meterX = 650;
+      ctx.fillStyle = 'rgba(226, 235, 234, 0.1)';
+      ctx.fillRect(meterX, y + 34, meterWidth, 4);
+      ctx.fillStyle = verdict.accent;
+      ctx.fillRect(meterX, y + 34, meterWidth * clamp(finding.score, 0, 100) / 100, 4);
+    });
 
     ctx.fillStyle = 'rgba(226, 235, 234, 0.38)';
-    ctx.font = '700 22px ui-monospace, SFMono-Regular, Menlo, monospace';
-    ctx.fillText('FOTKA ZŮSTALA V ZAŘÍZENÍ · MEME, NE DIAGNÓZA', 58, 1844);
+    ctx.font = '700 17px ui-monospace, SFMono-Regular, Menlo, monospace';
+    ctx.textAlign = 'left';
+    ctx.fillText('FOTKA ZŮSTALA V ZAŘÍZENÍ · SATIRA, NE DIAGNÓZA', 58, 1312);
     ctx.textAlign = 'right';
     ctx.fillStyle = verdict.accent;
-    ctx.font = '800 24px ui-monospace, SFMono-Regular, Menlo, monospace';
-    ctx.fillText('JSEM SMAŽKA?', 1022, 1844);
+    ctx.font = '800 19px ui-monospace, SFMono-Regular, Menlo, monospace';
+    ctx.fillText('JSEMSMAZKA.CZ', 1022, 1312);
 
     return new Promise((resolve, reject) => {
       canvas.toBlob((blob) => {
         canvas.width = 1;
         canvas.height = 1;
         if (blob) resolve(blob);
-        else reject(new Error('Obálku se nepovedlo vyrenderovat'));
+        else reject(new Error('SMAŽKA protokol se nepovedlo vyrenderovat'));
       }, 'image/jpeg', 0.94);
     });
   }
@@ -2166,7 +2332,7 @@
 
     cachedToken = token;
     cachedBlob = null;
-    const task = renderCoverBlob(verdict)
+    const task = renderProtocolBlob(verdict)
       .then((blob) => {
         if (cachedToken === token) cachedBlob = blob;
         return blob;
@@ -2188,7 +2354,7 @@
     const link = document.createElement('a');
     const url = URL.createObjectURL(blob);
     link.href = url;
-    link.download = 'jsem-smazka-void-verdict.jpg';
+    link.download = 'jsem-smazka-protokol.jpg';
     document.body.appendChild(link);
     link.click();
     link.remove();
@@ -2200,7 +2366,7 @@
     if (legacyCanvas.width <= 1 && legacyCanvas.height <= 1) return;
     legacyCanvas.width = 1;
     legacyCanvas.height = 1;
-    legacyCanvas.dataset.releasedBy = 'share-v77';
+    legacyCanvas.dataset.releasedBy = 'share-v115';
   }
 
   async function shareCover(button) {
@@ -2209,16 +2375,16 @@
     button.disabled = true;
     button.setAttribute('aria-busy', 'true');
     shareBusy = true;
-    if (label) label.textContent = cachedBlob ? 'Otevírám obálku…' : 'Tisknu obálku…';
+    if (label) label.textContent = cachedBlob ? 'Otevírám protokol…' : 'Tisknu protokol…';
 
     try {
       await Promise.resolve(state.shareImagePromise).catch(() => undefined);
       const verdict = collectVerdict();
       const blob = await getCoverBlob(verdict);
-      const file = new File([blob], 'jsem-smazka-void-verdict.jpg', { type: 'image/jpeg' });
+      const file = new File([blob], 'jsem-smazka-protokol.jpg', { type: 'image/jpeg' });
       const shareData = {
         title: `Jsem ${verdict.title}!`,
-        text: `${verdict.description} Zkus si VOID sken taky.`,
+        text: `${verdict.description} Zkus si SMAŽKA sken taky.`,
         files: [file]
       };
 
@@ -2229,7 +2395,7 @@
       }
     } catch (error) {
       if (error?.name !== 'AbortError') {
-        console.error('VOID cover share failed:', error);
+        console.error('Sdílení SMAŽKA protokolu selhalo:', error);
         if (label) label.textContent = 'Sdílení selhalo';
         await new Promise((resolve) => window.setTimeout(resolve, 900));
       }
@@ -2284,7 +2450,8 @@
   window.SmazkaShareCover = Object.freeze({
     clearCoverCache,
     collectVerdict,
-    verdictToken
+    verdictToken,
+    renderProtocolBlob
   });
 })();
 

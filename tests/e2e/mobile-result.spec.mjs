@@ -252,3 +252,46 @@ test('v103 poster keeps score below the photo even if legacy result-in-frame ret
 
   await page.screenshot({ path: testInfo.outputPath('result-real-scan-state.png'), fullPage: false });
 });
+
+test('v115 renders a 1080x1350 SMAŽKA protocol from the visible biometric result', async ({ page }) => {
+  await openDeterministicResult(page);
+  await page.evaluate(() => Promise.resolve(window.SmazkaApp.state.shareImagePromise));
+
+  const protocol = await page.evaluate(async () => {
+    const share = window.SmazkaShareCover;
+    const verdict = share.collectVerdict();
+    const blob = await share.renderProtocolBlob(verdict);
+    const url = URL.createObjectURL(blob);
+    try {
+      const image = new Image();
+      const loaded = new Promise((resolve, reject) => {
+        image.onload = resolve;
+        image.onerror = reject;
+      });
+      image.src = url;
+      await loaded;
+      return {
+        width: image.naturalWidth,
+        height: image.naturalHeight,
+        type: blob.type,
+        caseId: verdict.caseId,
+        stamp: verdict.stamp,
+        findings: verdict.findings.map(({ label, value }) => ({ label, value }))
+      };
+    } finally {
+      URL.revokeObjectURL(url);
+    }
+  });
+
+  expect(protocol.width).toBe(1080);
+  expect(protocol.height).toBe(1350);
+  expect(protocol.type).toBe('image/jpeg');
+  expect(protocol.caseId).toMatch(/^[A-Z0-9]{7}$/);
+  expect(protocol.stamp).toBe('VZOREK HOŘÍ');
+  expect(protocol.findings).toHaveLength(3);
+  expect(protocol.findings.map(({ label }) => label)).toEqual(expect.arrayContaining([
+    'TVÁŘOVÁ ASYMETRIE',
+    'ZBYTKOVÁ LIDSKOST',
+    'HYDRATAČNÍ POPLACH'
+  ]));
+});
