@@ -107,6 +107,10 @@ export function defaultWarpGeometry() {
       eyes: 0,
       cheeks: 0,
       mouth: 0,
+      gazeX: 0,
+      gazeY: 0,
+      pose: 0,
+      eyeIntensity: 0,
       mouthOpen: 0,
       asymmetry: 0
     },
@@ -238,6 +242,10 @@ export function createWarpGeometry({
       eyes: signed(directions.eyes),
       cheeks: signed(directions.cheeks),
       mouth: signed(directions.mouth),
+      gazeX: signed(directions.gazeX),
+      gazeY: signed(directions.gazeY),
+      pose: clamp(finite(faceAnalysis?.signals?.pose), 0, 1),
+      eyeIntensity: clamp(finite(faceAnalysis?.signals?.eyes), 0, 1),
       mouthOpen: clamp(finite(faceAnalysis?.signals?.mouth), 0, 1),
       asymmetry: clamp(finite(faceAnalysis?.signals?.asymmetry), 0, 1)
     },

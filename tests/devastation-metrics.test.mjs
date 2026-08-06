@@ -19,11 +19,13 @@ function fixture() {
   Object.assign(points[133], { x: 0.45, y: 0.39 });
   Object.assign(points[159], { x: 0.395, y: 0.375 });
   Object.assign(points[145], { x: 0.395, y: 0.405 });
+  Object.assign(points[468], { x: 0.395, y: 0.39 });
 
   Object.assign(points[263], { x: 0.66, y: 0.39 });
   Object.assign(points[362], { x: 0.55, y: 0.39 });
   Object.assign(points[386], { x: 0.605, y: 0.375 });
   Object.assign(points[374], { x: 0.605, y: 0.405 });
+  Object.assign(points[473], { x: 0.605, y: 0.39 });
 
   Object.assign(points[61], { x: 0.39, y: 0.64 });
   Object.assign(points[291], { x: 0.61, y: 0.64 });
@@ -80,6 +82,37 @@ test('front-camera mirroring flips stored x once and preserves absolute metrics'
   const mirrored = normalizeLandmarks(points, { mirrorX: true });
   assert.equal(mirrored[10].x, 1 - original[10].x);
   assert.deepEqual(metrics(points), metrics(points, { mirrorX: true }));
+});
+
+test('iris landmarks provide a bounded stored-image gaze vector without affecting score signals', () => {
+  const neutral = fixture();
+  const shifted = fixture();
+  shifted[468] = { ...shifted[468], x: shifted[468].x + 0.026, y: shifted[468].y + 0.008 };
+  shifted[473] = { ...shifted[473], x: shifted[473].x + 0.026, y: shifted[473].y + 0.008 };
+
+  const centered = calculateDevastationMetrics(normalizeLandmarks(neutral), {
+    sourceWidth: 1000,
+    sourceHeight: 1000,
+    hydratace: 22
+  });
+  const original = calculateDevastationMetrics(normalizeLandmarks(shifted), {
+    sourceWidth: 1000,
+    sourceHeight: 1000,
+    hydratace: 22
+  });
+  const mirrored = calculateDevastationMetrics(normalizeLandmarks(shifted, { mirrorX: true }), {
+    sourceWidth: 1000,
+    sourceHeight: 1000,
+    hydratace: 22
+  });
+
+  assert.equal(centered.directions.gazeX, 0);
+  assert.equal(centered.directions.gazeY, 0);
+  assert.ok(original.directions.gazeX > 0.3);
+  assert.ok(original.directions.gazeY > 0.1);
+  assert.equal(mirrored.directions.gazeX, -original.directions.gazeX);
+  assert.equal(mirrored.directions.gazeY, original.directions.gazeY);
+  assert.deepEqual(original.signals, mirrored.signals);
 });
 
 test('signed warp directions follow the stored image without changing signal intensity', () => {
@@ -162,7 +195,7 @@ test('faceAnalysis stores the shared contract and explicit 70/30 severity', () =
     timestamp: '2026-07-28T12:00:00.000Z'
   });
 
-  assert.equal(analysis.schemaVersion, 3);
+  assert.equal(analysis.schemaVersion, 4);
   assert.equal(analysis.normalizedLandmarks.length, 478);
   assert.equal(analysis.scores.randomScore, 55);
   assert.equal(
@@ -180,7 +213,7 @@ test('faceAnalysis stores the shared contract and explicit 70/30 severity', () =
   assert.ok(analysis.anchors.leftEye);
   ['noseTip', 'mouthLeft', 'mouthRight', 'upperLip', 'lowerLip', 'leftTemple', 'rightTemple', 'leftBrow', 'rightBrow']
     .forEach((anchor) => assert.ok(analysis.anchors[anchor], anchor));
-  ['yaw', 'roll', 'pitch', 'eyes', 'cheeks', 'mouth'].forEach((direction) => {
+  ['yaw', 'roll', 'pitch', 'eyes', 'cheeks', 'mouth', 'gazeX', 'gazeY'].forEach((direction) => {
     assert.equal(typeof analysis.directions[direction], 'number', direction);
     assert.ok(analysis.directions[direction] >= -1 && analysis.directions[direction] <= 1, direction);
   });

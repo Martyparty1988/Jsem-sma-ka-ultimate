@@ -763,7 +763,7 @@
   const SVG_NS = 'http://www.w3.org/2000/svg';
   const MODEL_ROOT = 'vendor/mediapipe-face-mesh/';
   const FACE_RUNTIME_URL = `${MODEL_ROOT}face_mesh.js?v=0.4.1633559619`;
-  const METRICS_MODULE_URL = './devastation-metrics.js?v=66';
+  const METRICS_MODULE_URL = './devastation-metrics.js?v=113';
   const DETECTION_MAX_AGE = 620;
   const STILL_DETECTION_TIMEOUT = 8000;
   const SCAN_DURATION = 3000;
@@ -2387,7 +2387,7 @@
   const result = app?.elements?.result;
   if (!app?.state || !faceScan || !feed || !stage || !result) return;
 
-  const METRICS_MODULE_URL = './devastation-metrics.js?v=66';
+  const METRICS_MODULE_URL = './devastation-metrics.js?v=113';
   const WATCHDOG_MS = 4700;
   const patchedCanvases = new WeakSet();
   let watchdogTimer = 0;

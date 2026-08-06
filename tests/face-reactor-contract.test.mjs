@@ -3,16 +3,18 @@ import test from 'node:test';
 
 import { readBundleSection, readRoot } from './bundle-source.mjs';
 
-test('faceAnalysis v3 exposes bounded intensity and signed directional contracts', () => {
+test('faceAnalysis v4 exposes bounded intensity, iris gaze and signed directional contracts', () => {
   const metrics = readRoot('devastation-metrics.js');
 
-  assert.match(metrics, /const SCHEMA_VERSION = 3/);
+  assert.match(metrics, /const SCHEMA_VERSION = 4/);
   ['pose', 'eyes', 'mouth', 'asymmetry', 'stability', 'exposure', 'sharpness']
     .forEach((signal) => assert.match(metrics, new RegExp(`\\b${signal}:`), signal));
   assert.match(metrics, /signalAvailability/);
   assert.match(metrics, /directions: measurement\.directions/);
-  ['yaw', 'roll', 'pitch', 'eyes', 'cheeks', 'mouth']
+  ['yaw', 'roll', 'pitch', 'eyes', 'cheeks', 'mouth', 'gazeX', 'gazeY']
     .forEach((direction) => assert.match(metrics, new RegExp(`\\b${direction}:`), direction));
+  assert.match(metrics, /function gazeSignals\(/);
+  assert.match(metrics, /points\.length < 478/);
   assert.match(metrics, /sourceKind === 'upload'/);
   assert.match(metrics, /signalScore \* 0\.70 \+ randomScore \* 0\.30/);
   assert.match(metrics, /mix: Object\.freeze\(\{ visual: 0\.70, random: 0\.30 \}\)/);
@@ -70,9 +72,29 @@ test('Face Warp v108 keeps deliberately stronger power identical across GPU and 
   assert.match(faceWarp, /float severityCurve = pow\(clamp\(u_severity, 0\.0, 1\.0\)/);
   assert.match(faceWarp, /uniform float u_modePower/);
   assert.match(faceWarp, /const strength = warpPowerFor\(severity, progress, profile\.mode\)/);
-  assert.match(faceWarp, /minimum: 0\.58,\s*maximumX: 1\.58,\s*maximumY: 1\.68/);
   assert.match(experience, /extraDamage >= EXTRA_DAMAGE_LIMIT\s*\? 100/);
   assert.match(experience, /const EXTRA_DAMAGE_STEP = 12/);
+});
+
+test('Face Warp v113 uses measured feature intensity and iris direction in GPU and canvas paths', () => {
+  const metrics = readRoot('devastation-metrics.js');
+  const geometry = readRoot('face-warp-geometry.js');
+  const faceWarp = readBundleSection('face-warp.js');
+
+  assert.match(metrics, /gazeAvailable: gaze\.available/);
+  ['gazeX', 'gazeY', 'pose', 'eyeIntensity', 'mouthOpen', 'asymmetry']
+    .forEach((control) => assert.match(geometry, new RegExp(`\\b${control}:`), control));
+  assert.match(faceWarp, /const BIOMETRIC_POWER = Object\.freeze\(\{\s*pose: 0\.075,\s*eyes: 0\.09,\s*mouth: 0\.105,\s*asymmetry: 0\.085,\s*gaze: 0\.055/);
+  assert.match(faceWarp, /uniform vec4 u_biometric/);
+  assert.match(faceWarp, /uniform vec2 u_gaze/);
+  assert.match(faceWarp, /gl\.uniform4fv\(gl\.getUniformLocation\(program, 'u_biometric'\)/);
+  assert.match(faceWarp, /gl\.uniform2fv\(gl\.getUniformLocation\(program, 'u_gaze'\)/);
+  assert.match(faceWarp, /const poseDrive = clamp\(controls\.pose/);
+  assert.match(faceWarp, /const eyeDrive = clamp\(controls\.eyeIntensity/);
+  assert.match(faceWarp, /const mouthDrive = clamp\(controls\.mouthOpen/);
+  assert.match(faceWarp, /minimum: 0\.46,\s*maximumX: 1\.82,\s*maximumY: 1\.92/);
+  ['MELT', 'BLOOM', 'COLLAPSE', 'SHEAR', 'LENS']
+    .forEach((mode) => assert.match(faceWarp, new RegExp(`${mode}:[\\s\\S]{0,6500}BIOMETRIC_POWER|${mode}:[\\s\\S]{0,6500}u_biometric`), mode));
 });
 
 test('Face Warp v109 never reuses a failed WebGL canvas for the 2D fallback', () => {

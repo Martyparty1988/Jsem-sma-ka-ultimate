@@ -9,7 +9,7 @@
   if (!app?.state || !app?.elements?.result || !app?.elements?.canvas) return;
 
   const { state, elements } = app;
-  const GEOMETRY_MODULE_URL = './face-warp-geometry.js?v=64';
+  const GEOMETRY_MODULE_URL = './face-warp-geometry.js?v=113';
   const reducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const clamp = (value, minimum, maximum) => Math.max(minimum, Math.min(maximum, value));
   let activeRun = 0;
@@ -205,9 +205,17 @@
   });
 
   const WARP_SCALE_LIMITS = Object.freeze({
-    minimum: 0.58,
-    maximumX: 1.58,
-    maximumY: 1.68
+    minimum: 0.46,
+    maximumX: 1.82,
+    maximumY: 1.92
+  });
+
+  const BIOMETRIC_POWER = Object.freeze({
+    pose: 0.075,
+    eyes: 0.09,
+    mouth: 0.105,
+    asymmetry: 0.085,
+    gaze: 0.055
   });
 
   const GPU_COLLAPSE_GAIN = 2.6;
@@ -236,6 +244,8 @@
     uniform float u_twist;
     uniform vec4 u_direction;
     uniform vec4 u_detail;
+    uniform vec4 u_biometric;
+    uniform vec2 u_gaze;
     uniform vec4 u_mask;
     uniform vec4 u_face;
     uniform vec4 u_forehead;
@@ -309,20 +319,32 @@
       float side = abs(u_direction.x) > 0.08 ? u_direction.x : seedDirection * 0.28;
       float eyeBias = clamp(u_direction.z + seedDirection * 0.14, -1.0, 1.0);
       float cheekBias = clamp(u_detail.x + seedDirection * 0.12, -1.0, 1.0);
+      float poseDrive = clamp(u_biometric.x, 0.0, 1.0);
+      float eyeDrive = clamp(u_biometric.y, 0.0, 1.0);
+      float mouthDrive = clamp(u_biometric.z, 0.0, 1.0);
+      float asymDrive = clamp(u_biometric.w, 0.0, 1.0);
+      float gazeX = clamp(u_gaze.x, -1.0, 1.0);
+      float gazeY = clamp(u_gaze.y, -1.0, 1.0);
+      float gravitySide = clamp(side * 0.72 + gazeX * 0.48, -1.0, 1.0);
+      float eyeAttack = 1.0 + eyeDrive * 0.85 + asymDrive * 0.55;
+      float mouthAttack = 1.0 + mouthDrive * 1.05 + asymDrive * 0.3;
+      float poseAttack = 1.0 + poseDrive * 0.75 + abs(gazeY) * 0.2;
 
       if (u_mode < 0.5) {
         /* MELT: eyes, lips and jaw descend in staggered local streams. */
         float face = ellipseMask(uv, u_face.xy, u_face.zw);
         float lowerFace = ellipseMask(uv, u_jaw.xy, u_jaw.zw);
-        float eyes = ellipseMask(uv, u_eyeL.xy, u_eyeL.zw)
-          + ellipseMask(uv, u_eyeR.xy, u_eyeR.zw);
+        float leftEye = ellipseMask(uv, u_eyeL.xy, u_eyeL.zw);
+        float rightEye = ellipseMask(uv, u_eyeR.xy, u_eyeR.zw);
+        float eyes = leftEye + rightEye;
         float leftCheek = ellipseMask(uv, u_cheekL.xy, u_cheekL.zw);
         float rightCheek = ellipseMask(uv, u_cheekR.xy, u_cheekR.zw);
         float mouth = ellipseMask(uv, u_mouth.xy, u_mouth.zw);
         float mouthLeft = ellipseMask(uv, u_mouthL.xy, u_mouthL.zw);
         float mouthRight = ellipseMask(uv, u_mouthR.xy, u_mouthR.zw);
-        float lips = ellipseMask(uv, u_lipUpper.xy, u_lipUpper.zw)
-          + ellipseMask(uv, u_lipLower.xy, u_lipLower.zw);
+        float upperLip = ellipseMask(uv, u_lipUpper.xy, u_lipUpper.zw);
+        float lowerLip = ellipseMask(uv, u_lipLower.xy, u_lipLower.zw);
+        float lips = upperLip + lowerLip;
         float organic = 0.88 + 0.12 * sin((uv.x + u_seed * 0.00013) * 12.56637);
         float meltMask = eyes * eyeStage * 0.3
           + (leftCheek + rightCheek) * cheekStage * 0.42
@@ -330,10 +352,23 @@
           + lowerFace * jawStage * 0.72;
         point.y -= strength * (0.018 + abs(u_flow.w) * 0.72 + abs(u_shape.z) * 0.12)
           * meltMask * organic * (1.0 + u_detail.y * 0.14);
-        point.x -= strength * side * (0.012 + abs(u_flow.z) * 0.1)
+        float eyeDrop = strength * (${BIOMETRIC_POWER.eyes.toFixed(3)} * eyeDrive
+          + ${BIOMETRIC_POWER.gaze.toFixed(3)} * max(gazeY, 0.0) * 0.44);
+        point.y -= eyeDrop
+          * (leftEye * (0.78 + eyeBias * 0.34) + rightEye * (0.78 - eyeBias * 0.34))
+          * eyeStage;
+        point.x -= strength * gazeX * (${BIOMETRIC_POWER.gaze.toFixed(3)} * 0.58
+          + ${BIOMETRIC_POWER.eyes.toFixed(3)} * eyeDrive * 0.28) * eyes * eyeStage;
+        float lipTear = strength * mouthDrive * (${BIOMETRIC_POWER.mouth.toFixed(3)}
+          + abs(u_flow.w) * 0.18);
+        point.y += lipTear * upperLip * mouthStage * 0.52;
+        point.y -= lipTear * lowerLip * mouthStage * 0.82;
+        point.x -= strength * gravitySide * (0.012 + abs(u_flow.z) * 0.1)
           * (leftCheek + rightCheek + mouth + lowerFace) * jawStage;
-        point.y -= strength * u_direction.w * 0.018
+        point.y -= strength * u_direction.w * (0.018 + asymDrive * ${BIOMETRIC_POWER.asymmetry.toFixed(3)})
           * (mouthLeft - mouthRight) * mouthStage;
+        point.y -= strength * (poseDrive * ${BIOMETRIC_POWER.pose.toFixed(3)}
+          + mouthDrive * ${BIOMETRIC_POWER.mouth.toFixed(3)} * 0.42) * lowerFace * jawStage;
         float rotationMask = face * (0.5 + lowerFace * 0.5);
         point = rotateAround(point, center, -strength * rotationMask * u_direction.y * 0.014);
       } else if (u_mode < 1.5) {
@@ -342,31 +377,36 @@
           point,
           u_forehead.xy,
           u_forehead.zw,
-          (0.035 + abs(u_shape.x)) * strength * foreheadStage
+          (0.035 + abs(u_shape.x) + poseDrive * ${BIOMETRIC_POWER.pose.toFixed(3)})
+            * strength * foreheadStage
         );
         point = radialWarp(
           point,
           u_templeL.xy,
           u_templeL.zw,
-          (0.022 + abs(u_shape.x) * 0.55) * strength * foreheadStage * (1.0 + side * 0.18)
+          (0.022 + abs(u_shape.x) * 0.55) * strength * foreheadStage
+            * (1.0 + gravitySide * 0.34 + asymDrive * 0.28)
         );
         point = radialWarp(
           point,
           u_templeR.xy,
           u_templeR.zw,
-          (0.022 + abs(u_shape.x) * 0.55) * strength * foreheadStage * (1.0 - side * 0.18)
+          (0.022 + abs(u_shape.x) * 0.55) * strength * foreheadStage
+            * (1.0 - gravitySide * 0.34 - asymDrive * 0.16)
         );
         point = radialWarp(
           point,
           u_cheekL.xy,
           u_cheekL.zw,
-          (0.04 + abs(u_shape.y)) * strength * cheekStage * (1.0 + cheekBias * 0.24)
+          (0.04 + abs(u_shape.y) + asymDrive * ${BIOMETRIC_POWER.asymmetry.toFixed(3)})
+            * strength * cheekStage * (1.0 + cheekBias * 0.38)
         );
         point = radialWarp(
           point,
           u_cheekR.xy,
           u_cheekR.zw,
-          (0.04 + abs(u_shape.y)) * strength * cheekStage * (1.0 - cheekBias * 0.24)
+          (0.04 + abs(u_shape.y) + asymDrive * ${BIOMETRIC_POWER.asymmetry.toFixed(3)} * 0.72)
+            * strength * cheekStage * (1.0 - cheekBias * 0.38)
         );
         point = radialWarp(
           point,
@@ -374,31 +414,59 @@
           u_nose.zw,
           (0.025 + abs(u_flow.x) * 0.34) * strength * cheekStage
         );
+        point = radialWarp(
+          point,
+          u_eyeL.xy,
+          u_eyeL.zw,
+          (${BIOMETRIC_POWER.eyes.toFixed(3)} * eyeDrive * 2.8 + abs(gazeX) * 0.045)
+            * strength * eyeStage * (1.0 + eyeBias * 0.42)
+        );
+        point = radialWarp(
+          point,
+          u_eyeR.xy,
+          u_eyeR.zw,
+          (${BIOMETRIC_POWER.eyes.toFixed(3)} * eyeDrive * 2.8 + abs(gazeX) * 0.045)
+            * strength * eyeStage * (1.0 - eyeBias * 0.42)
+        );
+        point = radialWarp(
+          point,
+          u_mouth.xy,
+          u_mouth.zw,
+          (${BIOMETRIC_POWER.mouth.toFixed(3)} * mouthDrive * 2.2) * strength * mouthStage
+        );
+        float bloomMouthLeft = ellipseMask(uv, u_mouthL.xy, u_mouthL.zw);
+        float bloomMouthRight = ellipseMask(uv, u_mouthR.xy, u_mouthR.zw);
+        float bloomJaw = ellipseMask(uv, u_jaw.xy, u_jaw.zw);
+        point.x -= strength * (mouthDrive * ${BIOMETRIC_POWER.mouth.toFixed(3)} * 1.2
+          + asymDrive * ${BIOMETRIC_POWER.asymmetry.toFixed(3)} * 0.72)
+          * (bloomMouthLeft - bloomMouthRight) * mouthStage;
+        point.y -= strength * (mouthDrive * ${BIOMETRIC_POWER.mouth.toFixed(3)} * 0.62
+          + poseDrive * ${BIOMETRIC_POWER.pose.toFixed(3)} * 0.48) * bloomJaw * jawStage;
       } else if (u_mode < 2.5) {
         /* COLLAPSE: brows, eyes, nose and lips fold toward their own centers. */
         point = radialWarp(
           point,
           u_browL.xy,
           u_browL.zw,
-          -(0.035 + abs(u_shape.w)) * strength * eyeStage * (1.0 + eyeBias * 0.24)
+          -(0.035 + abs(u_shape.w)) * strength * eyeStage * eyeAttack * (1.0 + eyeBias * 0.34)
         );
         point = radialWarp(
           point,
           u_browR.xy,
           u_browR.zw,
-          -(0.035 + abs(u_shape.w)) * strength * eyeStage * (1.0 - eyeBias * 0.24)
+          -(0.035 + abs(u_shape.w)) * strength * eyeStage * eyeAttack * (1.0 - eyeBias * 0.34)
         );
         point = radialWarp(
           point,
           u_eyeL.xy,
           u_eyeL.zw,
-          -(0.055 + abs(u_shape.w)) * strength * eyeStage * (1.0 + eyeBias * 0.32)
+          -(0.055 + abs(u_shape.w)) * strength * eyeStage * eyeAttack * (1.0 + eyeBias * 0.46)
         );
         point = radialWarp(
           point,
           u_eyeR.xy,
           u_eyeR.zw,
-          -(0.055 + abs(u_shape.w)) * strength * eyeStage * (1.0 - eyeBias * 0.32)
+          -(0.055 + abs(u_shape.w)) * strength * eyeStage * eyeAttack * (1.0 - eyeBias * 0.46)
         );
         point = radialWarp(
           point,
@@ -410,20 +478,37 @@
           point,
           u_lipUpper.xy,
           u_lipUpper.zw,
-          -(0.035 + abs(u_shape.z) * 0.32) * strength * mouthStage
+          -(0.035 + abs(u_shape.z) * 0.32) * strength * mouthStage * mouthAttack
         );
         point = radialWarp(
           point,
           u_lipLower.xy,
           u_lipLower.zw,
-          -(0.035 + abs(u_shape.z) * 0.36) * strength * mouthStage
+          -(0.035 + abs(u_shape.z) * 0.36) * strength * mouthStage * mouthAttack
         );
         point = radialWarp(
           point,
           u_jaw.xy,
           u_jaw.zw,
-          -(0.04 + abs(u_shape.z) * 0.22 + abs(u_flow.w) * 0.3) * strength * jawStage
+          -(0.04 + abs(u_shape.z) * 0.22 + abs(u_flow.w) * 0.3)
+            * strength * jawStage * poseAttack
         );
+        float collapsedUpperLip = ellipseMask(uv, u_lipUpper.xy, u_lipUpper.zw);
+        float collapsedLowerLip = ellipseMask(uv, u_lipLower.xy, u_lipLower.zw);
+        float collapsedMouthLeft = ellipseMask(uv, u_mouthL.xy, u_mouthL.zw);
+        float collapsedMouthRight = ellipseMask(uv, u_mouthR.xy, u_mouthR.zw);
+        float collapsedJaw = ellipseMask(uv, u_jaw.xy, u_jaw.zw);
+        point.y += strength * mouthDrive * ${BIOMETRIC_POWER.mouth.toFixed(3)} * 0.42
+          * collapsedUpperLip * mouthStage;
+        point.y -= strength * mouthDrive * ${BIOMETRIC_POWER.mouth.toFixed(3)} * 0.72
+          * collapsedLowerLip * mouthStage;
+        point.x -= strength * (u_direction.w * asymDrive * ${BIOMETRIC_POWER.asymmetry.toFixed(3)}
+          + gazeX * ${BIOMETRIC_POWER.gaze.toFixed(3)} * 0.35)
+          * (collapsedMouthLeft - collapsedMouthRight) * mouthStage;
+        point.x -= strength * gravitySide * poseDrive * ${BIOMETRIC_POWER.pose.toFixed(3)}
+          * collapsedJaw * jawStage;
+        point.y -= strength * (poseDrive * ${BIOMETRIC_POWER.pose.toFixed(3)} * 0.56
+          + mouthDrive * ${BIOMETRIC_POWER.mouth.toFixed(3)} * 0.34) * collapsedJaw * jawStage;
       } else if (u_mode < 3.5) {
         /* SHEAR: measured side differences pull individual features apart. */
         float face = ellipseMask(uv, u_face.xy, u_face.zw);
@@ -437,17 +522,32 @@
         float mouth = ellipseMask(uv, u_mouth.xy, u_mouth.zw);
         float mouthLeft = ellipseMask(uv, u_mouthL.xy, u_mouthL.zw);
         float mouthRight = ellipseMask(uv, u_mouthR.xy, u_mouthR.zw);
-        point.x -= strength * (0.015 + abs(u_flow.z) * 0.16)
-          * ((leftEye + leftBrow) * (0.72 + eyeBias * 0.28)
-            - (rightEye + rightBrow) * (0.72 - eyeBias * 0.28)) * eyeStage;
-        point.x -= strength * side * (0.018 + abs(u_flow.z) * 0.2)
+        float shearAttack = 1.0 + asymDrive * 0.9 + poseDrive * 0.35;
+        float eyePull = strength * (0.015 + abs(u_flow.z) * 0.16
+          + eyeDrive * ${BIOMETRIC_POWER.eyes.toFixed(3)} * 0.62
+          + abs(gazeX) * ${BIOMETRIC_POWER.gaze.toFixed(3)} * 0.42);
+        point.x -= eyePull
+          * ((leftEye + leftBrow) * (0.72 + eyeBias * 0.42)
+            - (rightEye + rightBrow) * (0.72 - eyeBias * 0.42)) * eyeStage;
+        point.x -= strength * gazeX * ${BIOMETRIC_POWER.gaze.toFixed(3)}
+          * (leftEye + rightEye) * eyeStage;
+        point.y -= strength * gazeY * ${BIOMETRIC_POWER.gaze.toFixed(3)} * 0.58
+          * (leftEye + rightEye) * eyeStage;
+        point.x -= strength * gravitySide * (0.018 + abs(u_flow.z) * 0.2) * shearAttack
           * (face * 0.3 + leftCheek + rightCheek + lowerFace * 0.55) * cheekStage;
-        point.y -= strength * cheekBias * 0.025
+        point.y -= strength * cheekBias * (0.025 + asymDrive * ${BIOMETRIC_POWER.asymmetry.toFixed(3)})
           * (leftCheek - rightCheek) * cheekStage;
-        point.y -= strength * u_direction.w * (0.02 + u_detail.w * 0.016)
+        point.x -= strength * (${BIOMETRIC_POWER.mouth.toFixed(3)} * mouthDrive
+          + ${BIOMETRIC_POWER.asymmetry.toFixed(3)} * asymDrive * 0.45)
           * (mouthLeft - mouthRight) * mouthStage;
-        point.x -= strength * seedDirection * (0.012 + abs(u_flow.x) * 0.08)
+        point.y -= strength * u_direction.w * (0.02 + asymDrive * ${BIOMETRIC_POWER.asymmetry.toFixed(3)})
+          * (mouthLeft - mouthRight) * mouthStage;
+        point.x -= strength * (gravitySide + seedDirection * 0.24)
+          * (0.012 + abs(u_flow.x) * 0.08 + poseDrive * ${BIOMETRIC_POWER.pose.toFixed(3)})
           * (mouth + lowerFace) * jawStage;
+        point.y -= strength * (poseDrive * ${BIOMETRIC_POWER.pose.toFixed(3)}
+          + mouthDrive * ${BIOMETRIC_POWER.mouth.toFixed(3)} * 0.38)
+          * lowerFace * jawStage;
         float rotationMask = face * (0.5 + lowerFace * 0.5);
         point = rotateAround(
           point,
@@ -456,30 +556,60 @@
         );
       } else {
         /* LENS: the nose and the visually dominant eye become local lenses. */
+        float dominantEye = clamp(eyeBias + gazeX * 0.55, -1.0, 1.0);
         point = radialWarp(
           point,
           u_nose.xy,
           u_nose.zw,
-          (0.1 + abs(u_shape.x) * 0.72 + abs(u_flow.x) * 0.22) * strength * cheekStage
+          (0.1 + abs(u_shape.x) * 0.72 + abs(u_flow.x) * 0.22
+            + poseDrive * ${BIOMETRIC_POWER.pose.toFixed(3)} * 0.46) * strength * cheekStage
         );
         point = radialWarp(
           point,
           u_eyeL.xy,
           u_eyeL.zw,
-          (0.035 + abs(u_shape.y) * 0.3) * strength * eyeStage * (0.82 + eyeBias * 0.32)
+          (0.035 + abs(u_shape.y) * 0.3 + eyeDrive * ${BIOMETRIC_POWER.eyes.toFixed(3)} * 3.8
+            + asymDrive * ${BIOMETRIC_POWER.asymmetry.toFixed(3)} * 1.2)
+            * strength * eyeStage * (0.82 + dominantEye * 0.46)
         );
         point = radialWarp(
           point,
           u_eyeR.xy,
           u_eyeR.zw,
-          (0.035 + abs(u_shape.y) * 0.3) * strength * eyeStage * (0.82 - eyeBias * 0.32)
+          (0.035 + abs(u_shape.y) * 0.3 + eyeDrive * ${BIOMETRIC_POWER.eyes.toFixed(3)} * 3.8
+            + asymDrive * ${BIOMETRIC_POWER.asymmetry.toFixed(3)} * 0.86)
+            * strength * eyeStage * (0.82 - dominantEye * 0.46)
         );
+        float lensLeftEye = ellipseMask(uv, u_eyeL.xy, u_eyeL.zw);
+        float lensRightEye = ellipseMask(uv, u_eyeR.xy, u_eyeR.zw);
+        float eyeScatter = strength * (eyeDrive * ${BIOMETRIC_POWER.eyes.toFixed(3)} * 0.82
+          + asymDrive * ${BIOMETRIC_POWER.asymmetry.toFixed(3)} * 0.64
+          + abs(gazeX) * ${BIOMETRIC_POWER.gaze.toFixed(3)} * 0.5);
+        point.x -= eyeScatter * lensLeftEye * (0.72 + dominantEye * 0.28) * eyeStage;
+        point.x += eyeScatter * lensRightEye * (0.72 - dominantEye * 0.28) * eyeStage;
+        point.y -= eyeScatter * (gazeY + asymDrive * 0.38)
+          * (lensLeftEye - lensRightEye) * eyeStage * 0.58;
         point = radialWarp(
           point,
           u_face.xy,
           u_face.zw,
           (0.018 + abs(u_flow.x) * 0.12) * strength * foreheadStage
         );
+        point = radialWarp(
+          point,
+          u_mouth.xy,
+          u_mouth.zw,
+          (0.018 + mouthDrive * ${BIOMETRIC_POWER.mouth.toFixed(3)} * 2.4)
+            * strength * mouthStage
+        );
+        float lensMouthLeft = ellipseMask(uv, u_mouthL.xy, u_mouthL.zw);
+        float lensMouthRight = ellipseMask(uv, u_mouthR.xy, u_mouthR.zw);
+        point.x -= strength * (mouthDrive * ${BIOMETRIC_POWER.mouth.toFixed(3)} * 1.12
+          + asymDrive * ${BIOMETRIC_POWER.asymmetry.toFixed(3)} * 0.62)
+          * (lensMouthLeft - lensMouthRight) * mouthStage;
+        float lensJaw = ellipseMask(uv, u_jaw.xy, u_jaw.zw);
+        point.x -= strength * gravitySide * poseDrive * ${BIOMETRIC_POWER.pose.toFixed(3)} * 0.72
+          * lensJaw * jawStage;
       }
 
       point = clamp(point, vec2(0.0015), vec2(0.9985));
@@ -718,6 +848,16 @@
       controls.mouthOpen || 0,
       controls.asymmetry || 0
     ]));
+    gl.uniform4fv(gl.getUniformLocation(program, 'u_biometric'), new Float32Array([
+      controls.pose || 0,
+      controls.eyeIntensity || 0,
+      controls.mouthOpen || 0,
+      controls.asymmetry || 0
+    ]));
+    gl.uniform2fv(gl.getUniformLocation(program, 'u_gaze'), new Float32Array([
+      controls.gazeX || 0,
+      controls.gazeY || 0
+    ]));
     setRegion(gl, program, 'u_mask', geometry.mask);
     setRegion(gl, program, 'u_face', geometry.face);
     setRegion(gl, program, 'u_forehead', geometry.forehead);
@@ -883,6 +1023,16 @@
     const eyeBias = clamp((controls.eyes || 0) + seedDirection * 0.14, -1, 1);
     const cheekBias = clamp((controls.cheeks || 0) + seedDirection * 0.12, -1, 1);
     const mouthBias = controls.mouth || 0;
+    const poseDrive = clamp(controls.pose || 0, 0, 1);
+    const eyeDrive = clamp(controls.eyeIntensity || 0, 0, 1);
+    const mouthDrive = clamp(controls.mouthOpen || 0, 0, 1);
+    const asymDrive = clamp(controls.asymmetry || 0, 0, 1);
+    const gazeX = clamp(controls.gazeX || 0, -1, 1);
+    const gazeY = clamp(controls.gazeY || 0, -1, 1);
+    const gravitySide = clamp(side * 0.72 + gazeX * 0.48, -1, 1);
+    const eyeAttack = 1 + eyeDrive * 0.85 + asymDrive * 0.55;
+    const mouthAttack = 1 + mouthDrive * 1.05 + asymDrive * 0.3;
+    const poseAttack = 1 + poseDrive * 0.75 + Math.abs(gazeY) * 0.2;
     const guardRegion = geometry.mask || geometry.face;
     const warp = (region, options = {}) => drawRegionWarp(context, source, region, {
       ...options,
@@ -898,23 +1048,55 @@
       case 'melt': {
         const drop = (0.018 + Math.abs(profile.flow[3]) * 0.72 + Math.abs(profile.shape[2]) * 0.12)
           * strength;
+        const eyeDrop = strength * (
+          BIOMETRIC_POWER.eyes * eyeDrive
+          + BIOMETRIC_POWER.gaze * Math.max(gazeY, 0) * 0.44
+        );
+        const lipTear = strength * mouthDrive * (
+          BIOMETRIC_POWER.mouth + Math.abs(profile.flow[3]) * 0.18
+        );
         warp(geometry.face, {
-          translateX: side * drop * 0.32,
+          translateX: gravitySide * drop * 0.32,
           translateY: drop * 0.2,
           scaleY: 1 + drop * 0.26
         });
-        warp(geometry.leftEye, { translateY: drop * (0.42 + eyeBias * 0.08) });
-        warp(geometry.rightEye, { translateY: drop * (0.42 - eyeBias * 0.08) });
-        warp(geometry.leftCheek, { translateX: side * drop * 0.22, translateY: drop * 0.62 });
-        warp(geometry.rightCheek, { translateX: side * drop * 0.22, translateY: drop * 0.62 });
-        warp(geometry.upperLip, { translateY: drop * (0.75 + (controls.mouthOpen || 0) * 0.12) });
-        warp(geometry.lowerLip, { translateY: drop * (0.94 + (controls.mouthOpen || 0) * 0.18) });
-        warp(geometry.mouthLeft, { translateY: drop * (0.82 + mouthBias * 0.2) });
-        warp(geometry.mouthRight, { translateY: drop * (0.82 - mouthBias * 0.2) });
+        warp(geometry.leftEye, {
+          translateX: gazeX * BIOMETRIC_POWER.gaze * strength,
+          translateY: drop * (0.42 + eyeBias * 0.08) + eyeDrop * (0.78 + eyeBias * 0.34),
+          scaleY: 1 + eyeDrive * strength * 0.16
+        });
+        warp(geometry.rightEye, {
+          translateX: gazeX * BIOMETRIC_POWER.gaze * strength,
+          translateY: drop * (0.42 - eyeBias * 0.08) + eyeDrop * (0.78 - eyeBias * 0.34),
+          scaleY: 1 + eyeDrive * strength * 0.16
+        });
+        warp(geometry.leftCheek, { translateX: gravitySide * drop * 0.32, translateY: drop * 0.62 });
+        warp(geometry.rightCheek, { translateX: gravitySide * drop * 0.32, translateY: drop * 0.62 });
+        warp(geometry.upperLip, {
+          translateY: drop * (0.75 + mouthDrive * 0.12) - lipTear * 0.52,
+          scaleY: 1 - mouthDrive * strength * 0.16
+        });
+        warp(geometry.lowerLip, {
+          translateY: drop * (0.94 + mouthDrive * 0.18) + lipTear * 0.82,
+          scaleY: 1 + mouthDrive * strength * 0.24
+        });
+        const cornerSplit = strength * (
+          BIOMETRIC_POWER.mouth * mouthDrive + BIOMETRIC_POWER.asymmetry * asymDrive * 0.45
+        );
+        warp(geometry.mouthLeft, {
+          translateX: cornerSplit,
+          translateY: drop * (0.82 + mouthBias * 0.2)
+        });
+        warp(geometry.mouthRight, {
+          translateX: -cornerSplit,
+          translateY: drop * (0.82 - mouthBias * 0.2)
+        });
         warp(geometry.jaw, {
-          translateX: side * drop * 0.38,
-          translateY: drop,
-          scaleY: 1 + drop * 0.5,
+          translateX: gravitySide * (drop * 0.48 + poseDrive * BIOMETRIC_POWER.pose * strength),
+          translateY: drop + strength * (
+            poseDrive * BIOMETRIC_POWER.pose + mouthDrive * BIOMETRIC_POWER.mouth * 0.42
+          ),
+          scaleY: 1 + drop * 0.5 + mouthDrive * strength * 0.16,
           rotation: -(controls.roll || 0) * drop * 0.22
         });
         break;
@@ -925,100 +1107,204 @@
           scaleY: 1 + Math.abs(profile.flow[1]) * strength * 0.12
         });
         warp(geometry.forehead, {
-          scaleX: 1 + (0.035 + Math.abs(profile.shape[0])) * strength,
-          scaleY: 1 + (0.025 + Math.abs(profile.shape[0]) * 0.55) * strength
+          scaleX: 1 + (0.035 + Math.abs(profile.shape[0]) + poseDrive * BIOMETRIC_POWER.pose) * strength,
+          scaleY: 1 + (0.025 + Math.abs(profile.shape[0]) * 0.55 + poseDrive * 0.035) * strength
         });
         warp(geometry.leftTemple, {
-          scaleX: 1 + (0.025 + Math.abs(profile.shape[0]) * 0.45) * strength * (1 + side * 0.18)
+          scaleX: 1 + (0.025 + Math.abs(profile.shape[0]) * 0.45) * strength
+            * (1 + gravitySide * 0.34 + asymDrive * 0.28)
         });
         warp(geometry.rightTemple, {
-          scaleX: 1 + (0.025 + Math.abs(profile.shape[0]) * 0.45) * strength * (1 - side * 0.18)
+          scaleX: 1 + (0.025 + Math.abs(profile.shape[0]) * 0.45) * strength
+            * (1 - gravitySide * 0.34 - asymDrive * 0.16)
         });
         warp(geometry.leftCheek, {
-          scaleX: 1 + (0.04 + Math.abs(profile.shape[1])) * strength * (1 + cheekBias * 0.24),
-          scaleY: 1 + (0.025 + Math.abs(profile.shape[1]) * 0.58) * strength
+          scaleX: 1 + (0.04 + Math.abs(profile.shape[1]) + asymDrive * BIOMETRIC_POWER.asymmetry)
+            * strength * (1 + cheekBias * 0.38),
+          scaleY: 1 + (0.025 + Math.abs(profile.shape[1]) * 0.58 + asymDrive * 0.05) * strength
         });
         warp(geometry.rightCheek, {
-          scaleX: 1 + (0.04 + Math.abs(profile.shape[1])) * strength * (1 - cheekBias * 0.24),
-          scaleY: 1 + (0.025 + Math.abs(profile.shape[1]) * 0.58) * strength
+          scaleX: 1 + (0.04 + Math.abs(profile.shape[1]) + asymDrive * BIOMETRIC_POWER.asymmetry * 0.72)
+            * strength * (1 - cheekBias * 0.38),
+          scaleY: 1 + (0.025 + Math.abs(profile.shape[1]) * 0.58 + asymDrive * 0.035) * strength
         });
         warp(geometry.nose, {
           scaleX: 1 + (0.025 + Math.abs(profile.flow[0]) * 0.34) * strength,
           scaleY: 1 + (0.02 + Math.abs(profile.flow[0]) * 0.2) * strength
         });
+        warp(geometry.leftEye, {
+          scaleX: 1 + (BIOMETRIC_POWER.eyes * eyeDrive * 2.8 + Math.abs(gazeX) * 0.045)
+            * strength * (1 + eyeBias * 0.42),
+          scaleY: 1 + BIOMETRIC_POWER.eyes * eyeDrive * strength * 1.5
+        });
+        warp(geometry.rightEye, {
+          scaleX: 1 + (BIOMETRIC_POWER.eyes * eyeDrive * 2.8 + Math.abs(gazeX) * 0.045)
+            * strength * (1 - eyeBias * 0.42),
+          scaleY: 1 + BIOMETRIC_POWER.eyes * eyeDrive * strength * 1.5
+        });
+        warp(geometry.mouth, {
+          scaleX: 1 + BIOMETRIC_POWER.mouth * mouthDrive * strength * 2.2,
+          scaleY: 1 + BIOMETRIC_POWER.mouth * mouthDrive * strength * 1.55
+        });
+        const bloomSplit = strength * (
+          mouthDrive * BIOMETRIC_POWER.mouth * 1.2 + asymDrive * BIOMETRIC_POWER.asymmetry * 0.72
+        );
+        warp(geometry.mouthLeft, { translateX: bloomSplit });
+        warp(geometry.mouthRight, { translateX: -bloomSplit });
+        warp(geometry.jaw, {
+          translateY: strength * (
+            mouthDrive * BIOMETRIC_POWER.mouth * 0.62 + poseDrive * BIOMETRIC_POWER.pose * 0.48
+          ),
+          scaleY: 1 + mouthDrive * BIOMETRIC_POWER.mouth * strength * 0.72
+        });
         break;
       }
       case 'collapse': {
-        const eyeCollapse = (0.055 + Math.abs(profile.shape[3])) * strength;
+        const eyeCollapse = (0.055 + Math.abs(profile.shape[3])) * strength * eyeAttack;
         warp(geometry.leftBrow, { scaleX: 1 - eyeCollapse * (0.55 + eyeBias * 0.12) });
         warp(geometry.rightBrow, { scaleX: 1 - eyeCollapse * (0.55 - eyeBias * 0.12) });
         warp(geometry.leftEye, {
-          scaleX: 1 - eyeCollapse * (0.82 + eyeBias * 0.18),
-          scaleY: 1 - eyeCollapse * (0.68 + eyeBias * 0.12)
+          scaleX: 1 - eyeCollapse * (0.82 + eyeBias * 0.28),
+          scaleY: 1 - eyeCollapse * (0.68 + eyeBias * 0.2),
+          translateX: gazeX * BIOMETRIC_POWER.gaze * strength * 0.5,
+          translateY: gazeY * BIOMETRIC_POWER.gaze * strength * 0.36
         });
         warp(geometry.rightEye, {
-          scaleX: 1 - eyeCollapse * (0.82 - eyeBias * 0.18),
-          scaleY: 1 - eyeCollapse * (0.68 - eyeBias * 0.12)
+          scaleX: 1 - eyeCollapse * (0.82 - eyeBias * 0.28),
+          scaleY: 1 - eyeCollapse * (0.68 - eyeBias * 0.2),
+          translateX: gazeX * BIOMETRIC_POWER.gaze * strength * 0.5,
+          translateY: gazeY * BIOMETRIC_POWER.gaze * strength * 0.36
         });
         warp(geometry.nose, {
           scaleX: 1 - (0.045 + Math.abs(profile.shape[0]) * 0.45) * strength,
           scaleY: 1 - (0.035 + Math.abs(profile.shape[0]) * 0.3) * strength
         });
-        warp(geometry.upperLip, { scaleX: 1 - (0.035 + Math.abs(profile.shape[2]) * 0.32) * strength });
-        warp(geometry.lowerLip, { scaleX: 1 - (0.035 + Math.abs(profile.shape[2]) * 0.36) * strength });
+        warp(geometry.upperLip, {
+          scaleX: 1 - (0.035 + Math.abs(profile.shape[2]) * 0.32) * strength * mouthAttack,
+          translateY: -mouthDrive * BIOMETRIC_POWER.mouth * strength * 0.42
+        });
+        warp(geometry.lowerLip, {
+          scaleX: 1 - (0.035 + Math.abs(profile.shape[2]) * 0.36) * strength * mouthAttack,
+          translateY: mouthDrive * BIOMETRIC_POWER.mouth * strength * 0.72
+        });
+        const collapsedSplit = strength * (
+          mouthDrive * BIOMETRIC_POWER.mouth + asymDrive * BIOMETRIC_POWER.asymmetry
+        );
+        warp(geometry.mouthLeft, {
+          translateX: collapsedSplit * 0.58,
+          translateY: mouthBias * collapsedSplit * 0.72
+        });
+        warp(geometry.mouthRight, {
+          translateX: -collapsedSplit * 0.58,
+          translateY: -mouthBias * collapsedSplit * 0.72
+        });
         warp(geometry.jaw, {
-          scaleX: 1 - Math.abs(profile.shape[2]) * strength * 0.28,
-          scaleY: 1 + Math.abs(profile.flow[3]) * strength * 0.24,
+          scaleX: 1 - Math.abs(profile.shape[2]) * strength * 0.28 * poseAttack,
+          scaleY: 1 + Math.abs(profile.flow[3]) * strength * 0.24 * poseAttack,
+          translateX: gravitySide * poseDrive * BIOMETRIC_POWER.pose * strength,
           translateY: Math.abs(profile.flow[3]) * strength * 0.1
+            + poseDrive * BIOMETRIC_POWER.pose * strength * 0.56
+            + mouthDrive * BIOMETRIC_POWER.mouth * strength * 0.34
         });
         break;
       }
       case 'lens': {
+        const dominantEye = clamp(eyeBias + gazeX * 0.55, -1, 1);
+        const eyeScatter = strength * (
+          eyeDrive * BIOMETRIC_POWER.eyes * 0.82
+          + asymDrive * BIOMETRIC_POWER.asymmetry * 0.64
+          + Math.abs(gazeX) * BIOMETRIC_POWER.gaze * 0.5
+        );
         warp(geometry.face, {
           scaleX: 1 + (0.018 + Math.abs(profile.flow[0]) * 0.12) * strength,
           scaleY: 1 + (0.012 + Math.abs(profile.flow[1]) * 0.08) * strength
         });
         warp(geometry.nose, {
-          scaleX: 1 + (0.1 + Math.abs(profile.shape[0]) * 0.72) * strength,
+          scaleX: 1 + (0.1 + Math.abs(profile.shape[0]) * 0.72
+            + poseDrive * BIOMETRIC_POWER.pose * 0.46) * strength,
           scaleY: 1 + (0.075 + Math.abs(profile.shape[0]) * 0.48) * strength,
-          translateX: side * 0.008 * strength
+          translateX: gravitySide * 0.012 * strength
         });
         warp(geometry.leftEye, {
-          scaleX: 1 + (0.035 + Math.abs(profile.shape[1]) * 0.3) * strength * (0.82 + eyeBias * 0.32),
-          scaleY: 1 + (0.025 + Math.abs(profile.shape[1]) * 0.18) * strength
+          scaleX: 1 + (0.035 + Math.abs(profile.shape[1]) * 0.3
+            + eyeDrive * BIOMETRIC_POWER.eyes * 3.8 + asymDrive * BIOMETRIC_POWER.asymmetry * 1.2)
+            * strength * (0.82 + dominantEye * 0.46),
+          scaleY: 1 + (0.025 + Math.abs(profile.shape[1]) * 0.18
+            + eyeDrive * BIOMETRIC_POWER.eyes * 1.55) * strength,
+          translateX: gazeX * BIOMETRIC_POWER.gaze * strength
+            + eyeScatter * (0.72 + dominantEye * 0.28),
+          translateY: eyeScatter * (gazeY + asymDrive * 0.38) * 0.58
         });
         warp(geometry.rightEye, {
-          scaleX: 1 + (0.035 + Math.abs(profile.shape[1]) * 0.3) * strength * (0.82 - eyeBias * 0.32),
-          scaleY: 1 + (0.025 + Math.abs(profile.shape[1]) * 0.18) * strength
+          scaleX: 1 + (0.035 + Math.abs(profile.shape[1]) * 0.3
+            + eyeDrive * BIOMETRIC_POWER.eyes * 3.8 + asymDrive * BIOMETRIC_POWER.asymmetry * 0.86)
+            * strength * (0.82 - dominantEye * 0.46),
+          scaleY: 1 + (0.025 + Math.abs(profile.shape[1]) * 0.18
+            + eyeDrive * BIOMETRIC_POWER.eyes * 1.55) * strength,
+          translateX: gazeX * BIOMETRIC_POWER.gaze * strength
+            - eyeScatter * (0.72 - dominantEye * 0.28),
+          translateY: -eyeScatter * (gazeY + asymDrive * 0.38) * 0.58
         });
         warp(geometry.leftCheek, { scaleX: 1 + Math.abs(profile.flow[0]) * strength * 0.22 });
         warp(geometry.rightCheek, { scaleX: 1 + Math.abs(profile.flow[0]) * strength * 0.22 });
+        warp(geometry.mouth, {
+          scaleX: 1 + (0.018 + mouthDrive * BIOMETRIC_POWER.mouth * 2.4) * strength,
+          scaleY: 1 + mouthDrive * BIOMETRIC_POWER.mouth * strength * 1.45
+        });
+        const lensSplit = strength * (
+          mouthDrive * BIOMETRIC_POWER.mouth * 1.12 + asymDrive * BIOMETRIC_POWER.asymmetry * 0.62
+        );
+        warp(geometry.mouthLeft, { translateX: lensSplit });
+        warp(geometry.mouthRight, { translateX: -lensSplit });
+        warp(geometry.jaw, {
+          translateX: gravitySide * poseDrive * BIOMETRIC_POWER.pose * strength * 0.72,
+          rotation: -(controls.roll || 0) * poseDrive * 0.08 * strength
+        });
         break;
       }
       case 'shear':
       default: {
-        const pull = (0.018 + Math.abs(profile.flow[2]) * 0.2) * strength;
+        const shearAttack = 1 + asymDrive * 0.9 + poseDrive * 0.35;
+        const pull = (0.018 + Math.abs(profile.flow[2]) * 0.2) * strength * shearAttack;
+        const eyePull = strength * (
+          0.015 + Math.abs(profile.flow[2]) * 0.16
+          + eyeDrive * BIOMETRIC_POWER.eyes * 0.62
+          + Math.abs(gazeX) * BIOMETRIC_POWER.gaze * 0.42
+        );
         warp(geometry.face, {
-          translateX: side * pull * 0.42,
+          translateX: gravitySide * pull * 0.42,
           rotation: -(profile.twist + (controls.roll || 0) * 0.035) * strength * 0.32
         });
-        warp(geometry.leftEye, { translateX: pull * (0.72 + eyeBias * 0.28) });
-        warp(geometry.rightEye, { translateX: -pull * (0.72 - eyeBias * 0.28) });
-        warp(geometry.leftBrow, { translateX: pull * (0.62 + eyeBias * 0.22) });
-        warp(geometry.rightBrow, { translateX: -pull * (0.62 - eyeBias * 0.22) });
+        warp(geometry.leftEye, {
+          translateX: eyePull * (0.72 + eyeBias * 0.42) + gazeX * BIOMETRIC_POWER.gaze * strength,
+          translateY: gazeY * BIOMETRIC_POWER.gaze * strength * 0.58
+        });
+        warp(geometry.rightEye, {
+          translateX: -eyePull * (0.72 - eyeBias * 0.42) + gazeX * BIOMETRIC_POWER.gaze * strength,
+          translateY: gazeY * BIOMETRIC_POWER.gaze * strength * 0.58
+        });
+        warp(geometry.leftBrow, { translateX: eyePull * (0.62 + eyeBias * 0.32) });
+        warp(geometry.rightBrow, { translateX: -eyePull * (0.62 - eyeBias * 0.32) });
         warp(geometry.leftCheek, {
-          translateX: side * pull,
-          translateY: cheekBias * pull * 0.42
+          translateX: gravitySide * pull,
+          translateY: cheekBias * pull * (0.42 + asymDrive * 0.34)
         });
         warp(geometry.rightCheek, {
-          translateX: side * pull,
-          translateY: -cheekBias * pull * 0.42
+          translateX: gravitySide * pull,
+          translateY: -cheekBias * pull * (0.42 + asymDrive * 0.34)
         });
-        warp(geometry.mouthLeft, { translateX: pull * 0.46, translateY: mouthBias * pull * 0.72 });
-        warp(geometry.mouthRight, { translateX: -pull * 0.46, translateY: -mouthBias * pull * 0.72 });
+        const mouthPull = pull * 0.46 + strength * (
+          BIOMETRIC_POWER.mouth * mouthDrive + BIOMETRIC_POWER.asymmetry * asymDrive * 0.45
+        );
+        warp(geometry.mouthLeft, { translateX: mouthPull, translateY: mouthBias * mouthPull * 0.82 });
+        warp(geometry.mouthRight, { translateX: -mouthPull, translateY: -mouthBias * mouthPull * 0.82 });
         warp(geometry.jaw, {
-          translateX: (side + seedDirection * 0.3) * pull,
-          translateY: Math.abs(profile.flow[3]) * strength * 0.08,
+          translateX: (gravitySide + seedDirection * 0.24) * (
+            pull + poseDrive * BIOMETRIC_POWER.pose * strength
+          ),
+          translateY: Math.abs(profile.flow[3]) * strength * 0.08
+            + poseDrive * BIOMETRIC_POWER.pose * strength
+            + mouthDrive * BIOMETRIC_POWER.mouth * strength * 0.38,
           rotation: -profile.twist * strength * 0.72
         });
       }

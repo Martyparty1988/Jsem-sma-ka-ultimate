@@ -15,8 +15,48 @@ const faceSvg = [
 ].join('');
 const facePhoto = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(faceSvg)}`;
 
-async function renderAndMeasure(page, forceCanvas, effect) {
-  return page.evaluate(async ({ imageData, forceCanvasFallback, effectKey }) => {
+function faceAnalysis({ brutal = false } = {}) {
+  return {
+    schemaVersion: 4,
+    sourceKind: 'upload',
+    faceBounds: {
+      x: 0.18,
+      y: 0.14,
+      width: 0.64,
+      height: 0.72,
+      center: { x: 0.5, y: 0.5 }
+    },
+    anchors: {
+      leftEye: { x: 0.635, y: 0.414 },
+      rightEye: { x: 0.365, y: 0.414 },
+      leftCheek: { x: 0.67, y: 0.54 },
+      rightCheek: { x: 0.33, y: 0.54 },
+      forehead: { x: 0.5, y: 0.205 },
+      leftTemple: { x: 0.76, y: 0.37 },
+      rightTemple: { x: 0.24, y: 0.37 },
+      leftBrow: { x: 0.63, y: 0.355 },
+      rightBrow: { x: 0.37, y: 0.355 },
+      noseTip: { x: 0.5, y: 0.52 },
+      mouth: { x: 0.5, y: 0.67 },
+      mouthLeft: { x: 0.65, y: 0.66 },
+      mouthRight: { x: 0.35, y: 0.66 },
+      upperLip: { x: 0.5, y: 0.645 },
+      lowerLip: { x: 0.5, y: 0.695 },
+      chin: { x: 0.5, y: 0.84 },
+      jawLeft: { x: 0.72, y: 0.72 },
+      jawRight: { x: 0.28, y: 0.72 }
+    },
+    directions: brutal
+      ? { yaw: 0.72, roll: -0.58, pitch: 0.68, eyes: 0.82, cheeks: -0.74, mouth: 0.78, gazeX: 0.76, gazeY: 0.54 }
+      : { yaw: 0, roll: 0, pitch: 0, eyes: 0, cheeks: 0, mouth: 0, gazeX: 0, gazeY: 0 },
+    signals: brutal
+      ? { pose: 0.9, eyes: 0.94, mouth: 0.92, asymmetry: 0.88 }
+      : { pose: 0, eyes: 0, mouth: 0, asymmetry: 0 }
+  };
+}
+
+async function renderAndMeasure(page, forceCanvas, effect, analysis = faceAnalysis({ brutal: true })) {
+  return page.evaluate(async ({ imageData, forceCanvasFallback, effectKey, analysisContract }) => {
     const loadImage = (source) => new Promise((resolve, reject) => {
       const image = new Image();
       image.onload = () => resolve(image);
@@ -48,6 +88,7 @@ async function renderAndMeasure(page, forceCanvas, effect) {
         severity: 98,
         effect: effectKey,
         seed: 731,
+        faceAnalysis: analysisContract,
         output: { width: 480, height: 640, crop: 'cover' }
       });
     } finally {
@@ -76,7 +117,12 @@ async function renderAndMeasure(page, forceCanvas, effect) {
       guardOwnsWarp: Boolean(window.SmazkaFaceWarp.__completionGuardV84),
       guardWarpTimeout: window.SmazkaAnalysisCompletionGuard?.warpTimeoutMs ?? null
     };
-  }, { imageData: facePhoto, forceCanvasFallback: forceCanvas, effectKey: effect });
+  }, {
+    imageData: facePhoto,
+    forceCanvasFallback: forceCanvas,
+    effectKey: effect,
+    analysisContract: analysis
+  });
 }
 
 test('v110 produces visibly different pixels instead of timing out to the original photo', async ({ page }) => {
@@ -107,4 +153,22 @@ test('v110 produces visibly different pixels instead of timing out to the origin
     expect(gpu.guardWarpTimeout, report).toBeNull();
     expect(canvas.guardWarpTimeout, report).toBeNull();
   });
+});
+
+test('v113 biometric drive makes all five modes more destructive than neutral geometry', async ({ page }) => {
+  await page.goto('/');
+  await page.waitForFunction(() => Boolean(window.SmazkaFaceWarp?.renderFaceEffect));
+
+  const profiles = ['liquid-gravity', 'cranial-bloom', 'deep-collapse', 'total-drift', 'kebab-lens'];
+  const report = {};
+  for (const profile of profiles) {
+    report[profile] = {};
+    for (const [label, forceCanvas] of [['gpu', false], ['canvas', true]]) {
+      const neutral = await renderAndMeasure(page, forceCanvas, profile, faceAnalysis());
+      const brutal = await renderAndMeasure(page, forceCanvas, profile, faceAnalysis({ brutal: true }));
+      report[profile][label] = { neutral, brutal };
+      expect(brutal.averageDifference, JSON.stringify(report)).toBeGreaterThan(neutral.averageDifference * 1.06);
+      expect(brutal.changedRatio, JSON.stringify(report)).toBeGreaterThan(neutral.changedRatio);
+    }
+  }
 });

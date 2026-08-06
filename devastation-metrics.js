@@ -1,4 +1,4 @@
-const SCHEMA_VERSION = 3;
+const SCHEMA_VERSION = 4;
 
 const SIGNAL_WEIGHTS = Object.freeze({
   pose: 0.18,
@@ -159,6 +159,51 @@ function eyeEffectIntensity(apertura, leftRatio, rightRatio) {
   const meanRatio = Math.max(0.04, (leftRatio + rightRatio) / 2);
   const imbalance = clamp(Math.abs(leftRatio - rightRatio) / meanRatio / 0.7, 0, 1);
   return Math.max(closure, widening, imbalance);
+}
+
+function directionalDeadZone(value, deadZone = 0.12) {
+  const bounded = clamp(finite(value), -1, 1);
+  const magnitude = Math.abs(bounded);
+  if (magnitude <= deadZone) return 0;
+  return Math.sign(bounded) * clamp((magnitude - deadZone) / (1 - deadZone), 0, 1);
+}
+
+function gazeSignals(points, width, height) {
+  if (!Array.isArray(points) || points.length < 478) {
+    return { available: false, x: 0, y: 0 };
+  }
+
+  const eyeOffset = ({ iris, outer, inner, top, bottom }) => {
+    const irisCenter = pixelPoint(points, iris, width, height);
+    const outerCorner = pixelPoint(points, outer, width, height);
+    const innerCorner = pixelPoint(points, inner, width, height);
+    const upperLid = pixelPoint(points, top, width, height);
+    const lowerLid = pixelPoint(points, bottom, width, height);
+    if (!irisCenter || !outerCorner || !innerCorner || !upperLid || !lowerLid) return null;
+
+    const eyeCenter = {
+      x: (outerCorner.x + innerCorner.x) / 2,
+      y: (upperLid.y + lowerLid.y) / 2
+    };
+    const eyeWidth = distance(outerCorner, innerCorner);
+    const eyeHeight = distance(upperLid, lowerLid);
+    if (eyeWidth < 1 || eyeHeight < 0.5) return null;
+
+    return {
+      x: clamp((irisCenter.x - eyeCenter.x) / (eyeWidth * 0.34), -1, 1),
+      y: clamp((irisCenter.y - eyeCenter.y) / (eyeHeight * 0.62), -1, 1)
+    };
+  };
+
+  const right = eyeOffset({ iris: 468, outer: 33, inner: 133, top: 159, bottom: 145 });
+  const left = eyeOffset({ iris: 473, outer: 263, inner: 362, top: 386, bottom: 374 });
+  if (!right || !left) return { available: false, x: 0, y: 0 };
+
+  return {
+    available: true,
+    x: round(directionalDeadZone((right.x + left.x) / 2), 3),
+    y: round(directionalDeadZone((right.y + left.y) / 2), 3)
+  };
 }
 
 function poseSignals(points, width, height) {
@@ -576,6 +621,7 @@ export function calculateDevastationMetrics(
   const apertura = clamp(round(apertureFromRatio(meanEyeRatio)), 0, 100);
   const gravitace = round(headTilt(normalizedLandmarks, width, height), 1);
   const pose = poseSignals(normalizedLandmarks, width, height);
+  const gaze = gazeSignals(normalizedLandmarks, width, height);
   const mouth = mouthSignals(normalizedLandmarks, width, height);
   const mouthAsymmetryDirection = signedMouthAsymmetry(normalizedLandmarks, width, height);
   const asymmetryRatio = Math.abs(mouthAsymmetryDirection);
@@ -618,7 +664,10 @@ export function calculateDevastationMetrics(
       rollDegrees: pose.rollDegrees,
       yawImbalance: pose.yawImbalance,
       yawOffset: pose.yawOffset,
-      pitchRatio: pose.pitchRatio
+      pitchRatio: pose.pitchRatio,
+      gazeAvailable: gaze.available,
+      gazeX: gaze.x,
+      gazeY: gaze.y
     },
     directions: {
       yaw: pose.yawDirection,
@@ -626,7 +675,9 @@ export function calculateDevastationMetrics(
       pitch: round(clamp((pose.pitchRatio - 0.46) / 0.22, -1, 1), 3),
       eyes: round(combined.eyeBalance, 3),
       cheeks: round(combined.cheekBalance, 3),
-      mouth: round(clamp(mouthAsymmetryDirection / 0.16, -1, 1), 3)
+      mouth: round(clamp(mouthAsymmetryDirection / 0.16, -1, 1), 3),
+      gazeX: gaze.x,
+      gazeY: gaze.y
     },
     signals: {
       // Every signal is effect intensity: higher means stronger visual input,

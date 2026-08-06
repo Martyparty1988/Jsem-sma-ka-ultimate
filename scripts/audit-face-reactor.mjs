@@ -187,6 +187,22 @@ add(
   'signed directions, expanded anchors, five warp modes, face mask and organic reveal are present'
 );
 
+add(
+  'biometric-warp-v3',
+  /const SCHEMA_VERSION = 4/.test(metrics)
+    && /function gazeSignals\(/.test(metrics)
+    && /gazeX:\s*gaze\.x/.test(metrics)
+    && /gazeY:\s*gaze\.y/.test(metrics)
+    && /eyeIntensity:\s*clamp/.test(geometry)
+    && /pose:\s*clamp/.test(geometry)
+    && /const BIOMETRIC_POWER = Object\.freeze/.test(result)
+    && /uniform vec4 u_biometric/.test(result)
+    && /uniform vec2 u_gaze/.test(result)
+    && /const eyeDrive = clamp\(controls\.eyeIntensity/.test(result)
+    && /const mouthDrive = clamp\(controls\.mouthOpen/.test(result),
+  'iris direction and measured pose, eye, mouth and asymmetry intensity drive both renderers without changing severity'
+);
+
 const faceWarp = section(result, 'face-warp.js');
 const experience = section(result, 'experience-upgrades.js');
 const diagnostics = section(result, 'diagnostic-upgrades.js');

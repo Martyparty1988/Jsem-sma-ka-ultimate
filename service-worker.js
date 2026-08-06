@@ -1,7 +1,7 @@
-const CACHE_VERSION = 'v110';
+const CACHE_VERSION = 'v113';
 const CACHE_NAME = `jsem-smazka-${CACHE_VERSION}`;
 const FACE_MODEL_CACHE = 'jsem-smazka-face-model-v1';
-const UPDATE_STATE_KEY = './__smazka-update-state-v110';
+const UPDATE_STATE_KEY = './__smazka-update-state-v113';
 
 const APP_SHELL = [
   './',
@@ -14,12 +14,12 @@ const APP_SHELL = [
   './components.css?v=87',
   './screens.css?v=106',
   './app.js?v=104',
-  './scanner-runtime.js?v=106',
-  './result-runtime.js?v=92',
+  './scanner-runtime.js?v=113',
+  './result-runtime.js?v=113',
   './lifecycle-runtime.js?v=106',
   './result-poster-runtime.js?v=100',
-  './devastation-metrics.js?v=66',
-  './face-warp-geometry.js?v=64',
+  './devastation-metrics.js?v=113',
+  './face-warp-geometry.js?v=113',
   './junkie-vision-photo-v81.js?v=81',
   './junkie-vision-noise-v81.js?v=81',
   './verdict-matcher.js?v=64',

@@ -43,9 +43,11 @@ function analysis(offsetX = 0) {
       pitch: 0.18,
       eyes: 0.42,
       cheeks: -0.36,
-      mouth: 0.28
+      mouth: 0.28,
+      gazeX: 0.48,
+      gazeY: -0.32
     },
-    signals: { mouth: 0.44, asymmetry: 0.58 }
+    signals: { pose: 0.66, eyes: 0.74, mouth: 0.44, asymmetry: 0.58 }
   };
 }
 
@@ -125,6 +127,10 @@ test('landmark anchors produce bounded warp regions', () => {
     eyes: 0.42,
     cheeks: -0.36,
     mouth: 0.28,
+    gazeX: 0.48,
+    gazeY: -0.32,
+    pose: 0.66,
+    eyeIntensity: 0.74,
     mouthOpen: 0.44,
     asymmetry: 0.58
   });
@@ -186,9 +192,11 @@ test('directional controls are clamped and never inferred by the renderer', () =
     pitch: Number.NaN,
     eyes: 2,
     cheeks: -2,
-    mouth: 0.4
+    mouth: 0.4,
+    gazeX: 8,
+    gazeY: -7
   };
-  input.signals = { mouth: 5, asymmetry: -1 };
+  input.signals = { pose: 3, eyes: -2, mouth: 5, asymmetry: -1 };
 
   const geometry = createWarpGeometry({
     faceAnalysis: input,
@@ -205,6 +213,10 @@ test('directional controls are clamped and never inferred by the renderer', () =
     eyes: 1,
     cheeks: -1,
     mouth: 0.4,
+    gazeX: 1,
+    gazeY: -1,
+    pose: 1,
+    eyeIntensity: 0,
     mouthOpen: 1,
     asymmetry: 0
   });

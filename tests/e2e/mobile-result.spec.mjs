@@ -25,7 +25,7 @@ async function openDeterministicResult(page) {
       })
     };
     const faceAnalysis = {
-      schemaVersion: 3,
+      schemaVersion: 4,
       sourceKind: 'upload',
       normalizedLandmarks: Array.from({ length: 468 }, () => ({ x: 0.5, y: 0.5, z: 0 })),
       metrics: {
