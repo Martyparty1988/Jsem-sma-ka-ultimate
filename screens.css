@@ -4504,7 +4504,7 @@ body.result-in-frame .new-scan-button {
 }
 
 /*
- * Smažka v104 — Quiet Scan camera-stage and overlay polish.
+ * Smažka v121 — Quiet Scan intake, camera-stage and overlay polish.
  * Final presentation overrides only; verdict and biometric logic stay untouched.
  */
 
@@ -4555,6 +4555,11 @@ body {
 }
 
 .brand-lockup {
+  min-width: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 4px 10px 4px 4px !important;
   border: 0 !important;
   background: transparent !important;
   box-shadow: none !important;
@@ -4583,6 +4588,28 @@ body {
 .brand-mark::after {
   background: var(--polish-accent) !important;
   box-shadow: none !important;
+}
+
+.brand-copy {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+  line-height: 1;
+  text-align: left;
+}
+
+.brand-copy strong {
+  color: var(--polish-text) !important;
+  font-size: 0.68rem !important;
+  font-weight: 850 !important;
+  letter-spacing: 0.13em !important;
+}
+
+.brand-copy small {
+  color: var(--polish-text-muted) !important;
+  font-size: 0.43rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.075em !important;
 }
 
 .local-status {
@@ -4629,6 +4656,7 @@ body {
 }
 
 .video-container {
+  isolation: isolate;
   border: 1px solid var(--polish-border-strong) !important;
   border-radius: 20px !important;
   background:
@@ -4654,6 +4682,13 @@ body {
 }
 
 .camera-idle {
+  display: flex !important;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 28px 20px;
+  overflow: hidden;
   color: var(--polish-text-muted) !important;
   font-family: inherit !important;
   font-weight: 600 !important;
@@ -4661,7 +4696,34 @@ body {
   text-transform: none !important;
 }
 
+.camera-idle::before {
+  content: '';
+  position: absolute;
+  z-index: 0;
+  width: clamp(176px, 56%, 228px);
+  aspect-ratio: 0.78;
+  border: 1px solid rgba(88, 214, 194, 0.12);
+  border-radius: 46% 46% 42% 42% / 38% 38% 54% 54%;
+  background: radial-gradient(circle at 50% 39%, rgba(88, 214, 194, 0.045), transparent 58%);
+  box-shadow: 0 0 0 10px rgba(88, 214, 194, 0.012);
+}
+
+.camera-idle > * {
+  position: relative;
+  z-index: 1;
+}
+
+.idle-protocol {
+  margin-bottom: 6px;
+  color: rgba(126, 225, 209, 0.72);
+  font: 750 clamp(0.5rem, 2vw, 0.59rem)/1.1 ui-monospace, "SFMono-Regular", Menlo, monospace;
+  letter-spacing: 0.11em;
+}
+
 .idle-eye {
+  width: 62px !important;
+  height: 62px !important;
+  margin-bottom: 5px;
   border-color: var(--polish-border-strong) !important;
   border-radius: 18px !important;
   background: var(--polish-surface-2) !important;
@@ -4677,6 +4739,50 @@ body {
 .idle-eye::after {
   background: var(--polish-accent) !important;
   box-shadow: none !important;
+}
+
+.idle-title {
+  color: var(--polish-text);
+  font-size: clamp(0.92rem, 3.7vw, 1.08rem);
+  font-weight: 760;
+  letter-spacing: -0.018em;
+  line-height: 1.1;
+}
+
+.idle-copy {
+  color: var(--polish-text-muted);
+  font-size: clamp(0.67rem, 2.65vw, 0.76rem);
+  font-weight: 480;
+  letter-spacing: 0;
+  line-height: 1.25;
+}
+
+.idle-local {
+  min-height: 24px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 7px;
+  padding: 5px 8px;
+  border: 1px solid rgba(218, 229, 238, 0.09);
+  border-radius: 999px;
+  background: rgba(10, 15, 21, 0.54);
+  color: rgba(170, 181, 192, 0.78);
+  font: 700 0.54rem/1 ui-monospace, "SFMono-Regular", Menlo, monospace;
+  letter-spacing: 0.075em;
+  text-transform: uppercase;
+}
+
+.idle-local .ui-icon {
+  width: 12px;
+  height: 12px;
+  color: var(--polish-accent);
+}
+
+.video-container.is-live .camera-idle,
+.video-container.has-preview .camera-idle {
+  visibility: hidden;
+  pointer-events: none;
 }
 
 /* One accent color for the scanner. Severity belongs in the verdict, not every landmark. */
@@ -4850,6 +4956,23 @@ body {
   box-shadow: inset 0 1px rgba(255, 255, 255, 0.24) !important;
   filter: none !important;
   transform: none !important;
+}
+
+#analyzeButton {
+  background: linear-gradient(135deg, #6be0ce, var(--polish-accent) 58%, #4cc5b3) !important;
+  box-shadow:
+    0 10px 26px rgba(88, 214, 194, 0.15),
+    inset 0 1px rgba(255, 255, 255, 0.3) !important;
+}
+
+#uploadButton {
+  background: linear-gradient(145deg, rgba(25, 36, 47, 0.98), rgba(18, 27, 36, 0.98)) !important;
+}
+
+#analyzeButton:active,
+#uploadButton:active,
+.dock-camera-button:active {
+  transform: scale(0.985) !important;
 }
 
 .primary-button .button-icon,
@@ -5053,15 +5176,25 @@ body.face-scan-active .video-container {
   }
 
   .brand-lockup {
-    width: 32px !important;
+    width: auto !important;
+    max-width: min(48vw, 166px);
     min-height: 32px !important;
-    padding: 0 !important;
+    padding: 2px 8px 2px 2px !important;
+    gap: 7px;
   }
 
   .brand-mark {
     width: 28px !important;
     height: 28px !important;
     flex-basis: 28px !important;
+  }
+
+  .brand-copy strong {
+    font-size: 0.64rem !important;
+  }
+
+  .brand-copy small {
+    font-size: 0.39rem !important;
   }
 
   .local-status,
@@ -5086,6 +5219,20 @@ body.face-scan-active .video-container {
 
   .video-container {
     border-radius: 20px !important;
+  }
+
+  .camera-idle {
+    gap: 6px;
+    padding: 22px 16px;
+  }
+
+  .camera-idle::before {
+    width: clamp(164px, 54%, 214px);
+  }
+
+  .idle-eye {
+    width: 58px !important;
+    height: 58px !important;
   }
 
   .camera-control-dock,
@@ -5205,10 +5352,37 @@ body.face-scan-active .video-container {
 }
 
 @media (max-width: 640px) and (max-height: 740px) {
+  .brand-copy small {
+    display: none;
+  }
+
   .boot-message {
     min-height: 21px;
     margin-bottom: 4px;
     font-size: 0.64rem;
+  }
+
+  .camera-idle {
+    gap: 5px;
+    padding-block: 16px;
+  }
+
+  .camera-idle::before {
+    width: clamp(150px, 48%, 184px);
+  }
+
+  .idle-protocol {
+    margin-bottom: 3px;
+  }
+
+  .idle-eye {
+    width: 52px !important;
+    height: 52px !important;
+    margin-bottom: 2px;
+  }
+
+  .idle-local {
+    margin-top: 4px;
   }
 
   .camera-control-dock,
