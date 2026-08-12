@@ -24,17 +24,17 @@ function serviceWorkerContract() {
   return context.__PWA_TEST__;
 }
 
-test('PWA v116 precaches one compact production shell with three CSS authorities', () => {
+test('PWA v117 precaches one compact production shell with three CSS authorities', () => {
   const { CACHE_NAME, APP_SHELL } = serviceWorkerContract();
   const assets = new Set(APP_SHELL);
 
-  assert.equal(CACHE_NAME, 'jsem-smazka-v116');
+  assert.equal(CACHE_NAME, 'jsem-smazka-v117');
   [
     './foundation.css?v=104',
     './components.css?v=87',
     './screens.css?v=116',
     './app.js?v=104',
-    './scanner-runtime.js?v=116',
+    './scanner-runtime.js?v=117',
     './result-runtime.js?v=115',
     './lifecycle-runtime.js?v=115',
     './result-poster-runtime.js?v=101',
@@ -98,7 +98,7 @@ test('MediaPipe uses a stable request-driven cache and never install-precaches W
   assert.match(serviceWorker, /key !== CACHE_NAME && key !== FACE_MODEL_CACHE/);
 });
 
-test('HTML entries, bundle sections and dynamic files agree with the v116 cache graph', () => {
+test('HTML entries, bundle sections and dynamic files agree with the v117 cache graph', () => {
   const { APP_SHELL } = serviceWorkerContract();
   const appAssets = new Set(APP_SHELL);
   const index = readRoot('index.html');
@@ -132,7 +132,7 @@ test('HTML entries, bundle sections and dynamic files agree with the v116 cache 
   });
 });
 
-test('v116 shell keeps the consolidated poster rules and v101 runtime authoritative', () => {
+test('v117 shell keeps the consolidated poster rules and v101 runtime authoritative', () => {
   const index = readRoot('index.html');
   const css = readRoot('screens.css');
   const screens = css;
@@ -221,7 +221,7 @@ test('result, crop, recovery, single-pass, impact and share keep authoritative o
   ];
   const indexOrder = [
     'app.js?v=104',
-    'scanner-runtime.js?v=116',
+    'scanner-runtime.js?v=117',
     'result-runtime.js?v=115',
     'lifecycle-runtime.js?v=115',
     'result-poster-runtime.js?v=101'

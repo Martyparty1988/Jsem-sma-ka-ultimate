@@ -2309,6 +2309,10 @@
   }
 
   function deactivate() {
+    // The shared mutation observer also watches body.class. Keep this path
+    // idempotent so an already-idle HUD cannot create a self-feeding stream of
+    // class mutations when the result dialog opens.
+    if (!active && !exiting && !animationFrame) return;
     active = false;
     exiting = false;
     cancelAnimationFrame(animationFrame);
@@ -2321,7 +2325,7 @@
 
   function syncLifecycle() {
     if (resultIsOpen()) {
-      deactivate();
+      if (active || exiting || animationFrame) deactivate();
       return;
     }
     if (scanIsActive()) {

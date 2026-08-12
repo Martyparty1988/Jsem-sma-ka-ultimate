@@ -69,6 +69,8 @@ test('v116 specimen protocol uses dedicated canvases, real landmarks and throttl
   assert.match(runtime, /scoreValue\.textContent = String\(signal\.points\)\.padStart\(3, '0'\)/);
   assert.match(runtime, /drawSampleBands/);
   assert.match(runtime, /version: 116/);
+  assert.match(runtime, /if \(!active && !exiting && !animationFrame\) return;/);
+  assert.match(runtime, /if \(active \|\| exiting \|\| animationFrame\) deactivate\(\);/);
   assert.doesNotMatch(runtime, /JUNKIE INDEX|CRITICAL IMPACT DETECTED/);
 
   assert.match(photoRuntime, /data-hud-canvas="v81-photo"/);
@@ -127,7 +129,7 @@ test('Junkie Vision keeps patch order while Face Mesh stays lazy in PWA v87', ()
   assert.match(scanner, /FACE_RUNTIME_URL = `\$\{MODEL_ROOT\}face_mesh\.js\?v=0\.4\.1633559619`/);
   assert.match(scanner, /photoRuntimeUrl = 'junkie-vision-photo-v81\.js\?v=81'/);
   assert.match(scanner, /noiseRuntimeUrl = 'junkie-vision-noise-v81\.js\?v=81'/);
-  assert.match(serviceWorker, /\.\/scanner-runtime\.js\?v=116/);
+  assert.match(serviceWorker, /\.\/scanner-runtime\.js\?v=117/);
   assert.match(serviceWorker, /requestUrl\.pathname\.includes\('\/vendor\/mediapipe-face-mesh\/'\)/);
   assert.doesNotMatch(serviceWorker, /face_mesh_solution_.*\.wasm/);
 });
