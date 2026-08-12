@@ -7310,3 +7310,44 @@ body.critical-impact-active .result-tool-grid {
   .kartoteka-summary { margin-top: 12px; }
   .kartoteka-chart { margin-top: 8px; }
 }
+
+
+.ios-install-banner {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+  width: 100%;
+  margin-top: 10px;
+  padding: 12px;
+  border: 1px solid rgba(103, 232, 249, 0.24);
+  border-radius: 15px;
+  background: linear-gradient(120deg, rgba(28, 78, 88, 0.32), rgba(8, 20, 31, 0.84));
+  box-shadow: inset 0 1px rgba(255, 255, 255, 0.045);
+}
+
+.ios-install-banner strong {
+  display: block;
+  color: #dffcff;
+  font-size: 0.78rem;
+}
+
+.ios-install-banner p {
+  margin: 3px 0 0;
+  color: rgba(221, 243, 247, 0.72);
+  font-size: 0.72rem;
+  line-height: 1.35;
+}
+
+.ios-install-dismiss {
+  min-width: 72px;
+  min-height: 44px;
+  padding: 8px 10px;
+  border: 1px solid rgba(103, 232, 249, 0.28);
+  border-radius: 11px;
+  background: rgba(4, 16, 27, 0.72);
+  color: #aaf2f3;
+  font: 760 0.7rem/1 inherit;
+}
+
+.ios-install-dismiss:active { transform: scale(0.97); }

@@ -277,6 +277,61 @@
     element?.classList.remove('hidden');
   }
 
+  const IOS_INSTALL_HINT_DISMISSED_KEY = 'smazka:ios-install-hint-dismissed:v1';
+
+  function isIosBrowser() {
+    const userAgent = navigator.userAgent || '';
+    return /iPad|iPhone|iPod/.test(userAgent)
+      || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  }
+
+  function isStandaloneDisplayMode() {
+    return window.matchMedia?.('(display-mode: standalone)').matches === true
+      || navigator.standalone === true;
+  }
+
+  function hasDismissedIosInstallHint() {
+    try {
+      return localStorage.getItem(IOS_INSTALL_HINT_DISMISSED_KEY) === 'true';
+    } catch {
+      return false;
+    }
+  }
+
+  function setupIosInstallHint() {
+    if (!elements.footer || !isIosBrowser() || isStandaloneDisplayMode() || hasDismissedIosInstallHint()) return;
+
+    const hint = document.createElement('section');
+    hint.id = 'iosInstallHint';
+    hint.className = 'ios-install-banner';
+    hint.setAttribute('role', 'note');
+    hint.setAttribute('aria-label', 'Instalace aplikace na iPhone');
+
+    const copy = document.createElement('div');
+    const title = document.createElement('strong');
+    title.textContent = 'iPhone instalační rituál';
+    const text = document.createElement('p');
+    text.textContent = 'V Safari klepni na Sdílet → „Přidat na plochu“. Pak už se můžeš soudit i bez prohlížeče.';
+    copy.append(title, text);
+
+    const dismissButton = document.createElement('button');
+    dismissButton.type = 'button';
+    dismissButton.className = 'ios-install-dismiss';
+    dismissButton.setAttribute('aria-label', 'Skrýt instalační nápovědu');
+    dismissButton.textContent = 'Rozumím';
+    dismissButton.addEventListener('click', () => {
+      try {
+        localStorage.setItem(IOS_INSTALL_HINT_DISMISSED_KEY, 'true');
+      } catch {
+        // Storage can be unavailable in private browsing; dismissal still works for this visit.
+      }
+      hint.remove();
+    });
+
+    hint.append(copy, dismissButton);
+    elements.footer.appendChild(hint);
+  }
+
   function getKartoteka() {
     return window.SmazkaKartoteka || null;
   }
@@ -1209,6 +1264,7 @@
   });
 
   setupKartoteka();
+  setupIosInstallHint();
 
   window.SmazkaApp = {
     elements,
