@@ -525,17 +525,9 @@
 })();
 
 /* === face-landmark-bridge-v81.js === */
-/* Smažka v81 — non-invasive MediaPipe landmark feed for visual overlays. */
+/* Smažka v116 — stable non-invasive MediaPipe feed for the specimen protocol. */
 (() => {
   'use strict';
-
-  function installLandmarkBridge() {
-    const FaceMesh = window.FaceMesh;
-    const prototype = FaceMesh?.prototype;
-    const nativeOnResults = prototype?.onResults;
-    const nativeSend = prototype?.send;
-    if (typeof nativeOnResults !== 'function' || typeof nativeSend !== 'function') return false;
-    if (prototype.__smazkaLandmarkBridgeV81) return true;
 
   const listeners = new Set();
   const wrappedCallbacks = new WeakMap();
@@ -585,64 +577,10 @@
       try {
         listener(snapshot);
       } catch (error) {
-        console.warn('Junkie Vision landmark subscriber selhal:', error);
+        console.warn('SMAŽKA protocol landmark subscriber selhal:', error);
       }
     });
   }
-
-  function bridgedOnResults(callback) {
-    if (typeof callback !== 'function') return nativeOnResults.call(this, callback);
-    const instance = this;
-    let wrapped = wrappedCallbacks.get(callback);
-    if (!wrapped) {
-      wrapped = (results) => {
-        publish(results, instance);
-        return callback(results);
-      };
-      wrappedCallbacks.set(callback, wrapped);
-    }
-    return nativeOnResults.call(this, wrapped);
-  }
-
-  function bridgedSend(packet = {}) {
-    inputMeta.set(this, sourceMetadata(packet?.image));
-    return nativeSend.call(this, packet);
-  }
-
-  try {
-    Object.defineProperty(prototype, 'onResults', {
-      configurable: true,
-      writable: true,
-      value: bridgedOnResults
-    });
-  } catch (error) {
-    try {
-      prototype.onResults = bridgedOnResults;
-    } catch {
-      console.warn('Landmark bridge se nepodařilo připojit:', error);
-      return;
-    }
-  }
-
-  try {
-    Object.defineProperty(prototype, 'send', {
-      configurable: true,
-      writable: true,
-      value: bridgedSend
-    });
-  } catch (error) {
-    try {
-      prototype.send = bridgedSend;
-    } catch {
-      console.warn('Landmark source bridge se nepodařilo připojit:', error);
-    }
-  }
-
-  Object.defineProperty(prototype, '__smazkaLandmarkBridgeV81', {
-    configurable: false,
-    enumerable: false,
-    value: true
-  });
 
   window.SmazkaLandmarkFeed = Object.freeze({
     getSnapshot: () => snapshot,
@@ -652,6 +590,68 @@
       return () => listeners.delete(listener);
     }
   });
+
+  function installLandmarkBridge() {
+    const FaceMesh = window.FaceMesh;
+    const prototype = FaceMesh?.prototype;
+    const nativeOnResults = prototype?.onResults;
+    const nativeSend = prototype?.send;
+    if (typeof nativeOnResults !== 'function' || typeof nativeSend !== 'function') return false;
+    if (prototype.__smazkaLandmarkBridgeV81) return true;
+
+    function bridgedOnResults(callback) {
+      if (typeof callback !== 'function') return nativeOnResults.call(this, callback);
+      const instance = this;
+      let wrapped = wrappedCallbacks.get(callback);
+      if (!wrapped) {
+        wrapped = (results) => {
+          publish(results, instance);
+          return callback(results);
+        };
+        wrappedCallbacks.set(callback, wrapped);
+      }
+      return nativeOnResults.call(this, wrapped);
+    }
+
+    function bridgedSend(packet = {}) {
+      inputMeta.set(this, sourceMetadata(packet?.image));
+      return nativeSend.call(this, packet);
+    }
+
+    try {
+      Object.defineProperty(prototype, 'onResults', {
+        configurable: true,
+        writable: true,
+        value: bridgedOnResults
+      });
+    } catch (error) {
+      try {
+        prototype.onResults = bridgedOnResults;
+      } catch {
+        console.warn('Landmark bridge se nepodařilo připojit:', error);
+        return false;
+      }
+    }
+
+    try {
+      Object.defineProperty(prototype, 'send', {
+        configurable: true,
+        writable: true,
+        value: bridgedSend
+      });
+    } catch (error) {
+      try {
+        prototype.send = bridgedSend;
+      } catch {
+        console.warn('Landmark source bridge se nepodařilo připojit:', error);
+      }
+    }
+
+    Object.defineProperty(prototype, '__smazkaLandmarkBridgeV81', {
+      configurable: false,
+      enumerable: false,
+      value: true
+    });
     return true;
   }
 
@@ -660,7 +660,7 @@
 })();
 
 /* === hud-junkie-themes.js === */
-/* Smažka v81 — editable Junkie Vision theme, copy and timing. */
+/* Smažka v116 — local specimen protocol theme, copy and timing. */
 (() => {
   'use strict';
 
@@ -672,15 +672,19 @@
   }
 
   const theme = {
-    version: 81,
-    name: 'Junkie Vision / WARNA',
+    version: 116,
+    name: 'SMAŽKA LAB / lokální vzorek',
     colors: {
-      toxic: '#00FF66',
-      impact: '#FF0055',
-      warning: '#FFCC00',
-      white: '#F4FFF8',
-      void: '#020604',
-      panel: 'rgba(2, 8, 6, 0.78)'
+      toxic: '#58D6C2',
+      toxicSoft: 'rgba(88, 214, 194, 0.82)',
+      toxicFade: 'rgba(88, 214, 194, 0)',
+      impact: '#FF6B7D',
+      impactSoft: 'rgba(255, 107, 125, 0.84)',
+      impactFade: 'rgba(255, 107, 125, 0)',
+      warning: '#F2C96D',
+      white: '#F2F5F7',
+      void: '#080D12',
+      panel: 'rgba(10, 15, 21, 0.82)'
     },
     timing: {
       totalMs: 3000,
@@ -701,25 +705,23 @@
       noiseSampleIntervalMs: 180
     },
     labels: {
-      init: 'SYSTEM INIT: WARNA READY',
-      tracking: 'BIOMETRIC LOCK // 468 POINTS',
-      scanning: 'JUNKIE VISION // TISSUE SWEEP',
-      critical: 'CRITICAL IMPACT DETECTED',
-      footer: 'LOCAL VOID LAB // MEME, NOT DIAGNOSIS'
+      init: 'PŘÍJEM VZORKU // LOKÁLNÍ',
+      tracking: 'MAPA TVÁŘE // 478 BODŮ',
+      scanning: 'TOXIKOLOGICKÝ PRŮCHOD // 0 % DIAGNÓZA',
+      critical: 'VZOREK UZAVŘEN // TISKNU PROTOKOL',
+      footer: 'SMAŽKA LAB // SATIRA, NE DIAGNÓZA'
     },
     metrics: [
-      { label: 'ANALÝZA ROZTĚKANOSTI ZRNKA', kind: 'scatter', suffix: '% (KRITICKÁ)' },
-      { label: 'DETEKCE POKLESU VÍČEK', kind: 'droop', suffix: 'm/s² (SMRT)' },
-      { label: 'SKEN ČELISTNÍHO STISKU', kind: 'jaw', suffix: '' },
-      { label: 'HYDRATACE TKÁNĚ', kind: 'hydration', suffix: '% (SUCHÝ JAK VÝPEX)' },
-      { label: 'ASOMETRIE KOUTKŮ', kind: 'mouth', suffix: '' },
-      { label: 'SYNTÉZA PERNÍKOVÉHO INDEXU', kind: 'pernik', suffix: '' },
-      { label: 'HLADINA PARANOI', kind: 'paranoia', suffix: '' },
-      { label: 'STAV ZORNIC', kind: 'pupils', suffix: '' },
+      { label: 'ZORNIČKOVÝ NÁLEZ', kind: 'droop', suffix: '' },
+      { label: 'MOTORIKA SUBJEKTU', kind: 'motor', suffix: '' },
+      { label: 'ASYMETRIE KOUTKŮ', kind: 'mouth', suffix: '' },
+      { label: 'STABILITA VZORKU', kind: 'signal', suffix: '' },
+      { label: 'MAPA TVÁŘE', kind: 'points', suffix: '' },
+      { label: 'TOXIKOLOGICKÝ POPLACH', kind: 'alert', suffix: '' },
       { label: 'KONTAKT S REALITOU', kind: 'reality', suffix: '' },
-      { label: 'ZBYTKOVÁ LIDSKOST', kind: 'humanity', suffix: '% (NEOVĚŘENO)' },
-      { label: 'MOZKOVÝ PING', kind: 'ping', suffix: 'ms+' },
-      { label: 'STABILITA SIGNÁLU', kind: 'signal', suffix: '% / KOLAPS' }
+      { label: 'ZBYTKOVÁ LIDSKOST', kind: 'humanity', suffix: '% (SATIRA)' },
+      { label: 'ODEZVA POSLEDNÍHO NEURONU', kind: 'ping', suffix: 'ms' },
+      { label: 'KVALITA LOKÁLNÍHO SIGNÁLU', kind: 'quality', suffix: '%' }
     ],
     zoneIndices: {
       rightEye: [33, 7, 163, 144, 145, 153, 154, 155, 133, 173, 157, 158, 159, 160, 161, 246],
@@ -852,7 +854,7 @@
   status.setAttribute('aria-live', 'polite');
   status.innerHTML = `
     <span class="scan-state-dot" aria-hidden="true"></span>
-    <span class="scan-state-copy">Probouzím VOID engine</span>
+    <span class="scan-state-copy">Připravuju lokální odběr</span>
     <strong class="scan-state-progress">0%</strong>
   `;
 
@@ -896,12 +898,12 @@
   let stillRequest = null;
 
   const scanStages = [
-    [13, 'Zamykám subjekt', 'lock'],
-    [31, 'Oči nalezeny • soudnost ne', 'eyes'],
-    [48, 'Nos a ústa pod dohledem', 'features'],
-    [68, 'Kontura trosek hotová', 'jaw'],
-    [89, 'Vážím zbytky důstojnosti', 'analysis'],
-    [100, 'Rozpad potvrzen', 'complete']
+    [13, 'Přijímám lokální vzorek', 'intake'],
+    [31, 'Zamykám oči a zornice', 'eyes'],
+    [48, 'Mapuju nos a ústa', 'features'],
+    [68, 'Uzavírám konturu obličeje', 'jaw'],
+    [89, 'Sestavuju SMAŽKA protokol', 'analysis'],
+    [100, 'Vzorek uzavřen', 'complete']
   ];
 
   function setStatus(message) {
@@ -1051,20 +1053,20 @@
     if (!isScanning) {
       setStatus(
         faceDetected
-          ? `${landmarkCount} bodů subjektu zamčeno`
+          ? `${landmarkCount} bodů vzorku zamčeno`
           : modelState === 'loading' || modelState === 'warming'
-            ? 'Probouzím VOID engine'
+            ? 'Připravuju lokální laboratoř'
             : modelState === 'failed'
               ? 'Přesná detekce odmítla svědčit'
-              : 'Hledám oči, nos a zbytky tváře'
+              : 'Hledám jeden obličej pro vzorek'
       );
     }
 
     if (!changed) return;
     if (faceDetected) {
-      app.setHint('Subjekt zamčen. Rozsudek může začít.');
+      app.setHint('Vzorek zamčen. Spusť toxikologický průchod.');
     } else if (modelState === 'ready') {
-      app.setHint('Podívej se do portálu a nech v něm celý ksicht.');
+      app.setHint('Podívej se do kamery a nech v ní celý ksicht.');
     }
   }
 
@@ -1321,7 +1323,7 @@
       });
       faceMesh.onResults(handleFaceMeshResults);
       modelState = 'warming';
-      app.setHint('VOID engine mapuje skutečné oči, nos, ústa a konturu…');
+      app.setHint('Lokální laboratoř mapuje skutečné oči, nos, ústa a konturu…');
       scheduleDetection(40);
       return faceMesh;
     })().catch((error) => {
@@ -1456,8 +1458,8 @@
     await waitForDetectorIdle();
     const image = await loadStillImage(imageData);
     detectionBusy = true;
-    setStatus('Měřím 468 bodů nahrané fotky');
-    app.setHint('VOID hledá na fotce přesně jeden obličej…');
+    setStatus('Mapuju body nahraného vzorku');
+    app.setHint('Lokální laboratoř hledá na fotce přesně jeden obličej…');
 
     try {
       faceMesh.setOptions({ maxNumFaces: 2 });
@@ -1546,10 +1548,10 @@
     loading.classList.add('hidden');
     setStatus(
       hasFreshLandmarks()
-        ? `${landmarkCount} bodů subjektu zamčeno`
+        ? `${landmarkCount} bodů vzorku zamčeno`
         : modelState === 'failed'
           ? 'Přesná detekce odmítla svědčit'
-          : 'Hledám oči, nos a zbytky tváře'
+          : 'Hledám jeden obličej pro vzorek'
     );
     scheduleDetection(60);
   }
@@ -1584,7 +1586,7 @@
     retakeButton.classList.remove('hidden');
     app.showCapturedFrame();
     app.setBusy(false);
-    app.setHint('Přepočítávám oči, náklon a zbytky lidskosti…');
+    app.setHint('Sestavuju SMAŽKA protokol z očí, náklonu a asymetrie…');
 
     try {
       const { analyzeFaceImage } = await loadMetricsModule();
@@ -1663,8 +1665,8 @@
 
     if (modelState === 'loading' || modelState === 'warming') {
       initializeFaceMesh().catch(() => undefined);
-      app.setHint('Ještě chvíli — VOID engine načítá skutečné body obličeje.');
-      setStatus('Probouzím VOID engine');
+      app.setHint('Ještě chvíli — lokální laboratoř načítá skutečné body obličeje.');
+      setStatus('Připravuju lokální laboratoř');
       scheduleDetection(0);
       return;
     }
@@ -1688,7 +1690,7 @@
     app.hideResult?.();
     previewContainer.classList.add('hidden');
     app.clearErrors();
-    app.setHint('Ani hnout. VOID sleduje skutečné oči, nos, ústa a čelist.');
+    app.setHint('Ani hnout. Odebírám lokální vzorek z očí, úst a čelisti.');
     app.setBusy(true);
 
     loading.classList.add('hidden');
@@ -1724,8 +1726,8 @@
       }
       app.setHint(
         modelState === 'ready'
-          ? 'Podívej se do portálu. Obrys se přichytí ke skutečným rysům.'
-          : 'VOID engine mapuje skutečné oči, nos, ústa a konturu…'
+          ? 'Podívej se do kamery. Obrys se přichytí ke skutečným rysům.'
+          : 'Lokální laboratoř mapuje skutečné oči, nos, ústa a konturu…'
       );
       scheduleDetection(40);
     }
@@ -1762,7 +1764,7 @@
 })();
 
 /* === junkie-vision-hud-v81.js === */
-/* Smažka v81 — real-time thematic HUD drawn over the camera during the 3s scan. */
+/* Smažka v116 — real-time local specimen protocol drawn during the 3s scan. */
 (() => {
   'use strict';
 
@@ -1777,11 +1779,12 @@
   const wrapper = document.createElement('div');
   wrapper.id = 'junkieVisionHud';
   wrapper.className = 'junkie-vision-hud';
+  wrapper.dataset.protocolOwner = 'v116';
   wrapper.setAttribute('aria-hidden', 'true');
 
   const canvas = document.createElement('canvas');
   canvas.className = 'junkie-vision-canvas';
-  canvas.dataset.hudCanvas = 'v81';
+  canvas.dataset.hudCanvas = 'v116';
 
   const chrome = document.createElement('div');
   chrome.className = 'junkie-vision-chrome';
@@ -1792,12 +1795,12 @@
     <div class="jvh-corner jvh-corner-br"></div>
     <div class="jvh-system">
       <strong class="jvh-stage-label">${theme.labels.init}</strong>
-      <span class="jvh-frame-counter">FRAME 0000 // LOCAL</span>
+      <span class="jvh-frame-counter">VZOREK // FRAME 0000 // LOKÁLNĚ</span>
     </div>
     <div class="jvh-score">
-      <small>JUNKIE INDEX</small>
-      <strong>00</strong>
-      <span>%</span>
+      <small>MAPA TVÁŘE</small>
+      <strong>000</strong>
+      <span>BODŮ</span>
     </div>
     <div class="jvh-metrics" role="presentation"></div>
     <div class="jvh-critical"><span>${theme.labels.critical}</span></div>
@@ -1977,9 +1980,10 @@
     const droop = eyeDroop(mappedPoints);
     const mouth = mouthAsymmetry(mappedPoints);
     const noise = Math.round(landmarkNoise * 100);
+    const points = Math.max(0, Math.min(478, Number(latestSnapshot?.landmarks?.length || 0)));
     const timeline = clamp(elapsed / timing.totalMs, 0, 1);
     const index = clamp(Math.round(34 + droop * 0.28 + mouth * 0.18 + noise * 0.2 + timeline * 31), 8, 99);
-    return { droop, mouth, noise, index };
+    return { droop, mouth, noise, index, points };
   }
 
   function phaseFor(elapsed) {
@@ -2000,8 +2004,8 @@
           : theme.labels.critical;
     }
 
-    frameCounter.textContent = `FRAME ${String(frameNumber).padStart(4, '0')} // LOCAL`;
-    scoreValue.textContent = String(signal.index).padStart(2, '0');
+    frameCounter.textContent = `VZOREK // FRAME ${String(frameNumber).padStart(4, '0')} // LOKÁLNĚ`;
+    scoreValue.textContent = String(signal.points).padStart(3, '0');
 
     if (elapsed >= timing.initEndMs) {
       const nextCursor = Math.floor((elapsed - timing.initEndMs) / timing.metricRotateMs);
@@ -2009,7 +2013,7 @@
         metricCursor = nextCursor;
         const metric = theme.metrics[nextCursor % theme.metrics.length];
         metricHistory = [
-          { metric, value: metricValue(metric.kind, signal, nextCursor) },
+          { metric, value: metricValue(metric.kind, signal) },
           ...metricHistory
         ].slice(0, metricRows.length);
       }
@@ -2019,27 +2023,24 @@
       const item = metricHistory[index];
       row.classList.toggle('is-hot', index === 0 && phase !== 'init');
       row.classList.toggle('is-empty', !item);
-      row.querySelector('span').textContent = item ? `[${item.metric.label}]` : '[ČEKÁM NA BIOLOGICKÝ MATERIÁL]';
+      row.querySelector('span').textContent = item ? `[${item.metric.label}]` : '[ČEKÁM NA LOKÁLNÍ VZOREK]';
       row.querySelector('strong').textContent = item ? `${item.value}${item.metric.suffix ? ` ${item.metric.suffix}` : ''}` : '...';
     });
   }
 
-  function metricValue(kind, signal, cursor) {
-    const random = seeded(cursor, signal.index);
+  function metricValue(kind, signal) {
     switch (kind) {
-      case 'scatter': return clamp(Math.round(67 + signal.noise * 0.24 + random * 24), 0, 99);
-      case 'droop': return (9.8 + signal.droop / 68).toFixed(1);
-      case 'jaw': return signal.mouth > 48 ? 'ŽVÝKACÍ SVAL: TIKAJÍCÍ BOMBA' : 'ČELIST: PODEZŘELE AKTIVNÍ';
-      case 'hydration': return (0.1 + random * 0.8).toFixed(1);
-      case 'mouth': return signal.mouth > 45 ? 'ODCHYLKA OD TŘÍZLÍKU: MAX' : `ODCHYLKA ${signal.mouth} %`;
-      case 'pernik': return cursor % 2 ? 'PROBÍHÁ PROPOČET...' : `${clamp(signal.index + 7, 0, 99)} % / NEOVĚŘENO`;
-      case 'paranoia': return random > 0.45 ? 'DETEKOVÁN SOUSED ZA ZÁVĚSEM' : 'OKNO SLEDUJE SUBJEKT';
-      case 'pupils': return `RÁŽE ${clamp(Math.round(6 + signal.droop / 24), 6, 11)} mm (ROZTAŽENO)`;
+      case 'droop': return `POKLES VÍČEK ${signal.droop} %`;
+      case 'motor': return signal.noise > 55 ? `NESTABILNÍ ${signal.noise} %` : `ODCHYLKA ${signal.noise} %`;
+      case 'mouth': return signal.mouth > 45 ? 'ODCHYLKA: VYSOKÁ' : `ODCHYLKA ${signal.mouth} %`;
+      case 'signal': return `${clamp(Math.round(100 - signal.noise * 0.78), 2, 100)} %`;
+      case 'points': return `${signal.points} / 478`;
+      case 'alert': return signal.index > 72 ? 'SATIRICKÝ SIGNÁL: VYSOKÝ' : 'SATIRICKÝ SIGNÁL: ČEKÁ';
       case 'reality': return signal.index > 72 ? 'SPOJENÍ PŘERUŠENO' : 'PINGUJE, ALE NEODPOVÍDÁ';
       case 'humanity': return clamp(Math.round(100 - signal.index * 0.93), 0, 91);
-      case 'ping': return Math.round(180 + signal.index * 8.6 + random * 230);
-      case 'signal': return clamp(Math.round(100 - signal.noise * 0.7 - signal.index * 0.22), 2, 92);
-      default: return Math.round(random * 100);
+      case 'ping': return Math.round(180 + signal.index * 8.6 + signal.noise * 2.3);
+      case 'quality': return clamp(Math.round(100 - signal.noise * 0.72), 2, 100);
+      default: return 'NEOVĚŘENO';
     }
   }
 
@@ -2117,7 +2118,7 @@
       context.font = '600 8px ui-monospace, SFMono-Regular, Menlo, monospace';
       context.fillStyle = colors.white;
       context.textAlign = side > 0 ? 'left' : 'right';
-      context.fillText(`DROOP ${signal.droop}`, x + side * 7, y + 8);
+      context.fillText(`VÍČKA ${signal.droop}`, x + side * 7, y + 8);
       context.restore();
     });
   }
@@ -2155,40 +2156,40 @@
 
     context.save();
     const gradient = context.createLinearGradient(left, y, right, y);
-    gradient.addColorStop(0, 'rgba(0,255,102,0)');
-    gradient.addColorStop(0.15, 'rgba(0,255,102,0.8)');
-    gradient.addColorStop(0.5, 'rgba(244,255,248,1)');
-    gradient.addColorStop(0.82, 'rgba(255,0,85,0.84)');
-    gradient.addColorStop(1, 'rgba(255,0,85,0)');
+    gradient.addColorStop(0, colors.toxicFade);
+    gradient.addColorStop(0.15, colors.toxicSoft);
+    gradient.addColorStop(0.5, colors.white);
+    gradient.addColorStop(0.82, colors.impactSoft);
+    gradient.addColorStop(1, colors.impactFade);
     context.strokeStyle = gradient;
-    context.lineWidth = 1.4 + signal.noise * 1.2;
+    context.lineWidth = 1.4 + signal.noise / 100 * 1.2;
     context.shadowColor = signal.index > 72 ? colors.impact : colors.toxic;
-    context.shadowBlur = 12 + signal.noise * 9;
+    context.shadowBlur = 12 + signal.noise * 0.09;
     context.beginPath();
     context.moveTo(left, y);
     context.lineTo(right, y);
     context.stroke();
 
-    context.globalAlpha = 0.14 + signal.noise * 0.18;
-    context.fillStyle = colors.toxic;
+    context.globalAlpha = 0.14 + signal.noise / 100 * 0.18;
+    context.fillStyle = colors.toxicSoft;
     context.fillRect(left, y - 9, right - left, 18);
     context.restore();
   }
 
-  function drawGlitches(elapsed, signal, phase) {
-    const slot = Math.floor(elapsed / (phase === 'critical' ? 46 : 92));
-    const intensity = clamp(0.08 + signal.noise * 0.42 + (phase === 'critical' ? 0.36 : 0), 0, 0.82);
+  function drawSampleBands(elapsed, signal, phase) {
+    const slot = Math.floor(elapsed / (phase === 'critical' ? 96 : 160));
+    const intensity = clamp(0.04 + signal.noise / 100 * 0.22 + (phase === 'critical' ? 0.18 : 0), 0, 0.38);
     if (seeded(slot, 3) > intensity || !faceBounds) return;
 
-    const bars = phase === 'critical' ? 4 : 2;
+    const bars = phase === 'critical' ? 2 : 1;
     context.save();
     context.globalCompositeOperation = 'lighter';
     for (let index = 0; index < bars; index += 1) {
       const randomY = faceBounds.top + seeded(slot, index + 5) * faceBounds.height;
-      const height = 1 + seeded(slot, index + 9) * 5;
-      const offset = (seeded(slot, index + 13) - 0.5) * (18 + signal.noise * 34);
-      context.globalAlpha = 0.16 + seeded(slot, index + 17) * 0.34;
-      context.fillStyle = index % 2 ? colors.impact : colors.warning;
+      const height = 1 + seeded(slot, index + 9) * 2;
+      const offset = (seeded(slot, index + 13) - 0.5) * (6 + signal.noise * 0.1);
+      context.globalAlpha = 0.1 + seeded(slot, index + 17) * 0.16;
+      context.fillStyle = phase === 'critical' && index % 2 ? colors.impact : colors.toxic;
       context.fillRect(faceBounds.left + offset, randomY, faceBounds.width, height);
     }
     context.restore();
@@ -2206,8 +2207,8 @@
       faceBounds.centerY,
       faceBounds.width * 0.72
     );
-    gradient.addColorStop(0, `rgba(255,0,85,${blink + signal.index / 900})`);
-    gradient.addColorStop(1, 'rgba(255,0,85,0)');
+    gradient.addColorStop(0, `rgba(255, 107, 125, ${blink + signal.index / 900})`);
+    gradient.addColorStop(1, 'rgba(255, 107, 125, 0)');
     context.fillStyle = gradient;
     context.fillRect(faceBounds.left - 36, faceBounds.top - 36, faceBounds.width + 72, faceBounds.height + 72);
     context.restore();
@@ -2263,7 +2264,7 @@
       drawScanner(elapsed, signal);
       drawEyeMeters(signal);
       drawForeheadCore(elapsed, signal);
-      drawGlitches(elapsed, signal, phase);
+      drawSampleBands(elapsed, signal, phase);
       if (phase === 'critical') drawCriticalWash(elapsed, signal);
     }
     drawPowerOn(elapsed);
@@ -2359,6 +2360,7 @@
   }, { once: true });
 
   window.SmazkaJunkieVision = Object.freeze({
+    version: 116,
     start: activate,
     stop: deactivate,
     getState() {
@@ -2442,8 +2444,8 @@
     };
 
     context.fillText = (text, ...args) => {
-      // Eye bars remain visible; duplicate DROOP labels were the noisiest part.
-      if (/^DROOP\s/i.test(String(text))) return undefined;
+      // Eye bars remain visible; duplicate eye labels would bury the specimen.
+      if (/^(?:DROOP|VÍČKA)\s/i.test(String(text))) return undefined;
       return nativeFillText(text, ...args);
     };
   }
@@ -2510,7 +2512,7 @@
 
       if (!Array.isArray(landmarks) || landmarks.length < 468) {
         app.showError('Sken se zastavil a nemám ani poslední skutečné body obličeje. Zkus ho spustit znovu.');
-        app.setHint('VOID watchdog sken bezpečně ukončil místo nekonečného čekání.');
+        app.setHint('SMAŽKA watchdog sken bezpečně ukončil místo nekonečného čekání.');
         return;
       }
 
@@ -2545,7 +2547,7 @@
         }
       }));
     } catch (error) {
-      console.error('VOID scan watchdog nedokončil nouzový průchod:', error);
+      console.error('SMAŽKA scan watchdog nedokončil nouzový průchod:', error);
       faceScan.reset?.();
       app.showError('Sken se zasekl a nouzové dokončení selhalo. Zkus nový sken.');
       app.setHint('Watchdog aplikaci odemkl; kamera je připravená na další pokus.');

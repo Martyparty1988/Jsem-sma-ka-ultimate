@@ -23,6 +23,41 @@ class MockFaceMesh {
   }
 }
 
+test('v116 exposes one stable landmark feed before the lazy Face Mesh runtime exists', () => {
+  class LazyMockFaceMesh {
+    onResults(callback) {
+      this.callback = callback;
+    }
+
+    send(packet) {
+      this.lastPacket = packet;
+      return Promise.resolve();
+    }
+  }
+
+  const context = {
+    console,
+    performance: { now: () => 1 },
+    Set,
+    WeakMap,
+    Object,
+    Array,
+    HTMLVideoElement: MockVideo,
+    window: {}
+  };
+  context.globalThis = context;
+  vm.runInNewContext(source, context);
+
+  const feed = context.window.SmazkaLandmarkFeed;
+  assert.ok(feed);
+  assert.equal(feed.getSnapshot().landmarks, null);
+  assert.equal(context.window.SmazkaInstallLandmarkBridge(), false);
+
+  context.window.FaceMesh = LazyMockFaceMesh;
+  assert.equal(context.window.SmazkaInstallLandmarkBridge(), true);
+  assert.equal(context.window.SmazkaLandmarkFeed, feed);
+});
+
 test('landmark bridge publishes MediaPipe results without replacing the app callback', async () => {
   let now = 100;
   const context = {

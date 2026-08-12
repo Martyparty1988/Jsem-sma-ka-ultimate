@@ -5330,7 +5330,7 @@ body.face-scan-active .video-container {
   }
 }
 
-/* Smažka v81 — Junkie Vision HUD above the camera, active only during face scan. */
+/* Smažka v116 — local specimen protocol above the camera during face scan. */
 
 .junkie-vision-hud {
   position: absolute;
@@ -5341,7 +5341,7 @@ body.face-scan-active .video-container {
   pointer-events: none;
   opacity: 0;
   visibility: hidden;
-  color: #f4fff8;
+  color: #f2f5f7;
   font-family: ui-monospace, "SFMono-Regular", Menlo, Monaco, Consolas, monospace;
   mix-blend-mode: normal;
   transition: opacity 180ms ease, visibility 0s linear 180ms;
@@ -5371,7 +5371,8 @@ body.face-scan-active .video-container {
 .junkie-vision-canvas {
   z-index: 1;
   display: block;
-  filter: saturate(1.18) contrast(1.04);
+  opacity: 0.74;
+  filter: saturate(0.94) contrast(1.03);
 }
 
 .junkie-vision-chrome {
@@ -5380,37 +5381,27 @@ body.face-scan-active .video-container {
   background:
     repeating-linear-gradient(
       180deg,
-      rgba(244, 255, 248, 0.035) 0,
-      rgba(244, 255, 248, 0.035) 1px,
+      rgba(242, 245, 247, 0.024) 0,
+      rgba(242, 245, 247, 0.024) 1px,
       transparent 1px,
-      transparent 5px
+      transparent 22px
     ),
-    radial-gradient(circle at 50% 46%, transparent 52%, rgba(0, 0, 0, 0.28) 100%);
-  box-shadow: inset 0 0 70px rgba(0, 0, 0, 0.34);
+    radial-gradient(circle at 50% 46%, transparent 52%, rgba(3, 7, 10, 0.34) 100%);
+  box-shadow: inset 0 0 70px rgba(0, 0, 0, 0.28);
 }
 
 .junkie-vision-chrome::before {
-  content: "";
-  position: absolute;
-  inset: -12%;
-  opacity: 0.08;
-  background-image:
-    radial-gradient(circle, rgba(255, 255, 255, 0.7) 0 0.7px, transparent 0.9px),
-    radial-gradient(circle, rgba(0, 255, 102, 0.5) 0 0.55px, transparent 0.8px);
-  background-position: 0 0, 7px 11px;
-  background-size: 13px 17px, 19px 23px;
-  animation: junkie-noise-v81 180ms steps(2, end) infinite;
+  display: none;
+  content: none;
 }
 
 .junkie-vision-chrome::after {
   content: "";
   position: absolute;
   inset: 0;
-  border: 1px solid rgba(0, 255, 102, 0.28);
+  border: 1px solid rgba(88, 214, 194, 0.28);
   border-radius: inherit;
-  box-shadow:
-    inset 0 0 0 1px rgba(255, 0, 85, 0.07),
-    inset 0 0 42px rgba(0, 255, 102, 0.05);
+  box-shadow: inset 0 0 42px rgba(88, 214, 194, 0.04);
 }
 
 .jvh-corner {
@@ -5418,8 +5409,8 @@ body.face-scan-active .video-container {
   width: 34px;
   height: 34px;
   opacity: 0.88;
-  border-color: #00ff66;
-  filter: drop-shadow(0 0 5px rgba(0, 255, 102, 0.4));
+  border-color: #58d6c2;
+  filter: none;
 }
 
 .jvh-corner-tl {
@@ -5458,14 +5449,14 @@ body.face-scan-active .video-container {
   gap: 3px;
   max-width: min(62%, 290px);
   padding: 7px 9px;
-  border-left: 2px solid #00ff66;
-  background: linear-gradient(90deg, rgba(2, 8, 6, 0.88), rgba(2, 8, 6, 0.22));
-  text-shadow: 0 0 6px rgba(0, 255, 102, 0.56);
+  border-left: 2px solid #58d6c2;
+  background: linear-gradient(90deg, rgba(10, 15, 21, 0.88), rgba(10, 15, 21, 0.28));
+  text-shadow: none;
 }
 
 .jvh-stage-label {
   overflow: hidden;
-  color: #00ff66;
+  color: #7ee1d1;
   font-size: clamp(0.62rem, 2.5vw, 0.78rem);
   line-height: 1.15;
   letter-spacing: 0.06em;
@@ -5474,7 +5465,7 @@ body.face-scan-active .video-container {
 }
 
 .jvh-frame-counter {
-  color: rgba(244, 255, 248, 0.58);
+  color: rgba(218, 229, 238, 0.58);
   font-size: clamp(0.48rem, 1.8vw, 0.58rem);
   letter-spacing: 0.08em;
 }
@@ -5486,32 +5477,32 @@ body.face-scan-active .video-container {
   display: grid;
   grid-template-columns: auto auto;
   align-items: end;
-  min-width: 84px;
+  min-width: 92px;
   padding: 8px 9px 7px;
-  border: 1px solid rgba(255, 204, 0, 0.52);
-  background: rgba(2, 8, 6, 0.76);
-  box-shadow: 0 0 18px rgba(255, 204, 0, 0.08);
+  border: 1px solid rgba(88, 214, 194, 0.46);
+  background: rgba(10, 15, 21, 0.78);
+  box-shadow: inset 0 1px rgba(255, 255, 255, 0.035);
   text-align: right;
 }
 
 .jvh-score small {
   grid-column: 1 / -1;
-  color: rgba(255, 204, 0, 0.76);
+  color: rgba(126, 225, 209, 0.76);
   font-size: 0.47rem;
   letter-spacing: 0.1em;
 }
 
 .jvh-score strong {
-  color: #ffcc00;
+  color: #f2f5f7;
   font-size: clamp(1.25rem, 5.5vw, 1.8rem);
   line-height: 0.95;
-  text-shadow: 0 0 10px rgba(255, 204, 0, 0.42);
+  text-shadow: none;
 }
 
 .jvh-score span {
   padding: 0 0 2px 3px;
-  color: rgba(244, 255, 248, 0.64);
-  font-size: 0.62rem;
+  color: rgba(218, 229, 238, 0.64);
+  font-size: 0.5rem;
 }
 
 .jvh-metrics {
@@ -5523,9 +5514,9 @@ body.face-scan-active .video-container {
   gap: 3px;
   max-height: 34%;
   padding: 8px 9px;
-  border-top: 1px solid rgba(0, 255, 102, 0.46);
-  border-bottom: 1px solid rgba(255, 0, 85, 0.28);
-  background: linear-gradient(90deg, rgba(2, 8, 6, 0.86), rgba(2, 8, 6, 0.46), rgba(2, 8, 6, 0.82));
+  border-top: 1px solid rgba(88, 214, 194, 0.42);
+  border-bottom: 1px solid rgba(218, 229, 238, 0.12);
+  background: linear-gradient(90deg, rgba(10, 15, 21, 0.88), rgba(10, 15, 21, 0.54), rgba(10, 15, 21, 0.84));
   backdrop-filter: blur(3px);
   -webkit-backdrop-filter: blur(3px);
 }
@@ -5535,7 +5526,7 @@ body.face-scan-active .video-container {
   grid-template-columns: minmax(0, 1fr) auto;
   gap: 10px;
   min-width: 0;
-  color: rgba(244, 255, 248, 0.48);
+  color: rgba(218, 229, 238, 0.52);
   font-size: clamp(0.48rem, 1.9vw, 0.61rem);
   line-height: 1.18;
   letter-spacing: 0.025em;
@@ -5550,18 +5541,18 @@ body.face-scan-active .video-container {
 }
 
 .jvh-metric-row strong {
-  color: rgba(255, 204, 0, 0.68);
+  color: rgba(242, 201, 109, 0.76);
   font-weight: 700;
   text-align: right;
 }
 
 .jvh-metric-row.is-hot {
-  color: #f4fff8;
-  text-shadow: 0 0 7px rgba(0, 255, 102, 0.36);
+  color: #f2f5f7;
+  text-shadow: none;
 }
 
 .jvh-metric-row.is-hot strong {
-  color: #00ff66;
+  color: #7ee1d1;
 }
 
 .jvh-metric-row.is-empty {
@@ -5582,37 +5573,37 @@ body.face-scan-active .video-container {
 .jvh-critical span {
   width: 100%;
   padding: 10px 8px;
-  border-top: 2px solid #ff0055;
-  border-bottom: 2px solid #ff0055;
-  background: rgba(24, 0, 8, 0.76);
-  color: #fff3f7;
+  border-top: 2px solid #ff6b7d;
+  border-bottom: 2px solid #ff6b7d;
+  background: rgba(24, 8, 13, 0.82);
+  color: #fff4f6;
   font-size: clamp(0.72rem, 3.2vw, 1rem);
   font-weight: 900;
   letter-spacing: 0.11em;
   text-align: center;
-  text-shadow: 0 0 12px rgba(255, 0, 85, 0.9);
+  text-shadow: none;
 }
 
 .junkie-vision-hud.is-critical .jvh-critical {
   opacity: 1;
   transform: translateY(-50%) scaleX(1);
-  animation: junkie-critical-v81 160ms steps(2, end) infinite;
+  animation: specimen-seal-v116 360ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 .junkie-vision-hud.is-critical .jvh-score {
-  border-color: rgba(255, 0, 85, 0.78);
-  box-shadow: 0 0 22px rgba(255, 0, 85, 0.24);
+  border-color: rgba(255, 107, 125, 0.72);
+  box-shadow: inset 0 1px rgba(255, 255, 255, 0.04);
 }
 
 .junkie-vision-hud.is-critical .jvh-score strong,
 .junkie-vision-hud.is-critical .jvh-score small {
-  color: #ff0055;
-  text-shadow: 0 0 12px rgba(255, 0, 85, 0.72);
+  color: #ff8c9a;
+  text-shadow: none;
 }
 
 .junkie-vision-hud.is-critical .jvh-corner {
-  border-color: #ff0055;
-  filter: drop-shadow(0 0 7px rgba(255, 0, 85, 0.58));
+  border-color: #ff6b7d;
+  filter: none;
 }
 
 .jvh-footer {
@@ -5621,7 +5612,7 @@ body.face-scan-active .video-container {
   bottom: 17px;
   left: 18px;
   overflow: hidden;
-  color: rgba(244, 255, 248, 0.38);
+  color: rgba(218, 229, 238, 0.42);
   font-size: clamp(0.42rem, 1.6vw, 0.52rem);
   letter-spacing: 0.08em;
   text-overflow: ellipsis;
@@ -5629,25 +5620,18 @@ body.face-scan-active .video-container {
 }
 
 .junkie-vision-hud[data-phase="init"] .junkie-vision-chrome {
-  animation: junkie-crt-init-v81 780ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: specimen-protocol-init-v116 560ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
-@keyframes junkie-crt-init-v81 {
-  0% { clip-path: inset(49.6% 0 49.6%); filter: brightness(4) contrast(2); }
-  18% { clip-path: inset(37% 0 37%); }
-  52% { clip-path: inset(7% 0 7%); filter: brightness(1.35) contrast(1.2); }
-  100% { clip-path: inset(0); filter: none; }
+@keyframes specimen-protocol-init-v116 {
+  0% { opacity: 0; clip-path: inset(10% 0 10%); transform: scale(0.992); }
+  55% { opacity: 1; }
+  100% { opacity: 1; clip-path: inset(0); transform: scale(1); }
 }
 
-@keyframes junkie-noise-v81 {
-  0% { transform: translate3d(-1%, -1%, 0); }
-  50% { transform: translate3d(1.2%, 0.7%, 0); }
-  100% { transform: translate3d(-0.4%, 1%, 0); }
-}
-
-@keyframes junkie-critical-v81 {
-  0%, 100% { transform: translateY(-50%) translateX(0) scaleX(1); }
-  50% { transform: translateY(-50%) translateX(2px) scaleX(0.992); }
+@keyframes specimen-seal-v116 {
+  0% { opacity: 0; transform: translateY(-50%) scale(0.94); }
+  100% { opacity: 1; transform: translateY(-50%) scale(1); }
 }
 
 @media (max-width: 420px) {
@@ -5659,7 +5643,7 @@ body.face-scan-active .video-container {
 
   .jvh-score {
     right: 14px;
-    min-width: 72px;
+    min-width: 80px;
     padding: 7px;
   }
 
@@ -5682,7 +5666,6 @@ body.face-scan-active .video-container {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .junkie-vision-chrome::before,
   .junkie-vision-hud[data-phase="init"] .junkie-vision-chrome,
   .junkie-vision-hud.is-critical .jvh-critical {
     animation: none !important;
@@ -5695,7 +5678,7 @@ body.face-scan-active .video-container {
   }
 }
 
-/* Smažka v83 — balanced HUD density and one visual authority during scan. */
+/* Smažka v116 — balanced specimen density and one visual authority during scan. */
 
 body.junkie-vision-active #scanOverlay {
   opacity: 0 !important;
@@ -5704,16 +5687,16 @@ body.junkie-vision-active #scanOverlay {
 }
 
 .junkie-vision-hud.is-balanced-v83 {
-  --jvh-balanced-panel: rgba(2, 8, 6, 0.68);
+  --jvh-balanced-panel: rgba(10, 15, 21, 0.72);
 }
 
 .junkie-vision-hud.is-balanced-v83 .junkie-vision-canvas {
-  opacity: 0.78;
-  filter: saturate(1.04) contrast(1.03);
+  opacity: 0.72;
+  filter: saturate(0.94) contrast(1.03);
 }
 
 .junkie-vision-hud.is-balanced-v83 .junkie-vision-chrome::before {
-  opacity: 0.06 !important;
+  display: none !important;
 }
 
 .junkie-vision-hud.is-balanced-v83 .jvh-system,
@@ -5724,13 +5707,13 @@ body.junkie-vision-active #scanOverlay {
 
 .junkie-vision-hud.is-balanced-v83 .jvh-system {
   max-width: min(62%, 290px);
-  background: linear-gradient(90deg, rgba(2, 8, 6, 0.76), rgba(2, 8, 6, 0.36));
+  background: linear-gradient(90deg, rgba(10, 15, 21, 0.82), rgba(10, 15, 21, 0.42));
 }
 
 .junkie-vision-hud.is-balanced-v83 .jvh-score {
   transform: scale(0.93);
   transform-origin: top right;
-  background: rgba(8, 8, 2, 0.64);
+  background: rgba(10, 15, 21, 0.74);
 }
 
 .junkie-vision-hud.is-balanced-v83 .jvh-metrics {
@@ -5740,8 +5723,8 @@ body.junkie-vision-active #scanOverlay {
   max-height: 76px !important;
   padding: 7px 10px !important;
   overflow: hidden !important;
-  border-top-color: rgba(0, 255, 102, 0.36) !important;
-  background: linear-gradient(180deg, rgba(2, 8, 6, 0.72), rgba(2, 8, 6, 0.58)) !important;
+  border-top-color: rgba(88, 214, 194, 0.36) !important;
+  background: linear-gradient(180deg, rgba(10, 15, 21, 0.78), rgba(10, 15, 21, 0.64)) !important;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2) !important;
 }
 
@@ -5772,8 +5755,8 @@ body.junkie-vision-active #scanOverlay {
   height: 2px;
   overflow: hidden;
   border-radius: 999px;
-  background: rgba(244, 255, 248, 0.12);
-  box-shadow: 0 0 0 1px rgba(0, 255, 102, 0.08);
+  background: rgba(218, 229, 238, 0.12);
+  box-shadow: 0 0 0 1px rgba(88, 214, 194, 0.08);
 }
 
 .jvh-balanced-progress span {
@@ -5781,8 +5764,8 @@ body.junkie-vision-active #scanOverlay {
   width: var(--scan-progress, 0%);
   height: 100%;
   border-radius: inherit;
-  background: linear-gradient(90deg, #00ff66 0%, #ffcc00 72%, #ff0055 100%);
-  box-shadow: 0 0 9px rgba(0, 255, 102, 0.52);
+  background: linear-gradient(90deg, #58d6c2 0%, #f2c96d 76%, #ff6b7d 100%);
+  box-shadow: 0 0 8px rgba(88, 214, 194, 0.34);
   transition: width 90ms linear;
 }
 
@@ -5791,7 +5774,7 @@ body.junkie-vision-active #scanOverlay {
 }
 
 .junkie-vision-hud.is-balanced-v83[data-phase="critical"] .jvh-metrics {
-  border-top-color: rgba(255, 0, 85, 0.58) !important;
+  border-top-color: rgba(255, 107, 125, 0.58) !important;
 }
 
 @media (max-width: 430px) {

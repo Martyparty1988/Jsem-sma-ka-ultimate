@@ -8,13 +8,13 @@ test('v83 keeps a recognisable HUD without the duplicated visual noise', () => {
 
   assert.match(runtime, /pathIndex === 1 && pathLines > 120/);
   assert.match(runtime, /foreheadArcCount > 1/);
-  assert.match(runtime, /\^DROOP\\s\/i/);
+  assert.match(runtime, /DROOP\|VÍČKA/);
   assert.match(runtime, /jvh-balanced-progress/);
   assert.match(css, /body\.junkie-vision-active #scanOverlay/);
   assert.match(css, /visibility:\s*hidden\s*!important/);
   assert.match(css, /\.jvh-metric-row:nth-child\(n \+ 3\)/);
   assert.match(css, /width:\s*var\(--scan-progress, 0%\)/);
-  assert.match(css, /\.junkie-vision-canvas[\s\S]*opacity:\s*0\.78/);
+  assert.match(css, /\.junkie-vision-canvas[\s\S]*opacity:\s*0\.72/);
 });
 
 test('v83 watchdog finishes a stalled scan from the last real MediaPipe landmarks', () => {
@@ -46,5 +46,5 @@ test('v83 loads after the camera HUD inside the cached scanner bundle', () => {
   assert.ok(hud > scan);
   assert.ok(balance > hud);
   assert.match(readRoot('screens.css'), /jvh-balanced-progress/);
-  assert.match(serviceWorker, /\.\/scanner-runtime\.js\?v=113/);
+  assert.match(serviceWorker, /\.\/scanner-runtime\.js\?v=116/);
 });

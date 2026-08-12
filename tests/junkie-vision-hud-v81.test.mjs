@@ -3,7 +3,7 @@ import test from 'node:test';
 import vm from 'node:vm';
 import { readBundleSection, readRoot } from './bundle-source.mjs';
 
-test('Junkie Vision v81 keeps theme copy separate from renderers', () => {
+test('v116 specimen protocol keeps theme copy separate from renderers', () => {
   const appendedScripts = [];
   const document = {
     querySelector() { return null; },
@@ -20,10 +20,11 @@ test('Junkie Vision v81 keeps theme copy separate from renderers', () => {
   vm.runInNewContext(readBundleSection('hud-junkie-themes.js'), context);
   const theme = context.window.SmazkaJunkieHudTheme;
 
-  assert.equal(theme.version, 81);
-  assert.equal(theme.colors.toxic, '#00FF66');
-  assert.equal(theme.colors.impact, '#FF0055');
-  assert.equal(theme.colors.warning, '#FFCC00');
+  assert.equal(theme.version, 116);
+  assert.equal(theme.name, 'SMAŽKA LAB / lokální vzorek');
+  assert.equal(theme.colors.toxic, '#58D6C2');
+  assert.equal(theme.colors.impact, '#FF6B7D');
+  assert.equal(theme.colors.warning, '#F2C96D');
   assert.equal(theme.timing.initEndMs, 1000);
   assert.equal(theme.timing.scanEndMs, 2500);
   assert.equal(theme.timing.totalMs, 3000);
@@ -32,8 +33,13 @@ test('Junkie Vision v81 keeps theme copy separate from renderers', () => {
   assert.equal(theme.performance.noiseSampleSize, 24);
   assert.equal(theme.performance.noiseSampleIntervalMs, 180);
   assert.ok(theme.metrics.length >= 8);
-  assert.ok(theme.metrics.some((item) => item.label.includes('POKLESU VÍČEK')));
-  assert.ok(theme.metrics.some((item) => item.label.includes('PERNÍKOVÉHO INDEXU')));
+  assert.equal(theme.labels.init, 'PŘÍJEM VZORKU // LOKÁLNÍ');
+  assert.equal(theme.labels.scanning, 'TOXIKOLOGICKÝ PRŮCHOD // 0 % DIAGNÓZA');
+  assert.equal(theme.labels.critical, 'VZOREK UZAVŘEN // TISKNU PROTOKOL');
+  assert.ok(theme.metrics.some((item) => item.label === 'ZORNIČKOVÝ NÁLEZ'));
+  assert.ok(theme.metrics.some((item) => item.label === 'TOXIKOLOGICKÝ POPLACH'));
+  assert.ok(theme.metrics.some((item) => item.label === 'MOTORIKA SUBJEKTU'));
+  assert.equal(theme.metrics.some((item) => item.label.includes('PERNÍKOVÉHO INDEXU')), false);
   assert.equal(appendedScripts.length, 2);
   assert.deepEqual(
     appendedScripts.map((script) => script.src),
@@ -41,13 +47,14 @@ test('Junkie Vision v81 keeps theme copy separate from renderers', () => {
   );
 });
 
-test('Junkie Vision v81 uses dedicated canvases, real landmarks and throttled animation', () => {
+test('v116 specimen protocol uses dedicated canvases, real landmarks and throttled animation', () => {
   const runtime = readBundleSection('junkie-vision-hud-v81.js');
   const photoRuntime = readRoot('junkie-vision-photo-v81.js');
   const noiseRuntime = readRoot('junkie-vision-noise-v81.js');
   const css = readRoot('screens.css');
 
-  assert.match(runtime, /canvas\.dataset\.hudCanvas = 'v81'/);
+  assert.match(runtime, /wrapper\.dataset\.protocolOwner = 'v116'/);
+  assert.match(runtime, /canvas\.dataset\.hudCanvas = 'v116'/);
   assert.match(runtime, /window\.FACEMESH_TESSELATION/);
   assert.match(runtime, /feed\.subscribe/);
   assert.match(runtime, /requestAnimationFrame\(draw\)/);
@@ -59,6 +66,10 @@ test('Junkie Vision v81 uses dedicated canvases, real landmarks and throttled an
   assert.match(runtime, /eyeDroop/);
   assert.match(runtime, /mouthAsymmetry/);
   assert.match(runtime, /landmarkNoise/);
+  assert.match(runtime, /scoreValue\.textContent = String\(signal\.points\)\.padStart\(3, '0'\)/);
+  assert.match(runtime, /drawSampleBands/);
+  assert.match(runtime, /version: 116/);
+  assert.doesNotMatch(runtime, /JUNKIE INDEX|CRITICAL IMPACT DETECTED/);
 
   assert.match(photoRuntime, /data-hud-canvas="v81-photo"/);
   assert.match(photoRuntime, /snapshot\?\.sourceKind === 'still'/);
@@ -75,8 +86,22 @@ test('Junkie Vision v81 uses dedicated canvases, real landmarks and throttled an
   assert.match(noiseRuntime, /data-frame-noise/);
 
   assert.match(css, /repeating-linear-gradient/);
-  assert.match(css, /junkie-crt-init-v81/);
+  assert.match(css, /specimen-protocol-init-v116/);
   assert.match(css, /prefers-reduced-motion/);
+});
+
+test('v116 scan stages have one Czech specimen owner and never expose the retired HUD score', () => {
+  const scan = readBundleSection('face-scan.js');
+  const hud = readBundleSection('junkie-vision-hud-v81.js');
+  const theme = readBundleSection('hud-junkie-themes.js');
+
+  assert.match(scan, /Přijímám lokální vzorek/);
+  assert.match(scan, /Sestavuju SMAŽKA protokol/);
+  assert.match(scan, /Vzorek uzavřen/);
+  assert.match(hud, /<small>MAPA TVÁŘE<\/small>/);
+  assert.match(hud, /<span>BODŮ<\/span>/);
+  assert.match(theme, /0 % DIAGNÓZA/);
+  assert.doesNotMatch(`${scan}\n${hud}\n${theme}`, /JUNKIE INDEX|SYSTEM INIT: WARNA READY|CRITICAL IMPACT DETECTED/);
 });
 
 test('Junkie Vision keeps patch order while Face Mesh stays lazy in PWA v87', () => {
@@ -102,7 +127,7 @@ test('Junkie Vision keeps patch order while Face Mesh stays lazy in PWA v87', ()
   assert.match(scanner, /FACE_RUNTIME_URL = `\$\{MODEL_ROOT\}face_mesh\.js\?v=0\.4\.1633559619`/);
   assert.match(scanner, /photoRuntimeUrl = 'junkie-vision-photo-v81\.js\?v=81'/);
   assert.match(scanner, /noiseRuntimeUrl = 'junkie-vision-noise-v81\.js\?v=81'/);
-  assert.match(serviceWorker, /\.\/scanner-runtime\.js\?v=113/);
+  assert.match(serviceWorker, /\.\/scanner-runtime\.js\?v=116/);
   assert.match(serviceWorker, /requestUrl\.pathname\.includes\('\/vendor\/mediapipe-face-mesh\/'\)/);
   assert.doesNotMatch(serviceWorker, /face_mesh_solution_.*\.wasm/);
 });
