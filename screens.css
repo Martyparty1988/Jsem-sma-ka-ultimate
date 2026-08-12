@@ -7152,3 +7152,161 @@ body.critical-impact-active .result-tool-grid {
     scroll-behavior: auto !important;
   }
 }
+
+
+/* Kartotéka owns its semantic DOM in app.js; this sheet owns the file-card presentation. */
+.kartoteka-trigger {
+  width: 100%;
+  min-height: 46px;
+  padding: 11px 14px;
+  border: 1px solid rgba(103, 232, 249, 0.23);
+  border-radius: 14px;
+  background: rgba(15, 23, 42, 0.62);
+  color: #bdeff7;
+  box-shadow: inset 0 1px rgba(255, 255, 255, 0.04);
+  font: 760 0.78rem/1.2 inherit;
+  letter-spacing: 0.045em;
+  text-transform: uppercase;
+}
+
+.kartoteka-trigger:hover {
+  border-color: rgba(103, 232, 249, 0.52);
+  background: rgba(21, 43, 57, 0.82);
+}
+
+.kartoteka-trigger:active {
+  transform: scale(0.985);
+}
+
+.kartoteka-dialog {
+  width: min(calc(100% - 24px), 460px);
+  max-height: min(720px, calc(100dvh - 24px));
+  margin: auto;
+  padding: 30px 18px max(18px, env(safe-area-inset-bottom));
+  overflow: auto;
+  border: 1px solid rgba(103, 232, 249, 0.26);
+  border-radius: 24px;
+  background:
+    linear-gradient(115deg, rgba(20, 59, 69, 0.2), transparent 42%),
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.018) 0 1px, transparent 1px 4px),
+    #08111c;
+  color: #e7f8fb;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.65), inset 0 1px rgba(255, 255, 255, 0.06);
+}
+
+.kartoteka-dialog::backdrop {
+  background: rgba(1, 5, 10, 0.8);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.kartoteka-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: grid;
+  width: 44px;
+  min-width: 44px;
+  height: 44px;
+  min-height: 44px;
+  padding: 0;
+  place-items: center;
+  border: 1px solid rgba(186, 235, 244, 0.2);
+  border-radius: 50%;
+  background: rgba(8, 20, 31, 0.88);
+  color: #d9f7fb;
+  font-size: 1.35rem;
+}
+
+.kartoteka-header { padding-right: 42px; }
+.kartoteka-kicker,
+.kartoteka-chart-label,
+.kartoteka-record span,
+.kartoteka-stat > span {
+  margin: 0;
+  color: rgba(160, 220, 231, 0.66);
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+}
+
+.kartoteka-header h2 {
+  margin: 5px 0 7px;
+  color: #e9fcff;
+  font-size: clamp(1.45rem, 7vw, 2rem);
+  letter-spacing: -0.04em;
+}
+
+.kartoteka-privacy {
+  margin: 0;
+  color: rgba(222, 242, 246, 0.7);
+  font-size: 0.78rem;
+  line-height: 1.42;
+}
+
+.kartoteka-summary {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 9px;
+  margin-top: 17px;
+}
+
+.kartoteka-stat,
+.kartoteka-chart,
+.kartoteka-record,
+.kartoteka-empty {
+  border: 1px solid rgba(160, 220, 231, 0.15);
+  border-radius: 13px;
+  background: rgba(4, 16, 27, 0.72);
+}
+
+.kartoteka-stat { padding: 10px; }
+.kartoteka-stat strong {
+  display: block;
+  margin-top: 5px;
+  color: #dcfbff;
+  font-size: 1.15rem;
+  line-height: 1.04;
+}
+.kartoteka-stat small { color: #8dd8e4; font-size: 0.64rem; font-weight: 760; }
+.kartoteka-stat-danger strong { color: #ff9da7; }
+
+.kartoteka-chart { margin-top: 10px; padding: 10px; }
+.kartoteka-chart-label { margin-bottom: 5px; }
+.kartoteka-sparkline { display: block; width: 100%; height: 46px; overflow: visible; }
+.kartoteka-sparkline-guide { stroke: rgba(160, 220, 231, 0.18); stroke-width: 1; }
+.kartoteka-sparkline-line { fill: none; stroke: #55e6d6; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; filter: drop-shadow(0 0 4px rgba(85, 230, 214, 0.45)); }
+
+.kartoteka-list {
+  display: grid;
+  gap: 8px;
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.kartoteka-record {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 10px;
+  align-items: center;
+  padding: 10px;
+}
+
+.kartoteka-record-score {
+  min-width: 52px;
+  color: #ffabb3;
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+.kartoteka-record div { min-width: 0; }
+.kartoteka-record div > strong { display: block; overflow-wrap: anywhere; color: #edfaff; font-size: 0.82rem; }
+.kartoteka-record span { display: block; margin-top: 3px; line-height: 1.35; }
+.kartoteka-empty { padding: 17px 14px; color: rgba(222, 242, 246, 0.72); font-size: 0.82rem; line-height: 1.45; text-align: center; }
+
+@media (max-height: 700px) {
+  .kartoteka-dialog { max-height: calc(100dvh - 12px); padding-top: 23px; }
+  .kartoteka-summary { margin-top: 12px; }
+  .kartoteka-chart { margin-top: 8px; }
+}

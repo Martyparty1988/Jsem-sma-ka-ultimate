@@ -154,7 +154,8 @@
     uploadInput: $('uploadInput'),
     generalError: $('generalError'),
     scanHint: $('scanHint'),
-    installButton: $('installButton')
+    installButton: $('installButton'),
+    footer: document.querySelector('footer')
   };
 
   const fallbackResponses = [
@@ -274,6 +275,149 @@
 
   function show(element) {
     element?.classList.remove('hidden');
+  }
+
+  function getKartoteka() {
+    return window.SmazkaKartoteka || null;
+  }
+
+  function formatKartotekaDate(value) {
+    try {
+      return new Intl.DateTimeFormat('cs-CZ', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+        .format(new Date(value));
+    } catch {
+      return 'čas byl zkonzumován';
+    }
+  }
+
+  function createKartotekaSparkline(records) {
+    const namespace = 'http://www.w3.org/2000/svg';
+    const svg = document.createElementNS(namespace, 'svg');
+    svg.classList.add('kartoteka-sparkline');
+    svg.setAttribute('viewBox', '0 0 240 44');
+    svg.setAttribute('role', 'img');
+    svg.setAttribute('aria-label', 'Vývoj skóre závažnosti v posledních skenech');
+
+    const values = records.map((record) => record.severity);
+    const points = values.map((severity, index) => {
+      const x = values.length === 1 ? 120 : (index / (values.length - 1)) * 232 + 4;
+      const y = 40 - (severity / 100) * 36;
+      return `${x.toFixed(1)},${y.toFixed(1)}`;
+    }).join(' ');
+
+    const guide = document.createElementNS(namespace, 'path');
+    guide.setAttribute('d', 'M4 40H236');
+    guide.setAttribute('class', 'kartoteka-sparkline-guide');
+    const line = document.createElementNS(namespace, 'polyline');
+    line.setAttribute('points', points || '4,40 236,40');
+    line.setAttribute('class', 'kartoteka-sparkline-line');
+    svg.append(guide, line);
+    return svg;
+  }
+
+  function renderKartoteka(dialog) {
+    const kartoteka = getKartoteka();
+    const records = kartoteka?.read?.() || [];
+    const summary = kartoteka?.getSummary?.(records) || { total: 0, personalLow: 0, streak: 0, streakTitle: 'svědek bez záznamu' };
+    dialog.replaceChildren();
+
+    const closeButton = document.createElement('button');
+    closeButton.type = 'button';
+    closeButton.className = 'kartoteka-close';
+    closeButton.setAttribute('aria-label', 'Zavřít Kartotéku smažky');
+    closeButton.textContent = '×';
+    closeButton.addEventListener('click', () => dialog.close());
+
+    const header = document.createElement('header');
+    header.className = 'kartoteka-header';
+    const kicker = document.createElement('p');
+    kicker.className = 'kartoteka-kicker';
+    kicker.textContent = 'SPISY // POUZE LOKÁLNĚ';
+    const title = document.createElement('h2');
+    title.id = 'kartotekaTitle';
+    title.textContent = 'Kartotéka smažky';
+    const privacy = document.createElement('p');
+    privacy.className = 'kartoteka-privacy';
+    privacy.textContent = 'Jen verdikt, skóre a čas. Fotky ani body obličeje se sem nikdy nepíšou.';
+    header.append(kicker, title, privacy);
+
+    const summaryGrid = document.createElement('section');
+    summaryGrid.className = 'kartoteka-summary';
+    summaryGrid.setAttribute('aria-label', 'Osobní statistika');
+    const personalLow = document.createElement('div');
+    personalLow.className = 'kartoteka-stat kartoteka-stat-danger';
+    personalLow.innerHTML = `<span>OSOBNÍ DNO</span><strong>${summary.personalLow} %</strong>`;
+    const streak = document.createElement('div');
+    streak.className = 'kartoteka-stat';
+    streak.innerHTML = `<span>DENNÍ ŘETĚZ</span><strong>${summary.streak} <small>${summary.streakTitle}</small></strong>`;
+    summaryGrid.append(personalLow, streak);
+
+    const chart = document.createElement('section');
+    chart.className = 'kartoteka-chart';
+    const chartLabel = document.createElement('div');
+    chartLabel.className = 'kartoteka-chart-label';
+    chartLabel.textContent = records.length ? `INTENZITA // POSLEDNÍCH ${records.length} SPISŮ` : 'INTENZITA // ČEKÁ NA PRVNÍ PRŮSER';
+    chart.append(chartLabel, createKartotekaSparkline(records));
+
+    const list = document.createElement('ol');
+    list.className = 'kartoteka-list';
+    if (!records.length) {
+      const empty = document.createElement('li');
+      empty.className = 'kartoteka-empty';
+      empty.textContent = 'Kartotéka je prázdná. Buď jsi čistý, nebo se serverovna ještě nevzbudila.';
+      list.appendChild(empty);
+    } else {
+      [...records].reverse().forEach((record, index) => {
+        const item = document.createElement('li');
+        item.className = 'kartoteka-record';
+        const score = document.createElement('strong');
+        score.className = 'kartoteka-record-score';
+        score.textContent = `${record.severity} %`;
+        const copy = document.createElement('div');
+        const recordTitle = document.createElement('strong');
+        recordTitle.textContent = record.title;
+        const meta = document.createElement('span');
+        meta.textContent = `SPIS ${String(records.length - index).padStart(2, '0')} · ${formatKartotekaDate(record.date)}`;
+        copy.append(recordTitle, meta);
+        item.append(score, copy);
+        list.appendChild(item);
+      });
+    }
+
+    dialog.setAttribute('aria-labelledby', title.id);
+    dialog.append(closeButton, header, summaryGrid, chart, list);
+  }
+
+  function setupKartoteka() {
+    if (!elements.footer || document.getElementById('kartotekaButton')) return;
+
+    const button = document.createElement('button');
+    button.id = 'kartotekaButton';
+    button.type = 'button';
+    button.className = 'kartoteka-trigger';
+    button.textContent = 'Otevřít kartotéku smažky';
+
+    const dialog = document.createElement('dialog');
+    dialog.id = 'kartoteka';
+    dialog.className = 'kartoteka-dialog';
+    dialog.setAttribute('aria-label', 'Kartotéka smažky');
+    dialog.addEventListener('cancel', (event) => {
+      event.preventDefault();
+      dialog.close();
+    });
+    dialog.addEventListener('close', () => button.focus({ preventScroll: true }));
+
+    button.addEventListener('click', () => {
+      renderKartoteka(dialog);
+      dialog.showModal();
+    });
+
+    elements.footer.appendChild(button);
+    document.body.appendChild(dialog);
+  }
+
+  function saveKartotekaRecord(title, severity) {
+    getKartoteka()?.add?.({ title, severity, date: new Date().toISOString() });
   }
 
   function hideResult({ restoreFocus = false } = {}) {
@@ -619,6 +763,7 @@
       effectProfile
     };
     state.effectProfile = effectProfile;
+    saveKartotekaRecord(category, severity);
     elements.result.replaceChildren();
 
     const closeButton = document.createElement('button');
@@ -1063,6 +1208,8 @@
     }
   });
 
+  setupKartoteka();
+
   window.SmazkaApp = {
     elements,
     state,
@@ -1079,7 +1226,8 @@
     setHint,
     setBusy,
     syncWeekdayText,
-    getTodayForms
+    getTodayForms,
+    renderKartoteka
   };
 
   window.addEventListener('pagehide', () => stopCamera());
