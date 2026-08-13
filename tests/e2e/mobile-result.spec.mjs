@@ -169,16 +169,29 @@ test('mobile result keeps the visible detail control and compact action dock ins
   expect(detailActionColumns).toHaveLength(2);
   expect(await toolButtons.count()).toBe(3);
 
-  const [primaryToolBox, originalToolBox, warpedToolBox] = await Promise.all([
-    toolButtons.nth(0).boundingBox(),
-    toolButtons.nth(1).boundingBox(),
-    toolButtons.nth(2).boundingBox()
-  ]);
-  const [detailShareBox, detailDestroyBox, detailRetryBox] = await Promise.all([
-    share.boundingBox(),
-    destroy.boundingBox(),
-    retry.boundingBox()
-  ]);
+  /* Read the grid in one WebKit layout frame so async image settling cannot mix coordinates. */
+  const detailGeometry = await page.evaluate(() => {
+    const box = (node) => {
+      const rect = node?.getBoundingClientRect();
+      return rect ? {
+        x: rect.x,
+        y: rect.y,
+        width: rect.width,
+        height: rect.height
+      } : null;
+    };
+
+    return {
+      tools: Array.from(document.querySelectorAll('.result-tool-grid .result-tool-button')).map(box),
+      actions: [
+        document.querySelector('.share-button'),
+        document.querySelector('.destroy-more-button'),
+        document.querySelector('.new-scan-button')
+      ].map(box)
+    };
+  });
+  const [primaryToolBox, originalToolBox, warpedToolBox] = detailGeometry.tools;
+  const [detailShareBox, detailDestroyBox, detailRetryBox] = detailGeometry.actions;
   expect(primaryToolBox && originalToolBox && warpedToolBox && detailShareBox && detailDestroyBox && detailRetryBox).toBeTruthy();
   expect(primaryToolBox.height).toBeGreaterThanOrEqual(44);
   expect(originalToolBox.height).toBeGreaterThanOrEqual(44);
